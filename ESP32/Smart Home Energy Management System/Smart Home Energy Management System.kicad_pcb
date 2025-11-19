@@ -52637,6 +52637,19 @@
 			(justify left bottom mirror)
 		)
 	)
+	(gr_text "JSITECH\njsitech4@gmail.com\n08133520374"
+		(at 145.835 70.42 0)
+		(layer "B.SilkS")
+		(uuid "5b508cb8-bec1-4a2a-b556-1570d21bece7")
+		(effects
+			(font
+				(size 4 2)
+				(thickness 0.5)
+				(bold yes)
+			)
+			(justify bottom mirror)
+		)
+	)
 	(gr_text "TX"
 		(at 131 55.68 90)
 		(layer "B.SilkS")
