@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.8,
-          "height": 1.27,
-          "width": 2.54
+          "drill": 0.0,
+          "height": 4.0,
+          "width": 2.0
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -51,7 +51,13 @@
           "min_clearance": 0.5
         }
       },
-      "diff_pair_dimensions": [],
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.0,
+          "via_gap": 0.0,
+          "width": 0.0
+        }
+      ],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -180,7 +186,11 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [],
+      "track_widths": [
+        0.0,
+        1.0,
+        1.5
+      ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -207,7 +217,12 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [],
+      "via_dimensions": [
+        {
+          "diameter": 0.0,
+          "drill": 0.0
+        }
+      ],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -469,18 +484,206 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 2147483647,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.2,
-        "via_diameter": 0.6,
-        "via_drill": 0.3,
+        "track_width": 1.5,
+        "via_diameter": 2.0,
+        "via_drill": 0.8,
         "wire_width": 6
+      },
+      {
+        "clearance": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "I2C",
+        "pcb_color": "rgb(255, 153, 0)",
+        "priority": 0,
+        "schematic_color": "rgb(255, 176, 0)",
+        "track_width": 1.5,
+        "via_diameter": 2.0,
+        "via_drill": 0.8
+      },
+      {
+        "clearance": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "PWR",
+        "pcb_color": "rgb(255, 20, 3)",
+        "priority": 2,
+        "schematic_color": "rgb(255, 37, 0)",
+        "track_width": 2.0,
+        "via_diameter": 2.5,
+        "via_drill": 0.8
+      },
+      {
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "SIG",
+        "pcb_color": "rgb(4, 255, 32)",
+        "priority": 1,
+        "schematic_color": "rgb(0, 255, 14)",
+        "track_width": 1.5,
+        "via_diameter": 2.0,
+        "via_drill": 0.8
       }
     ],
     "meta": {
       "version": 4
     },
     "net_colors": null,
-    "netclass_assignments": null,
-    "netclass_patterns": []
+    "netclass_assignments": {
+      "+5V": [
+        "PWR"
+      ],
+      "/0%": [
+        "SIG"
+      ],
+      "/10%": [
+        "SIG"
+      ],
+      "/100%": [
+        "SIG"
+      ],
+      "/20%": [
+        "SIG"
+      ],
+      "/30%": [
+        "SIG"
+      ],
+      "/40%": [
+        "SIG"
+      ],
+      "/50%": [
+        "SIG"
+      ],
+      "/60%": [
+        "SIG"
+      ],
+      "/70%": [
+        "SIG"
+      ],
+      "/80%": [
+        "SIG"
+      ],
+      "/90%": [
+        "SIG"
+      ],
+      "/ECHO": [
+        "SIG"
+      ],
+      "/PUMP_ON{slash}OFF": [
+        "SIG"
+      ],
+      "/SCL": [
+        "I2C"
+      ],
+      "/SDA": [
+        "I2C"
+      ],
+      "/TRIG": [
+        "SIG"
+      ],
+      "GND": [
+        "PWR"
+      ],
+      "Net-(D1-K)": [
+        "PWR"
+      ],
+      "Net-(D17-A)": [
+        "PWR"
+      ],
+      "Net-(D2-K)": [
+        "PWR"
+      ],
+      "Net-(J2-Pin_1)": [
+        "PWR"
+      ],
+      "Net-(J2-Pin_2)": [
+        "PWR"
+      ],
+      "VIN": [
+        "PWR"
+      ]
+    },
+    "netclass_patterns": [
+      {
+        "netclass": "PWR",
+        "pattern": "+5V"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "GND"
+      },
+      {
+        "netclass": "I2C",
+        "pattern": "/SDA"
+      },
+      {
+        "netclass": "I2C",
+        "pattern": "/SCL"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/10%"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/20%"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/30%"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/40%"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/50%"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/60%"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/70%"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/80%"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/90%"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/100%"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/TRIG"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/ECH0"
+      },
+      {
+        "netclass": "SIG",
+        "pattern": "/PUMP_ON{slash}OFF"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "VIN"
+      }
+    ]
   },
   "pcbnew": {
     "last_paths": {
@@ -490,7 +693,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "Water Level Monitor and Control Indicator.step",
       "svg": "",
       "vrml": ""
     },
