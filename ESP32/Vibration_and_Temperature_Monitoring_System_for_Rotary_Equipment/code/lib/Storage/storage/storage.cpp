@@ -19,6 +19,8 @@ namespace storage
   static const char *motorLogFile = "/motor_log.csv";
   static const char *analysisLogFile = "/analysis_log.csv";
   static const char *eventLogFile = "/event_log.csv";
+  static const char *settingsFile = "/threshold_settings.cfg";
+  static bool savedThresholdSettings = false;
 
   static const char *backendName = "INTERNAL FLASH";
 
@@ -122,6 +124,59 @@ namespace storage
         "message");
   }
 
+  static bool readSettingFloat(const String &contents, const char *key, float &value)
+  {
+    String prefix = String(key) + "=";
+    int start = contents.indexOf(prefix);
+    if (start < 0)
+      return false;
+
+    start += prefix.length();
+    int end = contents.indexOf('\n', start);
+    String text = end < 0 ? contents.substring(start) : contents.substring(start, end);
+    char *parseEnd = nullptr;
+    float parsed = strtof(text.c_str(), &parseEnd);
+
+    if (parseEnd == text.c_str() ||
+        (*parseEnd != '\0' && *parseEnd != '\r') ||
+        !isfinite(parsed))
+      return false;
+
+    value = parsed;
+    return true;
+  }
+
+  static void loadThresholdSettings()
+  {
+    savedThresholdSettings = false;
+
+    if (!fileExists(settingsFile))
+      return;
+
+    File file = activeFS->open(settingsFile, FILE_READ);
+    if (!file)
+      return;
+
+    String contents = file.readString();
+    file.close();
+
+    float tempWarning;
+    float tempFault;
+    float vibrationWarning;
+    float vibrationFault;
+
+    if (!readSettingFloat(contents, "temp_warning_c", tempWarning) ||
+        !readSettingFloat(contents, "temp_fault_c", tempFault) ||
+        !readSettingFloat(contents, "vibration_warning_g", vibrationWarning) ||
+        !readSettingFloat(contents, "vibration_fault_g", vibrationFault) ||
+        tempFault <= tempWarning || vibrationWarning <= 0.0f || vibrationFault <= vibrationWarning)
+      return;
+
+    maintenance_manager::setTemperatureLimits(tempWarning, tempFault);
+    maintenance_manager::setVibrationLimits(vibrationWarning, vibrationFault);
+    savedThresholdSettings = true;
+  }
+
   void begin()
   {
     ready = false;
@@ -139,6 +194,7 @@ namespace storage
     ready = true;
 
     createHeaders();
+    loadThresholdSettings();
 
     logEvent(
         "BOOT",
@@ -346,6 +402,36 @@ namespace storage
     {
       logInterval = intervalMs;
     }
+  }
+
+  bool saveThresholdSettings(float tempWarningC, float tempFaultC,
+                             float vibrationWarningG, float vibrationFaultG)
+  {
+    if (!hasActiveStorage() || tempFaultC <= tempWarningC ||
+        vibrationWarningG <= 0.0f || vibrationFaultG <= vibrationWarningG)
+      return false;
+
+    File file = activeFS->open(settingsFile, FILE_WRITE);
+    if (!file)
+      return false;
+
+    file.print("temp_warning_c=");
+    file.println(tempWarningC, 2);
+    file.print("temp_fault_c=");
+    file.println(tempFaultC, 2);
+    file.print("vibration_warning_g=");
+    file.println(vibrationWarningG, 4);
+    file.print("vibration_fault_g=");
+    file.println(vibrationFaultG, 4);
+    file.close();
+
+    savedThresholdSettings = true;
+    return true;
+  }
+
+  bool hasSavedThresholdSettings()
+  {
+    return savedThresholdSettings;
   }
 
   const char *getFileName()

@@ -20,6 +20,11 @@ namespace storage
 
   void setLogInterval(unsigned long intervalMs);
 
+  // Thresholds are kept in LittleFS so they survive a restart or power loss.
+  bool saveThresholdSettings(float tempWarningC, float tempFaultC,
+                             float vibrationWarningG, float vibrationFaultG);
+  bool hasSavedThresholdSettings();
+
   const char *getFileName();
   const char *getMotorLogFileName();
   const char *getAnalysisLogFileName();

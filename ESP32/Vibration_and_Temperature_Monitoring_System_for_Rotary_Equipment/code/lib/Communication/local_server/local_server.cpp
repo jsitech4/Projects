@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WebServer.h>
-
 #include "local_server.h"
 #include "maintenance_manager/maintenance_manager.h"
 #include "temp_sensor/temp_sensor.h"
@@ -399,6 +398,39 @@ body{
     background:var(--good)
 }
 
+.settings-grid{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(130px,1fr));
+    gap:12px;
+    text-align:left
+}
+
+.setting-field label{
+    display:block;
+    font-size:12px;
+    font-weight:700;
+    color:var(--muted);
+    margin-bottom:6px
+}
+
+.setting-field input{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+    background:var(--bg);
+    color:var(--text);
+    font-size:15px
+}
+
+.settings-message{
+    min-height:20px;
+    margin:12px 0 0;
+    color:var(--muted);
+    font-size:13px
+}
+
 pre{
     width:100%;
     background:rgba(100,116,139,.12);
@@ -458,6 +490,10 @@ canvas{
     .span6,
     .span7{
         grid-column:span 12
+    }
+
+    .settings-grid{
+        grid-template-columns:repeat(2,minmax(130px,1fr))
     }
 
     .value{
@@ -752,41 +788,45 @@ while a fault is still active.
 </div>
 
 
-<div class="card span4">
+<div class="card span12">
 
 <div class="label">
-Acceleration X
+Protection Threshold Settings
 </div>
 
-<div class="value" id="x">
--- <span class="unit">g</span>
+<p class="small">
+Set warning and shutdown limits here. Saved values are restored automatically after every restart.
+</p>
+
+<div class="settings-grid">
+
+<div class="setting-field">
+<label for="tempWarning">Temperature warning (°C)</label>
+<input id="tempWarning" type="number" step="0.1" min="-40" max="300" oninput="markSettingsDirty()">
+</div>
+
+<div class="setting-field">
+<label for="tempFault">Temperature shutdown (°C)</label>
+<input id="tempFault" type="number" step="0.1" min="-40" max="300" oninput="markSettingsDirty()">
+</div>
+
+<div class="setting-field">
+<label for="vibrationWarning">Vibration warning (g)</label>
+<input id="vibrationWarning" type="number" step="0.01" min="0.01" max="100" oninput="markSettingsDirty()">
+</div>
+
+<div class="setting-field">
+<label for="vibrationFault">Vibration shutdown (g)</label>
+<input id="vibrationFault" type="number" step="0.01" min="0.01" max="100" oninput="markSettingsDirty()">
 </div>
 
 </div>
 
-
-<div class="card span4">
-
-<div class="label">
-Acceleration Y
+<div class="actions" style="margin-top:14px">
+<button class="btn" onclick="saveSettings()">Save Thresholds</button>
 </div>
 
-<div class="value" id="y">
--- <span class="unit">g</span>
-</div>
-
-</div>
-
-
-<div class="card span4">
-
-<div class="label">
-Acceleration Z
-</div>
-
-<div class="value" id="z">
--- <span class="unit">g</span>
-</div>
+<p class="settings-message" id="settingsMessage">Loading saved settings...</p>
 
 </div>
 
@@ -906,6 +946,7 @@ Lagos State University
 <script>
 
 let points = [];
+let settingsDirty = false;
 
 document.documentElement.setAttribute(
     'data-theme',
@@ -1046,6 +1087,62 @@ async function cmd(url){
 
         console.error(e);
 
+    }
+
+}
+
+function setInputValue(id, value, digits){
+
+    const input = document.getElementById(id);
+
+    if(!settingsDirty && isFinite(Number(value)))
+        input.value = Number(value).toFixed(digits);
+
+}
+
+function markSettingsDirty(){
+    settingsDirty = true;
+    document.getElementById('settingsMessage').textContent =
+        'Unsaved changes. Click Save Thresholds when you are finished.';
+}
+
+async function saveSettings(){
+
+    const tempWarning = Number(document.getElementById('tempWarning').value);
+    const tempFault = Number(document.getElementById('tempFault').value);
+    const vibrationWarning = Number(document.getElementById('vibrationWarning').value);
+    const vibrationFault = Number(document.getElementById('vibrationFault').value);
+    const message = document.getElementById('settingsMessage');
+
+    if(!isFinite(tempWarning) || !isFinite(tempFault) ||
+       !isFinite(vibrationWarning) || !isFinite(vibrationFault) ||
+       tempFault <= tempWarning || vibrationWarning <= 0 || vibrationFault <= vibrationWarning){
+        message.textContent = 'Enter valid limits: each shutdown limit must be higher than its warning limit.';
+        return;
+    }
+
+    try{
+        const query = new URLSearchParams({
+            temp_warning: tempWarning,
+            temp_fault: tempFault,
+            vibration_warning: vibrationWarning,
+            vibration_fault: vibrationFault
+        });
+        const r = await fetch('/api/settings?' + query.toString());
+        const result = await r.json();
+
+        message.textContent = result.ok
+            ? 'Thresholds saved to internal flash and applied.'
+            : (result.error || 'Could not save thresholds.');
+
+        if(result.ok){
+            settingsDirty = false;
+            await loadStatus();
+        }
+    }
+    catch(e){
+        message.textContent = 'Could not save thresholds. Check the dashboard connection.';
+        console.error(e);
     }
 
 }
@@ -1198,34 +1295,15 @@ async function loadStatus(){
                 : 'NO');
 
 
-        document.getElementById(
-            'x'
-        ).innerHTML =
-            fmt(
-                s.vibration1_x_g,
-                2
-            ) +
-            ' <span class="unit">g</span>';
+        setInputValue('tempWarning', s.temperature_warning_c, 1);
+        setInputValue('tempFault', s.temperature_fault_c, 1);
+        setInputValue('vibrationWarning', s.vibration_warning_g, 2);
+        setInputValue('vibrationFault', s.vibration_fault_g, 2);
 
-
-        document.getElementById(
-            'y'
-        ).innerHTML =
-            fmt(
-                s.vibration1_y_g,
-                2
-            ) +
-            ' <span class="unit">g</span>';
-
-
-        document.getElementById(
-            'z'
-        ).innerHTML =
-            fmt(
-                s.vibration1_z_g,
-                2
-            ) +
-            ' <span class="unit">g</span>';
+        if(!settingsDirty && document.getElementById('settingsMessage').textContent === 'Loading saved settings...')
+            document.getElementById('settingsMessage').textContent =
+                s.settings_saved ? 'Saved settings loaded from internal flash.' :
+                'Using default settings. Save thresholds to make them permanent.';
 
 
         points.push({
@@ -1543,35 +1621,20 @@ setInterval(
         vibration_sensor::getSensor2VibrationRMS(),
         3);
 
-    json += ",\"vibration1_x_g\":";
-    json += String(
-        snap.vibration1XG,
-        4);
+    json += ",\"temperature_warning_c\":";
+    json += String(maintenance_manager::getTemperatureWarningLimit(), 1);
 
-    json += ",\"vibration1_y_g\":";
-    json += String(
-        snap.vibration1YG,
-        4);
+    json += ",\"temperature_fault_c\":";
+    json += String(maintenance_manager::getTemperatureFaultLimit(), 1);
 
-    json += ",\"vibration1_z_g\":";
-    json += String(
-        snap.vibration1ZG,
-        4);
+    json += ",\"vibration_warning_g\":";
+    json += String(maintenance_manager::getVibrationWarningLimit(), 2);
 
-    json += ",\"vibration2_x_g\":";
-    json += String(
-        snap.vibration2XG,
-        4);
+    json += ",\"vibration_fault_g\":";
+    json += String(maintenance_manager::getVibrationFaultLimit(), 2);
 
-    json += ",\"vibration2_y_g\":";
-    json += String(
-        snap.vibration2YG,
-        4);
-
-    json += ",\"vibration2_z_g\":";
-    json += String(
-        snap.vibration2ZG,
-        4);
+    json += ",\"settings_saved\":";
+    json += storage::hasSavedThresholdSettings() ? "true" : "false";
 
     json += ",\"risk_score\":";
     json += String(
@@ -1777,6 +1840,62 @@ setInterval(
         "{\"ok\":true}");
   }
 
+  static bool getFloatArgument(const char *name, float &value)
+  {
+    if (!server.hasArg(name))
+      return false;
+
+    String text = server.arg(name);
+    char *end = nullptr;
+    float parsed = strtof(text.c_str(), &end);
+
+    if (end == text.c_str() || *end != '\0' || !isfinite(parsed))
+      return false;
+
+    value = parsed;
+    return true;
+  }
+
+  static void handleSettings()
+  {
+    sendCors();
+
+    float tempWarning;
+    float tempFault;
+    float vibrationWarning;
+    float vibrationFault;
+
+    bool valid =
+        getFloatArgument("temp_warning", tempWarning) &&
+        getFloatArgument("temp_fault", tempFault) &&
+        getFloatArgument("vibration_warning", vibrationWarning) &&
+        getFloatArgument("vibration_fault", vibrationFault) &&
+        tempWarning >= -40.0f && tempFault <= 300.0f &&
+        tempFault > tempWarning && vibrationWarning > 0.0f &&
+        vibrationFault > vibrationWarning && vibrationFault <= 100.0f;
+
+    if (!valid)
+    {
+      server.send(400, "application/json",
+                  "{\"ok\":false,\"error\":\"Invalid threshold values.\"}");
+      return;
+    }
+
+    if (!storage::saveThresholdSettings(tempWarning, tempFault,
+                                        vibrationWarning, vibrationFault))
+    {
+      server.send(500, "application/json",
+                  "{\"ok\":false,\"error\":\"Could not write settings to internal flash.\"}");
+      return;
+    }
+
+    maintenance_manager::setTemperatureLimits(tempWarning, tempFault);
+    maintenance_manager::setVibrationLimits(vibrationWarning, vibrationFault);
+
+    storage::logEvent("SETTINGS", "Thresholds updated from dashboard.");
+    server.send(200, "application/json", "{\"ok\":true}");
+  }
+
   static void streamCsv(const char *path)
   {
     sendCors();
@@ -1859,6 +1978,11 @@ setInterval(
         "/api/log_now",
         HTTP_GET,
         handleLogNow);
+
+    server.on(
+        "/api/settings",
+        HTTP_GET,
+        handleSettings);
 
     server.on(
         "/download/motor_log.csv",
