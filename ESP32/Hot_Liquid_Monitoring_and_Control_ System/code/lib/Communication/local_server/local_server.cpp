@@ -175,10 +175,6 @@ canvas{width:100%;height:260px;display:block}
       <div class="actions"><button class="btn good" onclick="saveSettings()">Save settings</button><span class="small" id="settingsMessage">Saved settings load automatically at boot.</span></div>
     </div>
 
-    <div class="card span4"><div class="label">Acceleration X</div><div class="value" id="x">-- <span class="unit">g</span></div></div>
-    <div class="card span4"><div class="label">Acceleration Y</div><div class="value" id="y">-- <span class="unit">g</span></div></div>
-    <div class="card span4"><div class="label">Acceleration Z</div><div class="value" id="z">-- <span class="unit">g</span></div></div>
-
     <div class="card span12">
       <div class="label">Trend Graph</div>
       <canvas id="chart" width="1000" height="260"></canvas>

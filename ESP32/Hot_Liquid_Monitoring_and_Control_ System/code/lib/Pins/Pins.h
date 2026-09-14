@@ -8,15 +8,6 @@ namespace Pins
   extern const uint8_t I2C_SDA;
   extern const uint8_t I2C_SCL;
 
-  extern const uint8_t ADXL345_INT;
-  extern const uint8_t ZMCT103C_ADC;
-  extern const uint8_t DS18B20_DATA;
-
-  extern const uint8_t SD_CS;
-  extern const uint8_t SD_MOSI;
-  extern const uint8_t SD_SCK;
-  extern const uint8_t SD_MISO;
-
   extern const uint8_t SPI_CS;
   extern const uint8_t SPI_MOSI;
   extern const uint8_t SPI_SCK;
@@ -26,10 +17,6 @@ namespace Pins
   extern const uint8_t ULTRASONIC_ECHO;
 
   extern const uint8_t BUZZER;
-
-  extern const uint8_t ENCODER_CLK;
-  extern const uint8_t ENCODER_DT;
-  extern const uint8_t ENCODER_SW;
 
   extern const uint8_t RELAY;
   extern const uint8_t STATUS_LED;

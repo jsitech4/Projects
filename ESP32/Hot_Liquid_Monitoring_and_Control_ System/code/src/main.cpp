@@ -3,8 +3,6 @@
 #include "Pins.h"
 #include "temp_sensor/temp_sensor.h"
 #include "ultrasonic_sensor/ultrasonic_sensor.h"
-#include "current_sensor/current_sensor.h"
-#include "rotary_encoder/rotary_encoder.h"
 #include "buzzer/buzzer.h"
 #include "load_relay/load_relay.h"
 #include "lcd_screen/lcd_screen.h"
@@ -30,70 +28,22 @@ static void printSerialReport()
   lastSerialReport = now;
 
   maintenance_manager::Snapshot snap = maintenance_manager::getSnapshot();
-
-  Serial.println();
-  // Serial.println("========== MOTOR PM STATUS ==========");
-  // Serial.print("Uptime: ");
-  // Serial.print(now / 1000);
-  // Serial.println(" s");
-
-  // Serial.print("Temp: ");
-  if (snap.tempValid)
-  {
-    // Serial.print(snap.temperatureC, 2);
-    // Serial.println(" C");
-  }
-  else
-  {
-    // Serial.println("N/A");
-  }
-
-  // Serial.print("Current: ");
-  // Serial.print(snap.currentA, 3);
-  // Serial.println(" A");
-
-  // Serial.print("Vibration RMS: ");
-  // Serial.print(snap.vibrationRmsG, 3);
-  // Serial.println(" g");
-
-  // Serial.print("Relay: ");
-  // Serial.println(load_relay::isOn() ? "ON" : "OFF");
-
-  // Serial.print("Storage Backend: ");
-  // Serial.println(sd_card::getBackendName());
-
-  // Serial.print("SD Ready: ");
-  // Serial.println(sd_card::isSdReady() ? "YES" : "NO");
-
-  // Serial.print("Internal Ready: ");
-  // Serial.println(sd_card::isInternalReady() ? "YES" : "NO");
-
-  // Serial.print("Dashboard: http://");
-  // Serial.println(local_server::getIp());
-  // Serial.println("=====================================");
 }
 
 void setup()
 {
-  Serial.begin(115200);
   delay(300);
-
-  // Serial.println();
-  // Serial.println("Booting Industrial Motor Predictive Maintenance System...");
 
   Pins::begin();
   Wire.begin(Pins::I2C_SDA, Pins::I2C_SCL);
 
   sleep_wake::begin();
   reset::begin();
-
-  rotary_encoder::begin();
   buzzer::begin();
   load_relay::begin();
   led_indicator::begin();
 
   temp_sensor::begin();
-  current_sensor::begin();
   ultrasonic_sensor::begin(Pins::ULTRASONIC_TRIG, Pins::ULTRASONIC_ECHO);
 
   maintenance_manager::begin();
@@ -115,10 +65,7 @@ void setup()
 
 void loop()
 {
-  rotary_encoder::update();
-
   temp_sensor::update();
-  current_sensor::update();
   ultrasonic_sensor::update();
   maintenance_manager::update();
   load_relay::update();
@@ -132,8 +79,6 @@ void loop()
 
   sleep_wake::update();
   reset::update();
-
-  // printSerialReport();
 
   yield();
 }

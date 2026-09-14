@@ -3,15 +3,14 @@
 #include "maintenance_manager.h"
 #include "temp_sensor/temp_sensor.h"
 #include "ultrasonic_sensor/ultrasonic_sensor.h"
-#include "current_sensor/current_sensor.h"
 #include "load_relay/load_relay.h"
 
 namespace maintenance_manager
 {
   static const float EMPTY_DISTANCE_CM = 40.0f;
-  static const float FULL_DISTANCE_CM = 5.0f;
-  static float fullLevelPercent = 90.0f;
-  static float lowLevelPercent = 20.0f;
+  static const float FULL_DISTANCE_CM = 2.0f;
+  static float fullLevelPercent = 100.0f;
+  static float lowLevelPercent = 10.0f;
   static RelayLatchMode relayLatchMode = LATCH_OFF;
   static bool latchTriggered = false;
   static Snapshot snap;
@@ -53,11 +52,6 @@ namespace maintenance_manager
     snap.temperatureC = temp_sensor::getTemperatureC();
     snap.distanceCm = ultrasonic_sensor::getDistanceCm();
     snap.levelPercent = calculateLevel(snap.distanceCm);
-    snap.currentA = current_sensor::getCurrentA();
-    snap.vibrationRmsG = 0.0f;
-    snap.xG = 0.0f;
-    snap.yG = 0.0f;
-    snap.zG = 0.0f;
     snap.tempValid = temp_sensor::isValid();
     snap.levelValid = snap.distanceCm > 0.0f;
     snap.vibrationReady = false;
