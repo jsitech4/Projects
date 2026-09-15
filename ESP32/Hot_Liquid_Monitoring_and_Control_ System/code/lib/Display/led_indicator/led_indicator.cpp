@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "Pins.h"
 #include "led_indicator.h"
-#include "maintenance_manager/maintenance_manager.h"
+#include "device_manager/device_manager.h"
 
 namespace led_indicator
 {

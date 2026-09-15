@@ -10,7 +10,7 @@
 #include "storage/storage.h"
 #include "sleep_wake/sleep_wake.h"
 #include "reset/reset.h"
-#include "maintenance_manager/maintenance_manager.h"
+#include "device_manager/device_manager.h"
 #include "local_server/local_server.h"
 
 static unsigned long lastSerialReport = 0;
@@ -27,7 +27,7 @@ static void printSerialReport()
 
   lastSerialReport = now;
 
-  maintenance_manager::Snapshot snap = maintenance_manager::getSnapshot();
+  device_manager::Snapshot snap = device_manager::getSnapshot();
 }
 
 void setup()
@@ -46,20 +46,20 @@ void setup()
   temp_sensor::begin();
   ultrasonic_sensor::begin(Pins::ULTRASONIC_TRIG, Pins::ULTRASONIC_ECHO);
 
-  maintenance_manager::begin();
+  device_manager::begin();
   storage::begin();
-  float fullLevel = maintenance_manager::getFullLevelPercent();
-  float lowLevel = maintenance_manager::getLowLevelPercent();
-  uint8_t latchMode = maintenance_manager::getRelayLatchMode();
+  float fullLevel = device_manager::getFullLevelPercent();
+  float lowLevel = device_manager::getLowLevelPercent();
+  uint8_t latchMode = device_manager::getRelayLatchMode();
   if (storage::loadTankSettings(fullLevel, lowLevel, latchMode))
   {
-    maintenance_manager::setLevelThresholds(fullLevel, lowLevel);
-    maintenance_manager::setRelayLatchMode(static_cast<maintenance_manager::RelayLatchMode>(latchMode));
+    device_manager::setLevelThresholds(fullLevel, lowLevel);
+    device_manager::setRelayLatchMode(static_cast<device_manager::RelayLatchMode>(latchMode));
   }
   local_server::begin();
   lcd_screen::begin();
 
-  storage::logEvent("BOOT", "Predictive maintenance firmware started.");
+  storage::logEvent("BOOT", "Hot Liquid Monitoring and Control System.");
   buzzer::beep(120);
 }
 
@@ -67,7 +67,7 @@ void loop()
 {
   temp_sensor::update();
   ultrasonic_sensor::update();
-  maintenance_manager::update();
+  device_manager::update();
   load_relay::update();
 
   buzzer::update();

@@ -6,7 +6,7 @@
 #include "temp_sensor/temp_sensor.h"
 #include "ultrasonic_sensor/ultrasonic_sensor.h"
 #include "load_relay/load_relay.h"
-#include "maintenance_manager/maintenance_manager.h"
+#include "device_manager/device_manager.h"
 #include "local_server/local_server.h"
 
 namespace lcd_screen
@@ -36,7 +36,7 @@ namespace lcd_screen
 
   static void drawScreen()
   {
-    maintenance_manager::Snapshot snap = maintenance_manager::getSnapshot();
+    device_manager::Snapshot snap = device_manager::getSnapshot();
 
     if (screen == 0)
     {

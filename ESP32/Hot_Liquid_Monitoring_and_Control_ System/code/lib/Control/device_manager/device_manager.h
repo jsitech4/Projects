@@ -1,9 +1,9 @@
-#ifndef MAINTENANCE_MANAGER_H
-#define MAINTENANCE_MANAGER_H
+#ifndef DEVICE_MANAGER_H
+#define DEVICE_MANAGER_H
 
 #include <Arduino.h>
 
-namespace maintenance_manager
+namespace device_manager
 {
   enum RelayLatchMode
   {

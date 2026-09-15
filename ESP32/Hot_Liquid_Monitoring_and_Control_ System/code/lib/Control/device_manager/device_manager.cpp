@@ -1,11 +1,11 @@
 #include <Arduino.h>
 #include <math.h>
-#include "maintenance_manager.h"
+#include "device_manager.h"
 #include "temp_sensor/temp_sensor.h"
 #include "ultrasonic_sensor/ultrasonic_sensor.h"
 #include "load_relay/load_relay.h"
 
-namespace maintenance_manager
+namespace device_manager
 {
   static const float EMPTY_DISTANCE_CM = 40.0f;
   static const float FULL_DISTANCE_CM = 2.0f;
