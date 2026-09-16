@@ -2,78 +2,61 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hot Liquid Monitoring and Control</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap"
-    rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Hot Liquid Monitoring and Control System</title>
+
   <style>
     :root {
-      --ink: #14232b;
-      --muted: #6a7b80;
-      --paper: #f3f5ef;
-      --panel: #ffffff;
-      --line: #dce5e1;
-      --teal: #087f78;
-      --teal-dark: #075d5a;
-      --cyan: #30c6d3;
-      --amber: #e5a229;
-      --orange: #ef6c3e;
-      --red: #d9504b;
-      --green: #268b65;
-      --shadow: 0 18px 45px rgba(20, 35, 43, .08);
-    }
-
-    [data-theme="dark"] {
-      --ink: #e9f2ef;
-      --muted: #9eb1b0;
-      --paper: #101c20;
-      --panel: #17282c;
-      --line: #2b4144;
-      --teal: #47c2b5;
-      --teal-dark: #8be0d6;
-      --cyan: #43d7e3;
-      --shadow: 0 18px 45px rgba(0, 0, 0, .22);
+      --bg: #07111b;
+      --panel: #0d1b29;
+      --panel-2: #112437;
+      --border: #20384d;
+      --text: #e8f1f8;
+      --muted: #8ea6ba;
+      --accent: #39a9ff;
+      --green: #20c997;
+      --orange: #ff9f43;
+      --red: #ff5c5c;
+      --yellow: #ffd166;
+      --blue: #4dabf7;
+      --line: #29465d;
+      --shadow: 0 12px 30px rgba(0, 0, 0, .25);
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html {
-      background: var(--paper);
-    }
-
     body {
       margin: 0;
-      min-width: 320px;
-      background:
-        linear-gradient(120deg, rgba(8, 127, 120, .07), transparent 30%),
-        radial-gradient(circle at 82% 2%, rgba(229, 162, 41, .12), transparent 24%),
-        var(--paper);
-      color: var(--ink);
-      font-family: Manrope, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    button {
-      font: inherit;
-    }
-
-    .shell {
-      max-width: 1360px;
+    .container {
+      width: min(1400px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 28px 28px 44px;
+      padding: 24px 0 40px;
     }
 
-    .topbar {
+    /* HEADER */
+
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 24px;
-      margin-bottom: 34px;
+      gap: 20px;
+      margin-bottom: 24px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(145deg,
+          #0e2030,
+          #091622);
+      box-shadow: var(--shadow);
     }
 
     .brand {
@@ -82,1023 +65,2186 @@
       gap: 14px;
     }
 
-    .brand-mark {
-      width: 46px;
-      height: 46px;
+    .mark {
       display: grid;
       place-items: center;
+      width: 48px;
+      height: 48px;
       border-radius: 14px;
-      color: white;
-      background: var(--teal);
-      box-shadow: 0 8px 20px rgba(8, 127, 120, .25);
+      background: #123d5e;
+      border: 1px solid #245a7e;
+      font-size: 24px;
     }
 
-    .brand-mark svg {
-      width: 28px;
-      height: 28px;
-    }
-
-    .eyebrow {
-      margin: 0 0 3px;
-      color: var(--teal);
-      font: 500 11px/1 DM Mono, monospace;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-    }
-
-    h1,
-    h2,
-    p {
-      margin-top: 0;
-    }
-
-    h1 {
-      margin-bottom: 0;
-      font-size: clamp(22px, 3vw, 34px);
-      letter-spacing: -.04em;
-      line-height: 1.05;
-    }
-
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .connection {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 13px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--panel);
-      color: var(--muted);
-      font-size: 12px;
+    .brand h1 {
+      margin: 0;
+      font-size: 21px;
       font-weight: 700;
     }
 
-    .dot {
-      width: 8px;
-      height: 8px;
+    .brand p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #102638;
+      border: 1px solid var(--border);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: var(--green);
-      box-shadow: 0 0 0 4px rgba(38, 139, 101, .13);
+      box-shadow: 0 0 12px rgba(32, 201, 151, .7);
     }
 
-    .icon-btn {
-      width: 40px;
-      height: 40px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      color: var(--ink);
-      background: var(--panel);
-      cursor: pointer;
-    }
+    /* GRID */
 
-    .icon-btn:hover,
-    .control-btn:hover {
-      border-color: var(--teal);
-      transform: translateY(-1px);
-    }
-
-    .hero {
+    .grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.55fr) minmax(310px, .8fr);
-      gap: 18px;
-      margin-bottom: 18px;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
     }
 
-    .panel {
-      border: 1px solid var(--line);
-      border-radius: 24px;
+    .card {
       background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 18px;
       box-shadow: var(--shadow);
     }
 
-    .tank-panel {
-      min-height: 470px;
-      padding: 28px;
-      position: relative;
-      overflow: hidden;
+    .span-3 {
+      grid-column: span 3;
     }
 
-    .tank-panel:after {
-      content: '';
-      position: absolute;
-      width: 250px;
-      height: 250px;
-      right: -95px;
-      bottom: -135px;
-      border: 1px solid rgba(8, 127, 120, .12);
-      border-radius: 50%;
-      box-shadow: 0 0 0 28px rgba(8, 127, 120, .04), 0 0 0 56px rgba(8, 127, 120, .025);
+    .span-4 {
+      grid-column: span 4;
     }
 
-    .panel-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      position: relative;
-      z-index: 1;
+    .span-6 {
+      grid-column: span 6;
     }
 
-    .panel-head h2 {
-      margin: 0;
-      font-size: 19px;
-      letter-spacing: -.03em;
+    .span-8 {
+      grid-column: span 8;
     }
 
-    .panel-note {
+    .span-12 {
+      grid-column: span 12;
+    }
+
+    .card-title {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 10px;
+    }
+
+    .value {
+      font-size: 31px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .unit {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .sub {
       color: var(--muted);
       font-size: 12px;
     }
 
-    .status {
+    /* STATUS */
+
+    .state {
       display: inline-flex;
       align-items: center;
-      padding: 8px 11px;
-      border-radius: 999px;
-      font: 500 11px DM Mono, monospace;
-      text-transform: uppercase;
-      letter-spacing: .08em;
+      gap: 7px;
+      padding: 7px 11px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 10px;
     }
 
-    .status.normal {
-      color: #126846;
-      background: #dff4e8;
+    .state.normal {
+      color: var(--green);
+      background: rgba(32, 201, 151, .12);
+      border: 1px solid rgba(32, 201, 151, .25);
     }
 
-    .status.warning {
-      color: #8a5e0b;
-      background: #fff0c9;
+    .state.low {
+      color: var(--blue);
+      background: rgba(77, 171, 247, .12);
+      border: 1px solid rgba(77, 171, 247, .25);
     }
 
+    .state.high {
+      color: var(--red);
+      background: rgba(255, 92, 92, .12);
+      border: 1px solid rgba(255, 92, 92, .25);
+    }
 
-    .tank-stage {
-      min-height: 330px;
+    .state.warning {
+      color: var(--yellow);
+      background: rgba(255, 209, 102, .12);
+      border: 1px solid rgba(255, 209, 102, .25);
+    }
+
+    /* TANK */
+
+    .tank-wrapper {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: clamp(38px, 9vw, 125px);
-      padding: 30px 10px 0;
-      position: relative;
-      z-index: 1;
+      gap: 25px;
     }
 
     .tank {
-      width: 190px;
-      height: 278px;
+      width: 115px;
+      height: 185px;
+      border: 3px solid #35546c;
+      border-radius: 12px 12px 20px 20px;
       position: relative;
       overflow: hidden;
-      border: 4px solid var(--teal-dark);
-      border-radius: 24px 24px 38px 38px;
-      background: linear-gradient(90deg, rgba(255, 255, 255, .5), rgba(8, 127, 120, .04) 52%, rgba(255, 255, 255, .65));
-      box-shadow: inset 10px 0 15px rgba(255, 255, 255, .4), 12px 16px 26px rgba(20, 35, 43, .12);
+      background: #08141f;
+      flex-shrink: 0;
     }
 
-    .tank:before {
-      content: '';
+    .tank-water {
       position: absolute;
-      left: 28px;
-      right: 28px;
-      top: -8px;
-      height: 17px;
-      border: 3px solid var(--teal-dark);
-      border-radius: 50%;
-      background: var(--panel);
-      z-index: 2;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      background: linear-gradient(to top,
+          #146b96,
+          #239bd0);
+      transition: height .4s ease;
     }
 
-    .tank:after {
-      content: '';
-      position: absolute;
-      top: 20px;
-      bottom: 16px;
-      left: 21px;
-      width: 8px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, .65);
-    }
-
-    .liquid {
-      position: absolute;
-      inset: auto 0 0;
-      height: 64%;
-      background: linear-gradient(180deg, #56dbe0 0%, #20b8c5 20%, #087f9c 100%);
-      transition: height .5s ease;
-    }
-
-    .liquid:before {
-      content: '';
-      position: absolute;
-      width: 120%;
-      height: 22px;
-      top: -10px;
-      left: -10%;
-      border-radius: 50%;
-      background: rgba(173, 246, 242, .75);
-      animation: ripple 3.5s ease-in-out infinite;
-    }
-
-    .tank-scale {
-      position: absolute;
-      right: -37px;
-      inset-block: 32px 22px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      color: var(--muted);
-      font: 11px DM Mono, monospace;
-    }
-
-    .tank-scale span:before {
-      content: '';
-      display: inline-block;
-      width: 12px;
-      margin-right: 5px;
-      border-top: 1px solid var(--line);
-      vertical-align: middle;
-    }
-
-    .tank-readout {
+    .tank-level-text {
       position: absolute;
       inset: 0;
       display: grid;
-      place-content: center;
-      text-align: center;
-      z-index: 3;
-      color: white;
-      text-shadow: 0 2px 7px rgba(0, 70, 90, .7);
-    }
-
-    .tank-readout strong {
-      font-size: 44px;
-      line-height: .95;
-      letter-spacing: -.07em;
-    }
-
-    .tank-readout span {
-      margin-top: 7px;
-      font: 12px DM Mono, monospace;
-      letter-spacing: .08em;
-    }
-
-    .valve-assembly {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 128px;
-    }
-
-    .pipe {
-      width: 112px;
-      height: 18px;
-      border: 5px solid var(--teal-dark);
-      border-radius: 8px;
-      background: rgba(8, 127, 120, .12);
-    }
-
-    .valve-wheel {
-      width: 78px;
-      height: 78px;
-      margin: -2px 0;
-      display: grid;
       place-items: center;
-      border: 7px solid var(--orange);
-      border-radius: 50%;
-      background: var(--panel);
-      box-shadow: inset 0 0 0 7px rgba(239, 108, 62, .12);
-      transition: border-color .3s;
+      z-index: 2;
+      font-size: 25px;
+      font-weight: 800;
+      text-shadow: 0 2px 5px #000;
     }
 
-    .valve-wheel:before,
-    .valve-wheel:after {
-      content: '';
-      position: absolute;
-      width: 4px;
-      height: 93px;
-      border-radius: 4px;
-      background: var(--orange);
-      transform: rotate(45deg);
+    .tank-info {
+      flex: 1;
     }
 
-    .valve-wheel:after {
-      transform: rotate(-45deg);
-    }
-
-    .valve-wheel.open {
-      border-color: var(--green);
-    }
-
-    .valve-wheel.open:before,
-    .valve-wheel.open:after {
-      background: var(--green);
-    }
-
-    .valve-caption {
-      margin-top: 13px;
-      text-align: center;
-    }
-
-    .valve-caption strong {
-      display: block;
-      font-size: 15px;
-    }
-
-    .valve-caption span {
-      color: var(--muted);
-      font: 11px DM Mono, monospace;
-    }
-
-    .control-panel {
-      padding: 28px;
+    .tank-info-row {
       display: flex;
-      flex-direction: column;
       justify-content: space-between;
-    }
-
-    .control-panel h2 {
-      margin: 0;
-      font-size: 19px;
-    }
-
-    .control-copy {
-      max-width: 270px;
-      margin: 9px 0 26px;
-      color: var(--muted);
+      padding: 9px 0;
+      border-bottom: 1px solid var(--line);
       font-size: 13px;
-      line-height: 1.6;
     }
 
-    .control-state {
+    .tank-info-row:last-child {
+      border-bottom: none;
+    }
+
+    .tank-info-row span:first-child {
+      color: var(--muted);
+    }
+
+    /* RELAY */
+
+    .relay-box {
       display: flex;
       align-items: center;
-      gap: 13px;
-      padding: 15px 0;
-      border-block: 1px solid var(--line);
+      justify-content: space-between;
+      padding: 16px;
+      border-radius: 14px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
     }
 
-    .state-light {
-      width: 14px;
-      height: 14px;
+    .relay-indicator {
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
-      background: var(--red);
-      box-shadow: 0 0 0 6px rgba(217, 80, 75, .12);
+      background: #3b4b59;
     }
 
-    .state-light.on {
+    .relay-indicator.on {
       background: var(--green);
-      box-shadow: 0 0 0 6px rgba(38, 139, 101, .12);
+      box-shadow: 0 0 15px rgba(32, 201, 151, .8);
     }
 
-    .control-state strong {
-      display: block;
-      font-size: 15px;
+    .relay-text {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .control-state span {
+    .relay-label {
+      font-weight: 700;
+    }
+
+    .relay-state {
       color: var(--muted);
       font-size: 12px;
     }
 
-    .control-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 22px;
-    }
+    /* BUTTON */
 
-    .control-btn {
-      min-height: 48px;
-      border: 1px solid var(--line);
-      border-radius: 13px;
-      color: var(--ink);
-      background: transparent;
+    button {
+      border: 0;
       cursor: pointer;
-      font-weight: 800;
-      transition: .2s ease;
-    }
-
-    .control-btn.open {
+      border-radius: 10px;
+      padding: 10px 15px;
+      font-weight: 700;
       color: white;
-      border-color: var(--green);
-      background: var(--green);
+      background: #146ea5;
     }
 
-    .control-btn.close {
-      color: white;
-      border-color: var(--red);
-      background: var(--red);
-      overflow-wrap: anywhere;
+    button:hover {
+      opacity: .9;
     }
 
-    .control-btn.reset {
-      grid-column: span 2;
-      color: var(--teal);
-      border-color: rgba(8, 127, 120, .35);
+    button.danger {
+      background: #9b3030;
     }
 
-    .control-btn:disabled {
-      opacity: .45;
-      cursor: not-allowed;
-      transform: none;
+    button.secondary {
+      background: #243b50;
     }
 
-    .settings-panel {
-      padding: 24px;
-      margin-top: 18px;
-    }
+    /* SETTINGS */
 
     .settings-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-top: 18px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
     }
 
-    .setting label {
+    .setting-group {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--panel-2);
+    }
+
+    .setting-group h3 {
+      margin: 0 0 14px;
+      font-size: 14px;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
       display: block;
       margin-bottom: 7px;
       color: var(--muted);
-      font: 500 11px DM Mono, monospace;
-      text-transform: uppercase;
-    }
-
-    .setting input,
-    .setting select {
-      width: 100%;
-      min-height: 43px;
-      padding: 9px 11px;
-      border: 1px solid var(--line);
-      border-radius: 11px;
-      color: var(--ink);
-      background: var(--paper);
-    }
-
-    .settings-actions {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-top: 16px;
-    }
-
-    .save-note {
-      color: var(--muted);
       font-size: 12px;
     }
 
-    .demo-toggle {
+    input,
+    select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 9px;
+      border: 1px solid #29465d;
+      background: #091725;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+    }
+
+    .setting-help {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .settings-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-top: 22px;
+      gap: 15px;
+      margin-top: 17px;
+    }
+
+    .settings-message {
       color: var(--muted);
       font-size: 12px;
     }
 
-    .switch {
-      position: relative;
-      width: 42px;
-      height: 24px;
-    }
+    /* GRAPH */
 
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      inset: 0;
-      border-radius: 20px;
-      background: var(--line);
-      cursor: pointer;
-      transition: .2s;
-    }
-
-    .slider:before {
-      content: '';
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      left: 3px;
-      top: 3px;
-      border-radius: 50%;
-      background: white;
-      transition: .2s;
-    }
-
-    input:checked+.slider {
-      background: var(--teal);
-    }
-
-    input:checked+.slider:before {
-      transform: translateX(18px);
-    }
-
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .metric {
-      padding: 20px 21px;
-      min-height: 142px;
-    }
-
-    .metric-label {
-      color: var(--muted);
-      font: 500 11px DM Mono, monospace;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    .metric-value {
-      margin: 18px 0 7px;
-      font-size: 30px;
-      font-weight: 800;
-      letter-spacing: -.06em;
-    }
-
-    .metric-value small {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0;
-    }
-
-    .metric-foot {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .metric-foot.good {
-      color: var(--green);
-    }
-
-    .metric-foot.warn {
-      color: var(--orange);
-    }
-
-    .lower-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr);
-      gap: 18px;
-    }
-
-    .trend-panel,
-    .events-panel {
-      padding: 24px;
-    }
-
-    .trend-panel h2,
-    .events-panel h2 {
-      margin: 0;
-      font-size: 17px;
-      letter-spacing: -.03em;
-    }
-
-    .chart-wrap {
-      height: 235px;
-      margin-top: 15px;
+    .graph-container {
+      height: 280px;
       position: relative;
     }
 
     canvas {
       width: 100%;
       height: 100%;
+      display: block;
     }
 
-    .legend {
+    .graph-legend {
       display: flex;
-      gap: 20px;
+      gap: 18px;
       color: var(--muted);
-      font-size: 11px;
+      font-size: 12px;
+      margin-top: 10px;
     }
 
-    .legend span:before {
-      content: '';
+    .legend-dot {
       display: inline-block;
-      width: 8px;
-      height: 8px;
-      margin-right: 6px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
-      background: var(--teal);
+      margin-right: 5px;
     }
 
-    .legend .temp:before {
+    .temp-dot {
       background: var(--orange);
     }
 
-    .event {
-      display: grid;
-      grid-template-columns: 10px 1fr auto;
-      align-items: start;
-      gap: 10px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .event:last-child {
-      border-bottom: 0;
-    }
-
-    .event-dot {
-      width: 8px;
-      height: 8px;
-      margin-top: 5px;
-      border-radius: 50%;
+    .level-dot {
       background: var(--green);
     }
 
-    .event-dot.warn {
-      background: var(--orange);
+    /* LOG */
+
+    .log-container {
+      max-height: 280px;
+      overflow-y: auto;
     }
 
-    .event-dot.bad {
-      background: var(--red);
+    .log-row {
+      display: grid;
+      grid-template-columns: 80px 100px 1fr;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
     }
 
-    .event strong {
-      display: block;
-      font-size: 13px;
-    }
-
-    .event p {
-      margin: 3px 0 0;
+    .log-time {
       color: var(--muted);
+    }
+
+    .log-type {
+      font-weight: 700;
+    }
+
+    .log-message {
+      color: var(--muted);
+    }
+
+    /* FOOTER */
+
+    footer {
+      margin-top: 18px;
+      text-align: center;
+      color: #617b90;
       font-size: 11px;
     }
 
-    .event time {
-      color: var(--muted);
-      font: 11px DM Mono, monospace;
+    @media (max-width: 1000px) {
+
+      .span-3,
+      .span-4 {
+        grid-column: span 6;
+      }
+
+      .span-8,
+      .span-6 {
+        grid-column: span 12;
+      }
     }
 
-    .footer {
-      margin-top: 25px;
-      color: var(--muted);
-      text-align: center;
-      font: 11px DM Mono, monospace;
-    }
+    @media (max-width: 650px) {
+      .container {
+        width: min(100% - 20px, 1400px);
+        padding-top: 10px;
+      }
 
-    @media (max-width: 620px) {
+      .header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .span-3,
+      .span-4,
+      .span-6,
+      .span-8,
+      .span-12 {
+        grid-column: span 12;
+      }
+
       .settings-grid {
         grid-template-columns: 1fr;
       }
 
-      .settings-actions {
-        align-items: flex-start;
+      .tank-wrapper {
         flex-direction: column;
       }
-    }
 
-    @keyframes ripple {
-
-      0%,
-      100% {
-        transform: translateX(-2%);
+      .tank-info {
+        width: 100%;
       }
 
-      50% {
-        transform: translateX(2%);
-      }
-    }
-
-    @media (max-width: 980px) {
-
-      .hero,
-      .lower-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .metrics {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 620px) {
-      .shell {
-        padding: 18px 14px 30px;
-      }
-
-      .topbar {
-        align-items: flex-start;
-        margin-bottom: 23px;
-      }
-
-      .connection {
-        display: none;
-      }
-
-      .tank-panel,
-      .control-panel,
-      .trend-panel,
-      .events-panel {
-        padding: 20px;
-        border-radius: 19px;
-      }
-
-      .tank-stage {
-        gap: 24px;
-        padding-inline: 0;
-      }
-
-      .tank {
-        width: 145px;
-        height: 230px;
-      }
-
-      .tank-scale {
-        right: -31px;
-      }
-
-      .valve-assembly {
-        min-width: 92px;
-        transform: scale(.82);
-      }
-
-      .metrics {
-        gap: 10px;
-      }
-
-      .metric {
-        min-height: 126px;
-        padding: 16px;
-      }
-
-      .metric-value {
-        margin-top: 14px;
-        font-size: 25px;
-      }
-
-      .panel-head {
-        flex-direction: column;
+      .log-row {
+        grid-template-columns: 65px 75px 1fr;
       }
     }
   </style>
 </head>
 
 <body>
-  <main class="shell">
-    <header class="topbar">
+
+  <div class="container">
+
+    <!-- HEADER -->
+
+    <header class="header">
+
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" fill="none">
-            <path d="M7 7h18v18H7z" stroke="currentColor" stroke-width="2.4" />
-            <path d="M10 20c3-3 5 3 8 0s5-3 6-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
-            <path d="M16 3v4M16 25v4M3 16h4M25 16h4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
-          </svg>
+
+        <div class="mark">
+          ♨
         </div>
+
         <div>
-          <p class="eyebrow">ESP32-S3 / LOCAL CONTROL</p>
-          <h1>Hot Liquid Monitoring</h1>
+          <h1>Hot Liquid Monitoring and Control System</h1>
+          <p>Real-time temperature, tank level and automatic control</p>
         </div>
+
       </div>
-      <div class="top-actions">
-        <div class="connection"><span class="dot"></span><span>Demo preview online</span></div>
-        <button class="icon-btn" id="themeButton" type="button" aria-label="Toggle theme"
-          title="Toggle theme">☾</button>
+
+      <div class="system-status">
+        <span class="status-dot"></span>
+        SIMULATION RUNNING
       </div>
+
     </header>
 
-    <section class="hero">
-      <article class="panel tank-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">VESSEL 01</p>
-            <h2>Tank overview</h2><span class="panel-note">Ultrasonic surface measurement</span>
-          </div>
-          <span class="status normal" id="systemStatus">Normal</span>
+
+    <!-- MAIN DASHBOARD -->
+
+    <main class="grid">
+
+
+      <!-- TEMPERATURE -->
+
+      <section class="card span-3">
+
+        <div class="card-title">
+          Temperature
         </div>
-        <div class="tank-stage">
+
+        <div class="value">
+          <span id="temperature">--</span>
+          <span class="unit">°C</span>
+        </div>
+
+        <div class="sub">
+          Sensor:
+          <span id="temperatureSensor">VALID</span>
+        </div>
+
+        <div id="temperatureStatus" class="state normal">
+          NORMAL
+        </div>
+
+      </section>
+
+
+      <!-- DISTANCE -->
+
+      <section class="card span-3">
+
+        <div class="card-title">
+          Ultrasonic Distance
+        </div>
+
+        <div class="value">
+          <span id="distance">--</span>
+          <span class="unit">cm</span>
+        </div>
+
+        <div class="sub">
+          Tank sensor measurement
+        </div>
+
+        <div id="distanceStatus" class="state normal">
+          VALID
+        </div>
+
+      </section>
+
+
+      <!-- TANK LEVEL -->
+
+      <section class="card span-3">
+
+        <div class="card-title">
+          Tank Level
+        </div>
+
+        <div class="value">
+          <span id="level">--</span>
+          <span class="unit">%</span>
+        </div>
+
+        <div class="sub">
+          Based on configured tank distances
+        </div>
+
+        <div id="tankStatus" class="state normal">
+          NORMAL
+        </div>
+
+      </section>
+
+
+      <!-- RELAY -->
+
+      <section class="card span-3">
+
+        <div class="card-title">
+          Load Relay / Valve
+        </div>
+
+        <div class="relay-box">
+
+          <div class="relay-text">
+
+            <div id="relayIndicator" class="relay-indicator">
+            </div>
+
+            <div>
+              <div class="relay-label" id="relayState">
+                OFF
+              </div>
+
+              <div class="relay-state" id="relayReason">
+                Normal operation
+              </div>
+            </div>
+
+          </div>
+
+          <button id="relayButton" onclick="toggleRelay()">
+            Turn ON
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- TANK VISUALIZATION -->
+
+      <section class="card span-6">
+
+        <div class="card-title">
+          Tank Visualization
+        </div>
+
+        <div class="tank-wrapper">
+
           <div class="tank">
-            <div class="liquid" id="liquid"></div>
-            <div class="tank-readout"><strong id="tankLevel">64%</strong><span>LIQUID LEVEL</span></div>
-            <div class="tank-scale"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span>
+
+            <div id="tankWater" class="tank-water">
             </div>
-          </div>
-          <div class="valve-assembly">
-            <div class="pipe"></div>
-            <div class="valve-wheel" id="valveWheel"></div>
-            <div class="pipe"></div>
-            <div class="valve-caption"><strong id="valveLabel">Valve closed</strong><span id="valveDetail">Relay
-                OFF</span></div>
-          </div>
-        </div>
-      </article>
 
-      <aside class="panel control-panel">
-        <div>
-          <p class="eyebrow">ACTUATOR CONTROL</p>
-          <h2>Outlet valve</h2>
-          <p class="control-copy">The valve follows the physical relay output and can be opened or closed by the
-            operator.</p>
-          <div class="control-state"><span class="state-light" id="stateLight"></span>
-            <div><strong id="controlState">Closed</strong><span id="controlSubtext">Ready for operator command</span>
+            <div id="tankLevelText" class="tank-level-text">
+              0%
             </div>
+
           </div>
-        </div>
-        <div>
-          <div class="control-buttons">
-            <button class="control-btn open" id="openButton" type="button">Open valve</button>
-            <button class="control-btn close" id="closeButton" type="button">Close valve</button>
+
+          <div class="tank-info">
+
+            <div class="tank-info-row">
+              <span>Current Distance</span>
+              <strong>
+                <span id="tankDistance">--</span> cm
+              </strong>
+            </div>
+
+            <div class="tank-info-row">
+              <span>Full Tank Distance</span>
+              <strong>
+                <span id="fullDistanceDisplay">--</span> cm
+              </strong>
+            </div>
+
+            <div class="tank-info-row">
+              <span>Low Tank Distance</span>
+              <strong>
+                <span id="lowDistanceDisplay">--</span> cm
+              </strong>
+            </div>
+
+            <div class="tank-info-row">
+              <span>Calculated Level</span>
+              <strong>
+                <span id="tankLevelDisplay">--</span> %
+              </strong>
+            </div>
+
+            <div class="tank-info-row">
+              <span>Tank Latch</span>
+              <strong id="tankLatchDisplay">
+                Disabled
+              </strong>
+            </div>
+
           </div>
-          <label class="demo-toggle"><span>Simulate live readings</span><span class="switch"><input id="demoToggle"
-                type="checkbox" checked /><span class="slider"></span></span></label>
+
         </div>
-      </aside>
-    </section>
 
-    <section class="metrics" aria-label="Live measurements">
-      <article class="panel metric"><span class="metric-label">PT100 temperature</span>
-        <div class="metric-value" id="temperature">58.4<small> °C</small></div><span class="metric-foot good"
-          id="temperatureFoot">3-wire / MAX31865</span>
-      </article>
-      <article class="panel metric"><span class="metric-label">Ultrasonic distance</span>
-        <div class="metric-value" id="distance">17.6<small> cm</small></div><span class="metric-foot">Echo signal
-          stable</span>
-      </article>
-      <article class="panel metric"><span class="metric-label">Valve relay</span>
-        <div class="metric-value" id="relayMetric">OFF</div><span class="metric-foot" id="relayFoot">Output GPIO
-          inactive</span>
-      </article>
-      <article class="panel metric"><span class="metric-label">Sensor status</span>
-        <div class="metric-value" id="sensorStatus">READY</div><span class="metric-foot good" id="sensorFoot">PT100 and
-          ultrasonic online</span>
-      </article>
-    </section>
+      </section>
 
-    <section class="panel settings-panel">
-      <div class="panel-head">
-        <div>
-          <p class="eyebrow">PERSISTENT SETTINGS</p>
-          <h2>Tank automation</h2>
-        </div><span class="panel-note">Saved settings return after reboot</span>
-      </div>
-      <div class="settings-grid">
-        <div class="setting"><label for="fullSetting">Full level threshold (%)</label><input id="fullSetting"
-            type="number" min="1" max="100" step="1" value="90"></div>
-        <div class="setting"><label for="lowSetting">Low level threshold (%)</label><input id="lowSetting" type="number"
-            min="0" max="99" step="1" value="20"></div>
-        <div class="setting"><label for="latchSetting">Relay latch trigger</label><select id="latchSetting">
-            <option value="0">Disabled</option>
-            <option value="1">Latch at full level</option>
-            <option value="2">Latch at low level</option>
-          </select></div>
-      </div>
-      <div class="settings-actions"><button class="control-btn open" id="saveSettings" type="button">Save
-          settings</button><span class="save-note" id="saveNote">Settings are stored in this preview.</span></div>
-    </section>
 
-    <section class="lower-grid">
-      <article class="panel trend-panel">
-        <div class="panel-head">
+      <!-- SENSOR STATUS -->
+
+      <section class="card span-6">
+
+        <div class="card-title">
+          System Status
+        </div>
+
+        <div class="tank-info-row">
+          <span>Temperature Sensor</span>
+          <strong id="tempSensorState">OK</strong>
+        </div>
+
+        <div class="tank-info-row">
+          <span>Ultrasonic Sensor</span>
+          <strong id="ultrasonicState">OK</strong>
+        </div>
+
+        <div class="tank-info-row">
+          <span>Temperature Condition</span>
+          <strong id="temperatureCondition">
+            NORMAL
+          </strong>
+        </div>
+
+        <div class="tank-info-row">
+          <span>Tank Condition</span>
+          <strong id="tankCondition">
+            NORMAL
+          </strong>
+        </div>
+
+        <div class="tank-info-row">
+          <span>Temperature Latch</span>
+          <strong id="temperatureLatchDisplay">
+            Disabled
+          </strong>
+        </div>
+
+        <div class="tank-info-row">
+          <span>Uptime</span>
+          <strong id="uptime">
+            0 s
+          </strong>
+        </div>
+
+      </section>
+
+
+      <!-- SETTINGS -->
+
+      <section class="card span-12">
+
+        <div class="card-title">
+          Control Settings
+        </div>
+
+        <div class="settings-grid">
+
+
+          <!-- TANK SETTINGS -->
+
+          <div class="setting-group">
+
+            <h3>
+              Tank Calibration
+            </h3>
+
+            <div class="field">
+
+              <label for="fullDistance">
+                Full Tank Distance (cm)
+              </label>
+
+              <input id="fullDistance" type="number" step="0.1" min="0.1" value="5">
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="lowDistance">
+                Low / Empty Tank Distance (cm)
+              </label>
+
+              <input id="lowDistance" type="number" step="0.1" min="0.2" value="40">
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="tankLatchMode">
+                Tank Relay Latch
+              </label>
+
+              <select id="tankLatchMode">
+
+                <option value="0">
+                  Disabled
+                </option>
+
+                <option value="1">
+                  Latch at Full Level
+                </option>
+
+                <option value="2">
+                  Latch at Low Level
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="setting-help">
+
+              Smaller ultrasonic distance means a fuller tank.
+              The system calculates 100% at the full distance and
+              0% at the low/empty distance.
+
+            </div>
+
+          </div>
+
+
+          <!-- TEMPERATURE SETTINGS -->
+
+          <div class="setting-group">
+
+            <h3>
+              Temperature Control
+            </h3>
+
+
+            <div class="field">
+
+              <label for="lowTemperature">
+                Low Temperature Threshold (°C)
+              </label>
+
+              <input id="lowTemperature" type="number" step="0.1" value="40">
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="highTemperature">
+                High Temperature Threshold (°C)
+              </label>
+
+              <input id="highTemperature" type="number" step="0.1" value="80">
+
+            </div>
+
+
+            <div class="field">
+
+              <label for="temperatureLatchMode">
+                Temperature Relay Latch
+              </label>
+
+              <select id="temperatureLatchMode">
+
+                <option value="0">
+                  Disabled
+                </option>
+
+                <option value="1">
+                  Latch on Low Temperature
+                </option>
+
+                <option value="2">
+                  Latch on High Temperature
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="setting-help">
+
+              Temperature below the low threshold is LOW.
+              Temperature above the high threshold is HIGH.
+              Values between the two thresholds are NORMAL.
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="settings-footer">
+
+          <div id="settingsMessage" class="settings-message">
+            All settings saved.
+          </div>
+
+          <button onclick="saveSettings()">
+            Save Settings
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- TREND -->
+
+      <section class="card span-8">
+
+        <div class="card-title">
+          Live Trend
+        </div>
+
+        <div class="graph-container">
+
+          <canvas id="trendCanvas"></canvas>
+
+        </div>
+
+        <div class="graph-legend">
+
           <div>
-            <p class="eyebrow">LAST 60 SECONDS</p>
-            <h2>Temperature and level trend</h2>
+            <span class="legend-dot temp-dot"></span>
+            Temperature
           </div>
-          <div class="legend"><span>Level</span><span class="temp">Temperature</span></div>
-        </div>
-        <div class="chart-wrap"><canvas id="trendChart" width="900" height="235"></canvas></div>
-      </article>
-      <article class="panel events-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">EVENT STREAM</p>
-            <h2>Recent activity</h2>
-          </div>
-        </div>
-        <div id="events"></div>
-      </article>
-    </section>
 
-    <footer class="footer">HOT_LIQUID_MONITORING_AND_CONTROL / LOCAL DASHBOARD PREVIEW</footer>
-  </main>
+          <div>
+            <span class="legend-dot level-dot"></span>
+            Tank Level
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- CURRENT CONTROL -->
+
+      <section class="card span-4">
+
+        <div class="card-title">
+          Active Control Configuration
+        </div>
+
+        <div class="tank-info-row">
+          <span>Full Distance</span>
+          <strong>
+            <span id="activeFullDistance">5</span> cm
+          </strong>
+        </div>
+
+        <div class="tank-info-row">
+          <span>Low Distance</span>
+          <strong>
+            <span id="activeLowDistance">40</span> cm
+          </strong>
+        </div>
+
+        <div class="tank-info-row">
+          <span>Low Temperature</span>
+          <strong>
+            <span id="activeLowTemp">40</span> °C
+          </strong>
+        </div>
+
+        <div class="tank-info-row">
+          <span>High Temperature</span>
+          <strong>
+            <span id="activeHighTemp">80</span> °C
+          </strong>
+        </div>
+
+        <div class="tank-info-row">
+          <span>Tank Latch</span>
+          <strong id="activeTankLatch">
+            Disabled
+          </strong>
+        </div>
+
+        <div class="tank-info-row">
+          <span>Temperature Latch</span>
+          <strong id="activeTempLatch">
+            Disabled
+          </strong>
+        </div>
+
+      </section>
+
+
+      <!-- LOGS -->
+
+      <section class="card span-12">
+
+        <div class="card-title">
+          Event Log
+        </div>
+
+        <div id="logContainer" class="log-container">
+        </div>
+
+      </section>
+
+    </main>
+
+
+    <footer>
+      Hot Liquid Monitoring and Control System — Dashboard Simulation
+    </footer>
+
+  </div>
+
 
   <script>
-    const savedSettings = JSON.parse(localStorage.getItem('tank-automation-settings') || '{"full":90,"low":20,"mode":0}');
-    const state = { level: 64, temperature: 58.4, distance: 17.6, relay: false, tick: 0, settings: savedSettings };
-    const history = [];
-    const events = [
-      { type: 'good', title: 'System started', detail: 'PT100 and ultrasonic sensors detected', time: 'now' },
-      { type: 'good', title: 'Valve relay ready', detail: 'Output is closed and awaiting command', time: '1 min' },
-      { type: 'warn', title: 'Temperature watch', detail: 'Warning threshold: 60.0 °C', time: '4 min' }
-    ];
 
-    const $ = (id) => document.getElementById(id);
-    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-    const fmt = (value, digits = 1) => Number(value).toFixed(digits);
+    /* =========================================================
+       SIMULATION SETTINGS
+       ========================================================= */
 
-    function setTheme(theme) {
-      document.documentElement.dataset.theme = theme;
-      localStorage.setItem('liquid-dashboard-theme', theme);
-      $('themeButton').textContent = theme === 'dark' ? '☀' : '☾';
-    }
+    let settings = {
 
-    function addEvent(type, title, detail) {
-      events.unshift({ type, title, detail, time: 'now' });
-      events.splice(5);
-      renderEvents();
-    }
+      fullDistance: 5,
+      lowDistance: 40,
 
-    function renderEvents() {
-      $('events').innerHTML = events.map((event) => `<div class="event"><span class="event-dot ${event.type === 'warn' ? 'warn' : event.type === 'bad' ? 'bad' : ''}"></span><div><strong>${event.title}</strong><p>${event.detail}</p></div><time>${event.time}</time></div>`).join('');
-    }
+      lowTemperature: 40,
+      highTemperature: 80,
 
-    function setRelay(on, source = 'Operator') {
-      state.relay = on;
-      addEvent('good', `Valve ${on ? 'opened' : 'closed'}`, `${source} command sent to relay`);
-      render();
-    }
+      tankLatchMode: 0,
+      temperatureLatchMode: 0
 
-    function updateDemo() {
-      if (!$('demoToggle').checked) return;
-      state.tick += 1;
-      state.level = clamp(state.level + Math.sin(state.tick / 8) * .34, 8, 96);
-      state.temperature = clamp(56 + Math.sin(state.tick / 10) * 3 + (state.tick % 85 > 72 ? 9 : 0), 35, 78);
-      state.distance = 40 - (state.level / 100) * 35;
-      render();
-    }
+    };
 
-    function render() {
-      const level = clamp(state.level, 0, 100);
-      const hot = state.temperature >= 60;
-      $('liquid').style.height = `${level}%`;
-      $('tankLevel').textContent = `${fmt(level, 0)}%`;
-      $('temperature').innerHTML = `${fmt(state.temperature)}<small> °C</small>`;
-      $('distance').innerHTML = `${fmt(state.distance)}<small> cm</small>`;
-      $('relayMetric').textContent = state.relay ? 'ON' : 'OFF';
-      $('relayFoot').textContent = state.relay ? 'Output GPIO active' : 'Output GPIO inactive';
-      $('sensorStatus').textContent = 'READY';
-      $('sensorFoot').textContent = hot ? 'Temperature is elevated' : 'PT100 and ultrasonic online';
-      $('sensorFoot').className = `metric-foot ${hot ? 'warn' : 'good'}`;
-      $('temperatureFoot').textContent = hot ? 'Temperature is elevated' : '3-wire / MAX31865';
-      $('temperatureFoot').className = `metric-foot ${hot ? 'warn' : 'good'}`;
-      $('valveWheel').classList.toggle('open', state.relay);
-      $('valveLabel').textContent = state.relay ? 'Valve open' : 'Valve closed';
-      $('valveDetail').textContent = `Relay ${state.relay ? 'ON' : 'OFF'}`;
-      $('stateLight').classList.toggle('on', state.relay);
-      $('controlState').textContent = state.relay ? 'Open' : 'Closed';
-      $('controlSubtext').textContent = 'Ready for operator command';
-      $('systemStatus').textContent = hot ? 'Monitor' : 'Normal';
-      $('systemStatus').className = `status ${hot ? 'warning' : 'normal'}`;
-      history.push({ level, temperature: state.temperature });
-      if (history.length > 60) history.shift();
-      drawChart();
-    }
 
-    function drawChart() {
-      const canvas = $('trendChart');
-      const ctx = canvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
-      const styles = getComputedStyle(document.documentElement);
-      const line = styles.getPropertyValue('--line');
-      ctx.clearRect(0, 0, width, height);
-      ctx.strokeStyle = line;
-      ctx.lineWidth = 1;
-      for (let index = 0; index < 5; index += 1) {
-        const y = 18 + index * 48;
-        ctx.beginPath(); ctx.moveTo(34, y); ctx.lineTo(width - 18, y); ctx.stroke();
+    let runtime = {
+
+      temperature: 62,
+      distance: 22,
+
+      level: 0,
+
+      relayOn: false,
+
+      relayLatched: false,
+
+      relayReason: "Normal operation",
+
+      uptime: 0
+
+    };
+
+
+    let settingsDirty = false;
+
+    let startTime = Date.now();
+
+    let logs = [];
+
+    let temperatureHistory = [];
+
+    let levelHistory = [];
+
+    const MAX_HISTORY = 60;
+
+
+    /* =========================================================
+       DOM
+       ========================================================= */
+
+    const $ = id => document.getElementById(id);
+
+
+    /* =========================================================
+       TANK LEVEL CALCULATION
+       ========================================================= */
+
+    function calculateLevel(distance) {
+
+      const full = Number(settings.fullDistance);
+      const low = Number(settings.lowDistance);
+
+      if (
+        !Number.isFinite(distance) ||
+        !Number.isFinite(full) ||
+        !Number.isFinite(low) ||
+        low <= full
+      ) {
+        return NaN;
       }
-      drawLine(history.map((point) => point.level), 0, 100, '#087f78');
-      drawLine(history.map((point) => point.temperature), 30, 80, '#ef6c3e');
+
+      let level =
+        ((low - distance) /
+          (low - full)) * 100;
+
+      level =
+        Math.max(0, Math.min(100, level));
+
+      return level;
     }
 
-    function drawLine(values, min, max, color) {
-      if (values.length < 2) return;
-      const canvas = $('trendChart');
-      const ctx = canvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+
+    /* =========================================================
+       TEMPERATURE CONDITION
+       ========================================================= */
+
+    function getTemperatureCondition(temp) {
+
+      if (temp < settings.lowTemperature) {
+        return "LOW";
+      }
+
+      if (temp > settings.highTemperature) {
+        return "HIGH";
+      }
+
+      return "NORMAL";
+    }
+
+
+    /* =========================================================
+       TANK CONDITION
+       ========================================================= */
+
+    function getTankCondition(level) {
+
+      if (level >= 90) {
+        return "FULL";
+      }
+
+      if (level <= 20) {
+        return "LOW";
+      }
+
+      return "NORMAL";
+    }
+
+
+    /* =========================================================
+       LATCH NAMES
+       ========================================================= */
+
+    function tankLatchName(mode) {
+
+      if (mode === 1) {
+        return "Latch at Full";
+      }
+
+      if (mode === 2) {
+        return "Latch at Low";
+      }
+
+      return "Disabled";
+    }
+
+
+    function temperatureLatchName(mode) {
+
+      if (mode === 1) {
+        return "Latch on Low Temperature";
+      }
+
+      if (mode === 2) {
+        return "Latch on High Temperature";
+      }
+
+      return "Disabled";
+    }
+
+
+    /* =========================================================
+       RANDOM SENSOR GENERATION
+       ========================================================= */
+
+    function generateRandomTemperature() {
+
+      const drift =
+        (Math.random() - 0.45) * 3;
+
+      runtime.temperature += drift;
+
+      if (runtime.temperature < 25) {
+        runtime.temperature = 25;
+      }
+
+      if (runtime.temperature > 95) {
+        runtime.temperature = 95;
+      }
+
+    }
+
+
+    function generateRandomDistance() {
+
+      const drift =
+        (Math.random() - 0.5) * 2.0;
+
+      runtime.distance += drift;
+
+      const minimum =
+        settings.fullDistance;
+
+      const maximum =
+        settings.lowDistance;
+
+      if (runtime.distance < minimum) {
+        runtime.distance = minimum;
+      }
+
+      if (runtime.distance > maximum) {
+        runtime.distance = maximum;
+      }
+
+    }
+
+
+    /* =========================================================
+       RELAY CONTROL
+       ========================================================= */
+
+    function evaluateRelay() {
+
+      const tempCondition =
+        getTemperatureCondition(
+          runtime.temperature
+        );
+
+      const level =
+        runtime.level;
+
+
+      /*
+         Temperature latch
+      */
+
+      if (
+        settings.temperatureLatchMode === 1 &&
+        tempCondition === "LOW"
+      ) {
+
+        runtime.relayLatched = true;
+        runtime.relayOn = true;
+
+        runtime.relayReason =
+          "Latched by low temperature";
+
+        return;
+      }
+
+
+      if (
+        settings.temperatureLatchMode === 2 &&
+        tempCondition === "HIGH"
+      ) {
+
+        runtime.relayLatched = true;
+        runtime.relayOn = true;
+
+        runtime.relayReason =
+          "Latched by high temperature";
+
+        return;
+      }
+
+
+      /*
+         Tank latch
+      */
+
+      if (
+        settings.tankLatchMode === 1 &&
+        level >= 100
+      ) {
+
+        runtime.relayLatched = true;
+        runtime.relayOn = true;
+
+        runtime.relayReason =
+          "Latched at full tank";
+
+        return;
+      }
+
+
+      if (
+        settings.tankLatchMode === 2 &&
+        level <= 0
+      ) {
+
+        runtime.relayLatched = true;
+        runtime.relayOn = true;
+
+        runtime.relayReason =
+          "Latched at low tank";
+
+        return;
+      }
+
+
+      /*
+         Normal operation
+      */
+
+      if (!runtime.relayLatched) {
+
+        runtime.relayReason =
+          "Normal operation";
+
+      }
+
+    }
+
+
+    /* =========================================================
+       MANUAL RELAY
+       ========================================================= */
+
+    function toggleRelay() {
+
+      if (runtime.relayLatched) {
+
+        addLog(
+          "CONTROL",
+          "Relay is latched and cannot be manually changed."
+        );
+
+        return;
+      }
+
+      runtime.relayOn =
+        !runtime.relayOn;
+
+      runtime.relayReason =
+        "Manual control";
+
+      addLog(
+        "CONTROL",
+        "Relay manually turned " +
+        (runtime.relayOn ? "ON" : "OFF")
+      );
+
+      updateRelayUI();
+
+    }
+
+
+    /* =========================================================
+       RELAY UI
+       ========================================================= */
+
+    function updateRelayUI() {
+
+      const indicator =
+        $("relayIndicator");
+
+      const state =
+        $("relayState");
+
+      const button =
+        $("relayButton");
+
+      if (runtime.relayOn) {
+
+        indicator.classList.add("on");
+
+        state.textContent =
+          "ON";
+
+        button.textContent =
+          "Turn OFF";
+
+      } else {
+
+        indicator.classList.remove("on");
+
+        state.textContent =
+          "OFF";
+
+        button.textContent =
+          "Turn ON";
+
+      }
+
+      $("relayReason").textContent =
+        runtime.relayReason;
+
+    }
+
+
+    /* =========================================================
+       STATUS UI
+       ========================================================= */
+
+    function updateStatusUI() {
+
+      const temp =
+        runtime.temperature;
+
+      const distance =
+        runtime.distance;
+
+      const level =
+        runtime.level;
+
+      const tempCondition =
+        getTemperatureCondition(temp);
+
+      const tankCondition =
+        getTankCondition(level);
+
+
+      $("temperature").textContent =
+        temp.toFixed(1);
+
+      $("distance").textContent =
+        distance.toFixed(1);
+
+      $("level").textContent =
+        level.toFixed(1);
+
+
+      $("tankDistance").textContent =
+        distance.toFixed(1);
+
+      $("tankLevelDisplay").textContent =
+        level.toFixed(1);
+
+
+      $("fullDistanceDisplay").textContent =
+        settings.fullDistance.toFixed(1);
+
+      $("lowDistanceDisplay").textContent =
+        settings.lowDistance.toFixed(1);
+
+
+      $("activeFullDistance").textContent =
+        settings.fullDistance.toFixed(1);
+
+      $("activeLowDistance").textContent =
+        settings.lowDistance.toFixed(1);
+
+      $("activeLowTemp").textContent =
+        settings.lowTemperature.toFixed(1);
+
+      $("activeHighTemp").textContent =
+        settings.highTemperature.toFixed(1);
+
+
+      $("tankLatchDisplay").textContent =
+        tankLatchName(
+          settings.tankLatchMode
+        );
+
+      $("temperatureLatchDisplay").textContent =
+        temperatureLatchName(
+          settings.temperatureLatchMode
+        );
+
+      $("activeTankLatch").textContent =
+        tankLatchName(
+          settings.tankLatchMode
+        );
+
+      $("activeTempLatch").textContent =
+        temperatureLatchName(
+          settings.temperatureLatchMode
+        );
+
+
+      /*
+         Temperature status
+      */
+
+      const tempStatus =
+        $("temperatureStatus");
+
+      tempStatus.textContent =
+        tempCondition;
+
+      tempStatus.className =
+        "state " +
+        (
+          tempCondition === "LOW"
+            ? "low"
+            : tempCondition === "HIGH"
+              ? "high"
+              : "normal"
+        );
+
+
+      /*
+         Tank status
+      */
+
+      const tankStatus =
+        $("tankStatus");
+
+      tankStatus.textContent =
+        tankCondition;
+
+      tankStatus.className =
+        "state " +
+        (
+          tankCondition === "LOW"
+            ? "low"
+            : tankCondition === "FULL"
+              ? "warning"
+              : "normal"
+        );
+
+
+      $("temperatureCondition").textContent =
+        tempCondition;
+
+      $("tankCondition").textContent =
+        tankCondition;
+
+
+      /*
+         Ultrasonic status
+      */
+
+      $("distanceStatus").textContent =
+        "VALID";
+
+      $("distanceStatus").className =
+        "state normal";
+
+
+      $("tempSensorState").textContent =
+        "OK";
+
+      $("ultrasonicState").textContent =
+        "OK";
+
+
+      /*
+         Tank visualization
+      */
+
+      $("tankWater").style.height =
+        level + "%";
+
+      $("tankLevelText").textContent =
+        level.toFixed(0) + "%";
+
+
+      /*
+         Uptime
+      */
+
+      const seconds =
+        Math.floor(
+          (Date.now() - startTime) / 1000
+        );
+
+      $("uptime").textContent =
+        seconds + " s";
+
+
+      updateRelayUI();
+
+    }
+
+
+    /* =========================================================
+       SETTINGS UI
+       ========================================================= */
+
+    function markSettingsDirty() {
+
+      settingsDirty = true;
+
+      $("settingsMessage").textContent =
+        "Unsaved changes.";
+
+    }
+
+
+    $("fullDistance")
+      .addEventListener(
+        "input",
+        markSettingsDirty
+      );
+
+    $("lowDistance")
+      .addEventListener(
+        "input",
+        markSettingsDirty
+      );
+
+    $("lowTemperature")
+      .addEventListener(
+        "input",
+        markSettingsDirty
+      );
+
+    $("highTemperature")
+      .addEventListener(
+        "input",
+        markSettingsDirty
+      );
+
+    $("tankLatchMode")
+      .addEventListener(
+        "change",
+        markSettingsDirty
+      );
+
+    $("temperatureLatchMode")
+      .addEventListener(
+        "change",
+        markSettingsDirty
+      );
+
+
+    /* =========================================================
+       SAVE SETTINGS
+       ========================================================= */
+
+    function saveSettings() {
+
+      const full =
+        Number(
+          $("fullDistance").value
+        );
+
+      const low =
+        Number(
+          $("lowDistance").value
+        );
+
+      const lowTemp =
+        Number(
+          $("lowTemperature").value
+        );
+
+      const highTemp =
+        Number(
+          $("highTemperature").value
+        );
+
+      const tankLatch =
+        Number(
+          $("tankLatchMode").value
+        );
+
+      const tempLatch =
+        Number(
+          $("temperatureLatchMode").value
+        );
+
+
+      /*
+         Validation
+      */
+
+      if (
+        !Number.isFinite(full) ||
+        !Number.isFinite(low) ||
+        low <= full
+      ) {
+
+        $("settingsMessage").textContent =
+          "Error: low distance must be greater than full distance.";
+
+        return;
+      }
+
+
+      if (
+        !Number.isFinite(lowTemp) ||
+        !Number.isFinite(highTemp) ||
+        highTemp <= lowTemp
+      ) {
+
+        $("settingsMessage").textContent =
+          "Error: high temperature must be greater than low temperature.";
+
+        return;
+      }
+
+
+      /*
+         Apply
+      */
+
+      settings.fullDistance =
+        full;
+
+      settings.lowDistance =
+        low;
+
+      settings.lowTemperature =
+        lowTemp;
+
+      settings.highTemperature =
+        highTemp;
+
+      settings.tankLatchMode =
+        tankLatch;
+
+      settings.temperatureLatchMode =
+        tempLatch;
+
+
+      /*
+         Recalculate level
+      */
+
+      runtime.level =
+        calculateLevel(
+          runtime.distance
+        );
+
+
+      /*
+         Reset latch when configuration changes.
+         This mirrors the intended embedded
+         configuration behavior.
+      */
+
+      runtime.relayLatched = false;
+
+      runtime.relayReason =
+        "Configuration updated";
+
+
+      settingsDirty = false;
+
+
+      $("settingsMessage").textContent =
+        "Settings saved successfully.";
+
+
+      addLog(
+        "SETTINGS",
+        "Control settings updated."
+      );
+
+
+      updateStatusUI();
+
+    }
+
+
+    /* =========================================================
+       GRAPH
+       ========================================================= */
+
+    const canvas =
+      $("trendCanvas");
+
+    const ctx =
+      canvas.getContext("2d");
+
+
+    function resizeCanvas() {
+
+      const rect =
+        canvas.getBoundingClientRect();
+
+      const dpr =
+        window.devicePixelRatio || 1;
+
+      canvas.width =
+        rect.width * dpr;
+
+      canvas.height =
+        rect.height * dpr;
+
+      ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      );
+
+      drawGraph();
+
+    }
+
+
+    window.addEventListener(
+      "resize",
+      resizeCanvas
+    );
+
+
+    function drawGraph() {
+
+      const width =
+        canvas.clientWidth;
+
+      const height =
+        canvas.clientHeight;
+
+
+      ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+      );
+
+
+      /*
+         Grid
+      */
+
+      ctx.strokeStyle =
+        "#1d3447";
+
+      ctx.lineWidth =
+        1;
+
+
+      for (
+        let i = 0;
+        i <= 5;
+        i++
+      ) {
+
+        const y =
+          (height / 5) * i;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+          0,
+          y
+        );
+
+        ctx.lineTo(
+          width,
+          y
+        );
+
+        ctx.stroke();
+
+      }
+
+
+      /*
+         Temperature
+         Normalized 0-100
+      */
+
+      drawGraphLine(
+        temperatureHistory,
+        "#ff9f43",
+        width,
+        height
+      );
+
+
+      /*
+         Tank level
+      */
+
+      drawGraphLine(
+        levelHistory,
+        "#20c997",
+        width,
+        height
+      );
+
+    }
+
+
+    function drawGraphLine(
+      data,
+      color,
+      width,
+      height
+    ) {
+
+      if (data.length < 2) {
+        return;
+      }
+
+
+      ctx.strokeStyle =
+        color;
+
+      ctx.lineWidth =
+        2;
+
       ctx.beginPath();
-      values.forEach((value, index) => {
-        const x = 34 + (index / 59) * (width - 54);
-        const y = height - 18 - ((value - min) / (max - min)) * (height - 40);
-        if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
+
+
+      data.forEach(
+        (value, index) => {
+
+          const x =
+            (index /
+              (MAX_HISTORY - 1)) *
+            width;
+
+          const normalized =
+            Math.max(
+              0,
+              Math.min(
+                100,
+                value
+              )
+            );
+
+          const y =
+            height -
+            (normalized / 100) *
+            height;
+
+
+          if (index === 0) {
+
+            ctx.moveTo(
+              x,
+              y
+            );
+
+          } else {
+
+            ctx.lineTo(
+              x,
+              y
+            );
+
+          }
+
+        }
+      );
+
+
       ctx.stroke();
+
     }
 
-    $('themeButton').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
-    $('openButton').addEventListener('click', () => setRelay(true));
-    $('closeButton').addEventListener('click', () => setRelay(false));
-    document.documentElement.dataset.theme = localStorage.getItem('liquid-dashboard-theme') || 'light';
-    setTheme(document.documentElement.dataset.theme);
-    renderEvents();
-    for (let index = 0; index < 18; index += 1) updateDemo();
-    setInterval(updateDemo, 1500);
+
+    /* =========================================================
+       LOG
+       ========================================================= */
+
+    function addLog(
+      type,
+      message
+    ) {
+
+      const now =
+        new Date();
+
+      const time =
+        now.toLocaleTimeString();
+
+
+      logs.unshift({
+
+        time,
+        type,
+        message
+
+      });
+
+
+      if (logs.length > 30) {
+
+        logs.pop();
+
+      }
+
+
+      renderLogs();
+
+    }
+
+
+    function renderLogs() {
+
+      const container =
+        $("logContainer");
+
+      container.innerHTML =
+        "";
+
+
+      logs.forEach(
+        log => {
+
+          const row =
+            document.createElement(
+              "div"
+            );
+
+          row.className =
+            "log-row";
+
+
+          row.innerHTML = `
+
+          <div class="log-time">
+            ${log.time}
+          </div>
+
+          <div class="log-type">
+            ${log.type}
+          </div>
+
+          <div class="log-message">
+            ${log.message}
+          </div>
+
+        `;
+
+
+          container.appendChild(row);
+
+        }
+      );
+
+    }
+
+
+    /* =========================================================
+       SIMULATION UPDATE
+       ========================================================= */
+
+    function simulationUpdate() {
+
+      generateRandomTemperature();
+
+      generateRandomDistance();
+
+
+      runtime.level =
+        calculateLevel(
+          runtime.distance
+        );
+
+
+      /*
+         Add normalized values to graph.
+      */
+
+      temperatureHistory.push(
+        runtime.temperature
+      );
+
+      levelHistory.push(
+        runtime.level
+      );
+
+
+      if (
+        temperatureHistory.length >
+        MAX_HISTORY
+      ) {
+
+        temperatureHistory.shift();
+
+      }
+
+
+      if (
+        levelHistory.length >
+        MAX_HISTORY
+      ) {
+
+        levelHistory.shift();
+
+      }
+
+
+      /*
+         Automatic control
+      */
+
+      const oldRelay =
+        runtime.relayOn;
+
+      evaluateRelay();
+
+
+      if (
+        oldRelay !== runtime.relayOn
+      ) {
+
+        addLog(
+          "RELAY",
+          runtime.relayOn
+            ? "Relay automatically turned ON."
+            : "Relay automatically turned OFF."
+        );
+
+      }
+
+
+      updateStatusUI();
+
+      drawGraph();
+
+    }
+
+
+    /* =========================================================
+       INITIALIZATION
+       ========================================================= */
+
+    function initialize() {
+
+      /*
+         Populate settings controls
+      */
+
+      $("fullDistance").value =
+        settings.fullDistance;
+
+      $("lowDistance").value =
+        settings.lowDistance;
+
+      $("lowTemperature").value =
+        settings.lowTemperature;
+
+      $("highTemperature").value =
+        settings.highTemperature;
+
+      $("tankLatchMode").value =
+        settings.tankLatchMode;
+
+      $("temperatureLatchMode").value =
+        settings.temperatureLatchMode;
+
+
+      /*
+         Initial logs
+      */
+
+      addLog(
+        "BOOT",
+        "Dashboard simulation started."
+      );
+
+      addLog(
+        "SYSTEM",
+        "Temperature sensor initialized."
+      );
+
+      addLog(
+        "SYSTEM",
+        "Ultrasonic sensor initialized."
+      );
+
+      addLog(
+        "SYSTEM",
+        "Control system ready."
+      );
+
+
+      /*
+         Initial values
+      */
+
+      runtime.level =
+        calculateLevel(
+          runtime.distance
+        );
+
+
+      for (
+        let i = 0;
+        i < MAX_HISTORY;
+        i++
+      ) {
+
+        temperatureHistory.push(
+          runtime.temperature
+        );
+
+        levelHistory.push(
+          runtime.level
+        );
+
+      }
+
+
+      resizeCanvas();
+
+      updateStatusUI();
+
+    }
+
+
+    initialize();
+
+
+    /*
+       Update every second.
+    */
+
+    setInterval(
+      simulationUpdate,
+      1000
+    );
+
   </script>
+
 </body>
 
 </html>

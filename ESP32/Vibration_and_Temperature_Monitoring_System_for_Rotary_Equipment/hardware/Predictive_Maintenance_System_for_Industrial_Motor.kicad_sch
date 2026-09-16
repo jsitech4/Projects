@@ -17615,7 +17615,7 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
@@ -18541,7 +18541,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "MPU6050"
+		(property "Value" "ADXL345 1"
 			(at 373.38 304.8001 0)
 			(hide yes)
 			(show_name no)
@@ -24230,7 +24230,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "Screw_Terminal_01x08"
+		(property "Value" "MAX31865"
 			(at 384.81 182.8799 0)
 			(hide yes)
 			(show_name no)
@@ -25243,7 +25243,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "MPU6050"
+		(property "Value" "ADXL345 2"
 			(at 406.4 304.8001 0)
 			(hide yes)
 			(show_name no)

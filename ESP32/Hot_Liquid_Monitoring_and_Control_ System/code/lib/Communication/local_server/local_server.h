@@ -1,5 +1,4 @@
-#ifndef LOCAL_SERVER_H
-#define LOCAL_SERVER_H
+#pragma once
 
 #include <Arduino.h>
 
@@ -9,8 +8,7 @@ namespace local_server
   void update();
 
   bool isRunning();
+
   String getIp();
   String getSsid();
 }
-
-#endif

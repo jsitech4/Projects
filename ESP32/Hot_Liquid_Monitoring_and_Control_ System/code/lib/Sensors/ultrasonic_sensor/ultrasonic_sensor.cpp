@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <math.h>
+
 #include "ultrasonic_sensor.h"
 
 namespace ultrasonic_sensor
@@ -6,40 +8,49 @@ namespace ultrasonic_sensor
   static uint8_t trig = 255;
   static uint8_t echo = 255;
 
-  static volatile uint32_t echoStartUs = 0;
-  static volatile uint32_t echoDurationUs = 0;
+  static volatile uint32_t echoRiseUs = 0;
+  static volatile uint32_t echoFallUs = 0;
+
   static volatile bool echoComplete = false;
+  static volatile bool echoWaiting = false;
 
-  static float distanceCm = 0.0f;
+  static float distanceCm = NAN;
 
-  static const uint32_t READ_INTERVAL_MS = 500;
-  static const uint32_t TRIGGER_HIGH_US = 10;
-  static const uint32_t ECHO_TIMEOUT_US = 30000UL;
+  static bool initialized = false;
 
-  static uint32_t lastReadMs = 0;
-  static uint32_t triggerStartUs = 0;
+  static constexpr uint32_t READ_INTERVAL_MS = 500;
+  static constexpr uint32_t TRIGGER_HIGH_US = 10;
+  static constexpr uint32_t ECHO_TIMEOUT_US = 30000UL;
 
-  static bool waitingForEcho = false;
+  static uint32_t lastTriggerMs = 0;
+
+  static bool triggerActive = false;
+  static uint32_t triggerStartedUs = 0;
 
   static void IRAM_ATTR echoISR()
   {
-    const uint32_t nowUs = micros();
+    bool level = digitalRead(echo);
 
-    if (digitalRead(echo) == HIGH)
+    uint32_t now = micros();
+
+    if (level)
     {
-      echoStartUs = nowUs;
+      echoRiseUs = now;
+      echoWaiting = true;
     }
     else
     {
-      if (echoStartUs != 0)
+      if (echoWaiting)
       {
-        echoDurationUs = nowUs - echoStartUs;
+        echoFallUs = now;
         echoComplete = true;
+        echoWaiting = false;
       }
     }
   }
 
-  void begin(uint8_t trigPin, uint8_t echoPin)
+  void begin(uint8_t trigPin,
+             uint8_t echoPin)
   {
     trig = trigPin;
     echo = echoPin;
@@ -49,89 +60,135 @@ namespace ultrasonic_sensor
 
     digitalWrite(trig, LOW);
 
-    echoStartUs = 0;
-    echoDurationUs = 0;
+    distanceCm = NAN;
+
+    echoRiseUs = 0;
+    echoFallUs = 0;
+
     echoComplete = false;
+    echoWaiting = false;
 
-    distanceCm = 0.0f;
+    triggerActive = false;
+    triggerStartedUs = 0;
 
-    lastReadMs = millis();
-    triggerStartUs = 0;
+    lastTriggerMs = millis();
 
-    waitingForEcho = false;
+    initialized = true;
 
     attachInterrupt(
         digitalPinToInterrupt(echo),
         echoISR,
         CHANGE);
   }
+
   void update()
   {
-    const uint32_t nowMs = millis();
-    const uint32_t nowUs = micros();
+    if (!initialized)
+    {
+      return;
+    }
+
+    uint32_t nowMs = millis();
+    uint32_t nowUs = micros();
+
+    // -----------------------------------------------------
+    // Finish 10 us trigger pulse
+    // -----------------------------------------------------
+
+    if (triggerActive)
+    {
+      if ((uint32_t)(nowUs - triggerStartedUs) >=
+          TRIGGER_HIGH_US)
+      {
+        digitalWrite(trig, LOW);
+
+        triggerActive = false;
+      }
+
+      return;
+    }
+
+    // -----------------------------------------------------
+    // Process completed echo
+    // -----------------------------------------------------
 
     if (echoComplete)
     {
       noInterrupts();
 
-      const uint32_t duration = echoDurationUs;
+      uint32_t rise = echoRiseUs;
+      uint32_t fall = echoFallUs;
 
       echoComplete = false;
-      echoStartUs = 0;
 
       interrupts();
 
-      if (duration > 0 && duration <= ECHO_TIMEOUT_US)
-      {
-        const float measuredDistance =
-            (duration * 0.0343f) / 2.0f;
+      uint32_t duration =
+          fall - rise;
 
-        if (measuredDistance >= 2.0f &&
+      if (duration > 0 &&
+          duration <= ECHO_TIMEOUT_US)
+      {
+        float measuredDistance =
+            ((float)duration * 0.0343f) /
+            2.0f;
+
+        if (measuredDistance >= 1.0f &&
             measuredDistance <= 500.0f)
         {
-          distanceCm = measuredDistance;
+          distanceCm =
+              measuredDistance;
         }
       }
 
-      waitingForEcho = false;
+      return;
     }
 
-    if (waitingForEcho)
-    {
-      if ((uint32_t)(nowUs - triggerStartUs) >= ECHO_TIMEOUT_US)
-      {
-        waitingForEcho = false;
+    // -----------------------------------------------------
+    // Echo timeout
+    // -----------------------------------------------------
 
+    if (echoWaiting)
+    {
+      noInterrupts();
+
+      uint32_t rise = echoRiseUs;
+
+      interrupts();
+
+      if ((uint32_t)(nowUs - rise) >=
+          ECHO_TIMEOUT_US)
+      {
         noInterrupts();
-        echoStartUs = 0;
-        echoDurationUs = 0;
+
+        echoWaiting = false;
         echoComplete = false;
+
         interrupts();
+
+        distanceCm = NAN;
       }
 
       return;
     }
 
-    if ((uint32_t)(nowMs - lastReadMs) < READ_INTERVAL_MS)
+    // -----------------------------------------------------
+    // Start new measurement
+    // -----------------------------------------------------
+
+    if ((uint32_t)(nowMs - lastTriggerMs) <
+        READ_INTERVAL_MS)
     {
       return;
     }
 
-    lastReadMs = nowMs;
-
-    digitalWrite(trig, LOW);
-
-    delayMicroseconds(2);
+    lastTriggerMs = nowMs;
 
     digitalWrite(trig, HIGH);
 
-    delayMicroseconds(TRIGGER_HIGH_US);
+    triggerStartedUs = nowUs;
 
-    digitalWrite(trig, LOW);
-
-    triggerStartUs = micros();
-
-    waitingForEcho = true;
+    triggerActive = true;
   }
 
   float getDistanceCm()
@@ -139,9 +196,17 @@ namespace ultrasonic_sensor
     return distanceCm;
   }
 
-  bool isObjectDetected(float thresholdCm)
+  bool isValid()
   {
-    return distanceCm > 0.0f &&
+    return isfinite(distanceCm) &&
+           distanceCm > 0.0f;
+  }
+
+  bool isObjectDetected(
+      float thresholdCm)
+  {
+    return isValid() &&
+           distanceCm > 0.0f &&
            distanceCm <= thresholdCm;
   }
 }
