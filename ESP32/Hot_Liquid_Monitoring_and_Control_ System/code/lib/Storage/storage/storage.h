@@ -42,8 +42,6 @@ namespace storage
   bool loadTankSettings(
       float &fullDistanceCm,
       float &lowDistanceCm,
-      float &fullLevelPercent,
-      float &lowLevelPercent,
       uint8_t &tankLatchMode,
       float &lowTemperatureC,
       float &highTemperatureC,
@@ -52,8 +50,6 @@ namespace storage
   bool saveTankSettings(
       float fullDistanceCm,
       float lowDistanceCm,
-      float fullLevelPercent,
-      float lowLevelPercent,
       uint8_t tankLatchMode,
       float lowTemperatureC,
       float highTemperatureC,

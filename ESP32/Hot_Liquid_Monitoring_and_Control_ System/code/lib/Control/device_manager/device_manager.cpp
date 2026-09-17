@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <math.h>
+#include <string.h>
 
 #include "device_manager.h"
 
@@ -9,146 +10,366 @@
 
 namespace device_manager
 {
-  // =========================================================
-  // DEFAULT SETTINGS
-  // =========================================================
+  // =========================================================================
+  // Default configuration
+  // =========================================================================
 
-  static constexpr float DEFAULT_FULL_DISTANCE_CM = 2.0f;
-  static constexpr float DEFAULT_LOW_DISTANCE_CM = 40.0f;
+  // Top-mounted ultrasonic sensor:
+  //
+  // Smaller distance = more liquid
+  // Larger distance  = less liquid
+  //
+  // Example:
+  //      5 cm  = full
+  //     40 cm  = low/empty
+  //
+  static float fullDistanceCm = 5.0f;
+  static float lowDistanceCm = 40.0f;
 
-  static constexpr float DEFAULT_FULL_LEVEL_PERCENT = 90.0f;
-  static constexpr float DEFAULT_LOW_LEVEL_PERCENT = 10.0f;
+  // Legacy percentage thresholds.
+  //
+  // These remain available because your existing dashboard/main.cpp uses
+  // them. Physical level is calculated from the distance calibration.
+  static float fullLevelPercent = 90.0f;
+  static float lowLevelPercent = 20.0f;
 
-  static constexpr float DEFAULT_LOW_TEMPERATURE_C = 20.0f;
-  static constexpr float DEFAULT_HIGH_TEMPERATURE_C = 80.0f;
+  // =========================================================================
+  // Temperature configuration
+  // =========================================================================
 
-  static constexpr RelayLatchMode DEFAULT_TANK_LATCH_MODE =
-      LATCH_OFF;
+  static float lowTemperatureC = 30.0f;
+  static float highTemperatureC = 80.0f;
 
-  static constexpr TemperatureLatchMode DEFAULT_TEMPERATURE_LATCH_MODE =
-      TEMP_LATCH_OFF;
+  // =========================================================================
+  // Automation modes
+  // =========================================================================
 
-  // =========================================================
-  // RUNTIME SETTINGS
-  // =========================================================
-
-  static float fullDistanceCm =
-      DEFAULT_FULL_DISTANCE_CM;
-
-  static float lowDistanceCm =
-      DEFAULT_LOW_DISTANCE_CM;
-
-  static float fullLevelPercent =
-      DEFAULT_FULL_LEVEL_PERCENT;
-
-  static float lowLevelPercent =
-      DEFAULT_LOW_LEVEL_PERCENT;
-
-  static RelayLatchMode relayLatchMode =
-      DEFAULT_TANK_LATCH_MODE;
-
-  static float lowTemperatureC =
-      DEFAULT_LOW_TEMPERATURE_C;
-
-  static float highTemperatureC =
-      DEFAULT_HIGH_TEMPERATURE_C;
+  static RelayLatchMode tankLatchMode = LATCH_OFF;
 
   static TemperatureLatchMode temperatureLatchMode =
-      DEFAULT_TEMPERATURE_LATCH_MODE;
+      TEMP_LATCH_OFF;
 
-  // =========================================================
-  // LATCH STATE
-  // =========================================================
+  // =========================================================================
+  // Runtime latch states
+  // =========================================================================
 
   static bool tankLatchTriggered = false;
+
   static bool temperatureLatchTriggered = false;
 
-  // =========================================================
-  // SNAPSHOT
-  // =========================================================
+  // True only when the device manager has automatically turned the relay ON.
+  //
+  // This is important because manual dashboard relay control should not be
+  // confused with automatic relay control.
+  static bool automaticRelayActive = false;
+
+  // =========================================================================
+  // Snapshot
+  // =========================================================================
 
   static Snapshot snap;
 
   static unsigned long lastUpdate = 0;
 
-  static constexpr unsigned long UPDATE_INTERVAL_MS = 250;
+  static const unsigned long UPDATE_INTERVAL_MS = 1000UL;
 
-  // =========================================================
-  // HELPERS
-  // =========================================================
+  // =========================================================================
+  // Utility
+  // =========================================================================
 
-  static float clampFloat(float value,
-                          float low,
-                          float high)
+  static bool isValidNumber(float value)
   {
-    if (value < low)
-      return low;
+    return !isnan(value) && !isinf(value);
+  }
 
-    if (value > high)
-      return high;
+  static float clamp(float value,
+                     float minimum,
+                     float maximum)
+  {
+    if (value < minimum)
+      return minimum;
+
+    if (value > maximum)
+      return maximum;
 
     return value;
   }
 
+  // =========================================================================
+  // Tank level calculation
+  // =========================================================================
+
   static float calculateLevel(float distanceCm)
   {
-    if (!isfinite(distanceCm) ||
-        distanceCm <= 0.0f)
-    {
+    if (!isValidNumber(distanceCm))
       return NAN;
-    }
+
+    if (distanceCm <= 0.0f)
+      return NAN;
 
     if (lowDistanceCm <= fullDistanceCm)
-    {
       return NAN;
-    }
 
-    /*
-     * Example:
-     *
-     * fullDistance = 2 cm
-     * lowDistance  = 40 cm
-     *
-     * 2 cm  -> 100 %
-     * 40 cm ->   0 %
-     */
+    const float level =
+        ((lowDistanceCm - distanceCm) * 100.0f) /
+        (lowDistanceCm - fullDistanceCm);
 
-    float level =
-        ((lowDistanceCm - distanceCm) /
-         (lowDistanceCm - fullDistanceCm)) *
-        100.0f;
-
-    return clampFloat(level, 0.0f, 100.0f);
+    return clamp(level, 0.0f, 100.0f);
   }
+
+  // =========================================================================
+  // Tank status
+  // =========================================================================
+
+  static TankStatus calculateTankStatus(float levelPercent)
+  {
+    if (!isValidNumber(levelPercent))
+      return TANK_STATUS_INVALID;
+
+    if (levelPercent >= fullLevelPercent)
+      return TANK_STATUS_FULL;
+
+    if (levelPercent <= lowLevelPercent)
+      return TANK_STATUS_LOW;
+
+    return TANK_STATUS_NORMAL;
+  }
+
+  // =========================================================================
+  // Temperature status
+  // =========================================================================
 
   static TemperatureStatus calculateTemperatureStatus(
       float temperatureC)
   {
-    if (!isfinite(temperatureC))
-    {
+    if (!isValidNumber(temperatureC))
       return TEMP_STATUS_INVALID;
-    }
 
     if (temperatureC < lowTemperatureC)
-    {
       return TEMP_STATUS_LOW;
-    }
 
     if (temperatureC > highTemperatureC)
-    {
       return TEMP_STATUS_HIGH;
-    }
 
     return TEMP_STATUS_NORMAL;
   }
 
-  // =========================================================
-  // BEGIN
-  // =========================================================
+  // =========================================================================
+  // Tank latch
+  // =========================================================================
+
+  static void updateTankLatch()
+  {
+    // If automation is disabled, there can be no active tank latch.
+    if (tankLatchMode == LATCH_OFF)
+    {
+      tankLatchTriggered = false;
+      return;
+    }
+
+    // Never reset an active latch because of an invalid sensor reading.
+    //
+    // A temporary ultrasonic failure should not accidentally remove an
+    // already active safety/control condition.
+    if (!snap.levelValid ||
+        !isValidNumber(snap.levelPercent))
+    {
+      return;
+    }
+
+    bool trigger = false;
+    bool normal = false;
+
+    switch (tankLatchMode)
+    {
+    case LATCH_AT_FULL:
+
+      // Trigger when tank reaches/exceeds full threshold.
+      trigger =
+          snap.levelPercent >= fullLevelPercent;
+
+      // Reset when tank falls below full threshold.
+      normal =
+          snap.levelPercent < fullLevelPercent;
+
+      break;
+
+    case LATCH_AT_LOW:
+
+      // Trigger when tank reaches/falls below low threshold.
+      trigger =
+          snap.levelPercent <= lowLevelPercent;
+
+      // Reset when tank rises above low threshold.
+      normal =
+          snap.levelPercent > lowLevelPercent;
+
+      break;
+
+    case LATCH_OFF:
+    default:
+
+      tankLatchTriggered = false;
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // Trigger latch
+    // -------------------------------------------------------------
+
+    if (trigger)
+    {
+      tankLatchTriggered = true;
+    }
+
+    // -------------------------------------------------------------
+    // Automatic reset
+    // -------------------------------------------------------------
+
+    if (normal)
+    {
+      tankLatchTriggered = false;
+    }
+  }
+
+  // =========================================================================
+  // Temperature latch
+  // =========================================================================
+
+  static void updateTemperatureLatch()
+  {
+    // Automation disabled.
+    if (temperatureLatchMode == TEMP_LATCH_OFF)
+    {
+      temperatureLatchTriggered = false;
+      return;
+    }
+
+    // Do not reset a triggered latch because the temperature sensor
+    // temporarily becomes invalid.
+    if (!snap.tempValid ||
+        !isValidNumber(snap.temperatureC))
+    {
+      return;
+    }
+
+    bool trigger = false;
+    bool normal = false;
+
+    switch (temperatureLatchMode)
+    {
+    case TEMP_LATCH_AT_LOW:
+
+      // Temperature is below the low threshold.
+      trigger =
+          snap.temperatureC < lowTemperatureC;
+
+      // Return to normal at or above the low threshold.
+      normal =
+          snap.temperatureC >= lowTemperatureC;
+
+      break;
+
+    case TEMP_LATCH_AT_HIGH:
+
+      // Temperature is above the high threshold.
+      trigger =
+          snap.temperatureC > highTemperatureC;
+
+      // Return to normal at or below the high threshold.
+      normal =
+          snap.temperatureC <= highTemperatureC;
+
+      break;
+
+    case TEMP_LATCH_OFF:
+    default:
+
+      temperatureLatchTriggered = false;
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // Trigger latch
+    // -------------------------------------------------------------
+
+    if (trigger)
+    {
+      temperatureLatchTriggered = true;
+    }
+
+    // -------------------------------------------------------------
+    // Automatic reset
+    // -------------------------------------------------------------
+
+    if (normal)
+    {
+      temperatureLatchTriggered = false;
+    }
+  }
+
+  // =========================================================================
+  // Combined relay control
+  // =========================================================================
+
+  static void updateAutomaticRelay()
+  {
+    const bool automaticDemand =
+        tankLatchTriggered ||
+        temperatureLatchTriggered;
+
+    // =====================================================================
+    // At least one automatic condition requires the relay
+    // =====================================================================
+
+    if (automaticDemand)
+    {
+      // Turn relay ON the first time an automatic latch demands it.
+      if (!automaticRelayActive)
+      {
+        load_relay::turnOn();
+
+        automaticRelayActive = true;
+      }
+      else
+      {
+        // Make sure the relay remains ON if another module or command
+        // happened to turn it OFF while the automatic condition is
+        // still active.
+        if (!load_relay::isOn())
+        {
+          load_relay::turnOn();
+        }
+      }
+
+      return;
+    }
+
+    // =====================================================================
+    // No automatic condition remains
+    // =====================================================================
+
+    if (automaticRelayActive)
+    {
+      // This is the actual automatic RESET.
+      //
+      // The old implementation only cleared its latch variable.
+      // It never commanded the physical relay OFF.
+      load_relay::turnOff();
+
+      automaticRelayActive = false;
+    }
+  }
+
+  // =========================================================================
+  // Begin
+  // =========================================================================
 
   void begin()
   {
     memset(&snap, 0, sizeof(snap));
+
+    snap.uptimeMs = 0;
 
     snap.temperatureC = NAN;
     snap.distanceCm = NAN;
@@ -156,27 +377,62 @@ namespace device_manager
 
     snap.tempValid = false;
     snap.levelValid = false;
+
     snap.vibrationReady = false;
 
-    snap.relayOn = false;
-    snap.relayRequested = false;
+    snap.relayOn = load_relay::isOn();
+    snap.relayRequested =
+        load_relay::getRequestedState();
+
+    snap.temperatureStatus =
+        TEMP_STATUS_INVALID;
+
+    snap.tankStatus =
+        TANK_STATUS_INVALID;
 
     snap.tankLatchTriggered = false;
     snap.temperatureLatchTriggered = false;
 
+    snap.automaticRelayDemand = false;
+
+    snap.fullDistanceCm =
+        fullDistanceCm;
+
+    snap.lowDistanceCm =
+        lowDistanceCm;
+
+    snap.lowTemperatureC =
+        lowTemperatureC;
+
+    snap.highTemperatureC =
+        highTemperatureC;
+
+    snap.fullLevelPercent =
+        fullLevelPercent;
+
+    snap.lowLevelPercent =
+        lowLevelPercent;
+
+    snap.relayLatchMode =
+        tankLatchMode;
+
+    snap.temperatureLatchMode =
+        temperatureLatchMode;
+
     tankLatchTriggered = false;
     temperatureLatchTriggered = false;
+    automaticRelayActive = false;
 
     lastUpdate = 0;
   }
 
-  // =========================================================
-  // UPDATE
-  // =========================================================
+  // =========================================================================
+  // Update
+  // =========================================================================
 
   void update()
   {
-    unsigned long now = millis();
+    const unsigned long now = millis();
 
     if ((unsigned long)(now - lastUpdate) <
         UPDATE_INTERVAL_MS)
@@ -186,9 +442,9 @@ namespace device_manager
 
     lastUpdate = now;
 
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
     // Sensor readings
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
 
     snap.uptimeMs = now;
 
@@ -202,119 +458,66 @@ namespace device_manager
         temp_sensor::isValid();
 
     snap.levelValid =
-        isfinite(snap.distanceCm) &&
+        isValidNumber(snap.distanceCm) &&
         snap.distanceCm > 0.0f;
 
-    if (snap.levelValid)
+    // ---------------------------------------------------------------------
+    // Tank level
+    // ---------------------------------------------------------------------
+
+    snap.levelPercent =
+        calculateLevel(snap.distanceCm);
+
+    if (!isValidNumber(snap.levelPercent))
     {
-      snap.levelPercent =
-          calculateLevel(snap.distanceCm);
-    }
-    else
-    {
-      snap.levelPercent = NAN;
+      snap.levelValid = false;
     }
 
-    snap.vibrationReady = false;
+    // ---------------------------------------------------------------------
+    // Current status
+    // ---------------------------------------------------------------------
 
-    // -----------------------------------------------------
-    // Temperature status
-    // -----------------------------------------------------
-
-    TemperatureStatus temperatureStatus =
+    snap.temperatureStatus =
         calculateTemperatureStatus(
             snap.temperatureC);
 
-    // -----------------------------------------------------
-    // Tank latch condition
-    // -----------------------------------------------------
+    snap.tankStatus =
+        calculateTankStatus(
+            snap.levelPercent);
 
-    bool tankConditionReached = false;
+    // ---------------------------------------------------------------------
+    // Vibration
+    // ---------------------------------------------------------------------
 
-    if (snap.levelValid)
-    {
-      if (relayLatchMode == LATCH_AT_FULL)
-      {
-        tankConditionReached =
-            snap.levelPercent >=
-            fullLevelPercent;
-      }
-      else if (relayLatchMode == LATCH_AT_LOW)
-      {
-        tankConditionReached =
-            snap.levelPercent <=
-            lowLevelPercent;
-      }
-    }
+    snap.vibrationReady = false;
 
-    // -----------------------------------------------------
-    // Temperature latch condition
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Update independent latches
+    // ---------------------------------------------------------------------
 
-    bool temperatureConditionReached = false;
+    updateTankLatch();
 
-    if (snap.tempValid)
-    {
-      if (temperatureLatchMode ==
-          TEMP_LATCH_LOW)
-      {
-        temperatureConditionReached =
-            temperatureStatus ==
-            TEMP_STATUS_LOW;
-      }
-      else if (temperatureLatchMode ==
-               TEMP_LATCH_HIGH)
-      {
-        temperatureConditionReached =
-            temperatureStatus ==
-            TEMP_STATUS_HIGH;
-      }
-    }
+    updateTemperatureLatch();
 
-    // -----------------------------------------------------
-    // Reset trigger availability after condition clears
-    //
-    // The relay itself is NOT automatically turned off.
-    // This preserves the existing latch behavior.
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Coordinate single physical relay
+    // ---------------------------------------------------------------------
 
-    if (!tankConditionReached)
-    {
-      tankLatchTriggered = false;
-    }
+    updateAutomaticRelay();
 
-    if (!temperatureConditionReached)
-    {
-      temperatureLatchTriggered = false;
-    }
+    // ---------------------------------------------------------------------
+    // Update snapshot
+    // ---------------------------------------------------------------------
 
-    // -----------------------------------------------------
-    // Trigger tank latch
-    // -----------------------------------------------------
+    snap.tankLatchTriggered =
+        tankLatchTriggered;
 
-    if (tankConditionReached &&
-        !tankLatchTriggered)
-    {
-      tankLatchTriggered = true;
+    snap.temperatureLatchTriggered =
+        temperatureLatchTriggered;
 
-      load_relay::turnOn();
-    }
-
-    // -----------------------------------------------------
-    // Trigger temperature latch
-    // -----------------------------------------------------
-
-    if (temperatureConditionReached &&
-        !temperatureLatchTriggered)
-    {
-      temperatureLatchTriggered = true;
-
-      load_relay::turnOn();
-    }
-
-    // -----------------------------------------------------
-    // Final relay state
-    // -----------------------------------------------------
+    snap.automaticRelayDemand =
+        tankLatchTriggered ||
+        temperatureLatchTriggered;
 
     snap.relayOn =
         load_relay::isOn();
@@ -322,29 +525,125 @@ namespace device_manager
     snap.relayRequested =
         load_relay::getRequestedState();
 
-    snap.tankLatchTriggered =
-        tankLatchTriggered;
+    snap.fullDistanceCm =
+        fullDistanceCm;
 
-    snap.temperatureLatchTriggered =
-        temperatureLatchTriggered;
+    snap.lowDistanceCm =
+        lowDistanceCm;
+
+    snap.lowTemperatureC =
+        lowTemperatureC;
+
+    snap.highTemperatureC =
+        highTemperatureC;
+
+    snap.fullLevelPercent =
+        fullLevelPercent;
+
+    snap.lowLevelPercent =
+        lowLevelPercent;
+
+    snap.relayLatchMode =
+        tankLatchMode;
+
+    snap.temperatureLatchMode =
+        temperatureLatchMode;
   }
 
-  // =========================================================
-  // SNAPSHOT
-  // =========================================================
+  // =========================================================================
+  // Snapshot
+  // =========================================================================
 
   Snapshot getSnapshot()
   {
     return snap;
   }
 
-  // =========================================================
-  // LEVEL
-  // =========================================================
+  // =========================================================================
+  // Tank level
+  // =========================================================================
 
   float getLevelPercent()
   {
     return snap.levelPercent;
+  }
+
+  // =========================================================================
+  // Legacy percentage thresholds
+  // =========================================================================
+
+  void setLevelThresholds(float fullPercent,
+                          float lowPercent)
+  {
+    if (!isValidNumber(fullPercent) ||
+        !isValidNumber(lowPercent))
+    {
+      return;
+    }
+
+    if (fullPercent <= lowPercent)
+      return;
+
+    if (fullPercent > 100.0f)
+      return;
+
+    if (lowPercent < 0.0f)
+      return;
+
+    fullLevelPercent =
+        fullPercent;
+
+    lowLevelPercent =
+        lowPercent;
+
+    // Re-evaluate latch state against the new thresholds.
+    tankLatchTriggered = false;
+  }
+
+  float getFullLevelPercent()
+  {
+    return fullLevelPercent;
+  }
+
+  float getLowLevelPercent()
+  {
+    return lowLevelPercent;
+  }
+
+  // =========================================================================
+  // Tank distance calibration
+  // =========================================================================
+
+  bool setTankDistances(float fullDistance,
+                        float lowDistance)
+  {
+    if (!isValidNumber(fullDistance) ||
+        !isValidNumber(lowDistance))
+    {
+      return false;
+    }
+
+    if (fullDistance <= 0.0f)
+      return false;
+
+    // For a top-mounted ultrasonic sensor:
+    //
+    // FULL distance must be smaller than LOW/EMPTY distance.
+    //
+    if (lowDistance <= fullDistance)
+      return false;
+
+    fullDistanceCm =
+        fullDistance;
+
+    lowDistanceCm =
+        lowDistance;
+
+    // New calibration means the previous tank latch state should be
+    // evaluated using the new calibration.
+    tankLatchTriggered = false;
+
+    return true;
   }
 
   float getFullDistanceCm()
@@ -357,107 +656,34 @@ namespace device_manager
     return lowDistanceCm;
   }
 
-  bool setTankDistances(float fullDistance,
-                        float lowDistance)
+  // =========================================================================
+  // Temperature thresholds
+  // =========================================================================
+
+  bool setTemperatureThresholds(
+      float lowTemperature,
+      float highTemperature)
   {
-    if (!isfinite(fullDistance) ||
-        !isfinite(lowDistance))
+    if (!isValidNumber(lowTemperature) ||
+        !isValidNumber(highTemperature))
     {
       return false;
     }
 
-    if (fullDistance <= 0.0f)
-    {
+    if (highTemperature <= lowTemperature)
       return false;
-    }
 
-    if (lowDistance <= fullDistance)
-    {
-      return false;
-    }
+    lowTemperatureC =
+        lowTemperature;
 
-    if (lowDistance > 500.0f)
-    {
-      return false;
-    }
+    highTemperatureC =
+        highTemperature;
 
-    fullDistanceCm = fullDistance;
-    lowDistanceCm = lowDistance;
+    // Configuration changed, therefore clear the old latch state.
+    temperatureLatchTriggered = false;
 
     return true;
   }
-
-  // =========================================================
-  // LEVEL THRESHOLDS
-  // =========================================================
-
-  float getFullLevelPercent()
-  {
-    return fullLevelPercent;
-  }
-
-  float getLowLevelPercent()
-  {
-    return lowLevelPercent;
-  }
-
-  bool setLevelThresholds(float fullPercent,
-                          float lowPercent)
-  {
-    if (!isfinite(fullPercent) ||
-        !isfinite(lowPercent))
-    {
-      return false;
-    }
-
-    if (fullPercent <= lowPercent)
-    {
-      return false;
-    }
-
-    if (fullPercent > 100.0f)
-    {
-      return false;
-    }
-
-    if (lowPercent < 0.0f)
-    {
-      return false;
-    }
-
-    fullLevelPercent = fullPercent;
-    lowLevelPercent = lowPercent;
-
-    return true;
-  }
-
-  // =========================================================
-  // TANK LATCH
-  // =========================================================
-
-  void setRelayLatchMode(RelayLatchMode mode)
-  {
-    if (mode > LATCH_AT_LOW)
-    {
-      return;
-    }
-
-    relayLatchMode = mode;
-
-    /*
-     * Changing the mode makes the new mode start cleanly.
-     */
-    tankLatchTriggered = false;
-  }
-
-  RelayLatchMode getRelayLatchMode()
-  {
-    return relayLatchMode;
-  }
-
-  // =========================================================
-  // TEMPERATURE
-  // =========================================================
 
   float getLowTemperatureC()
   {
@@ -469,41 +695,18 @@ namespace device_manager
     return highTemperatureC;
   }
 
-  bool setTemperatureThresholds(float lowTemperature,
-                                float highTemperature)
-  {
-    if (!isfinite(lowTemperature) ||
-        !isfinite(highTemperature))
-    {
-      return false;
-    }
-
-    if (lowTemperature >= highTemperature)
-    {
-      return false;
-    }
-
-    if (lowTemperature < -200.0f ||
-        highTemperature > 850.0f)
-    {
-      return false;
-    }
-
-    lowTemperatureC = lowTemperature;
-    highTemperatureC = highTemperature;
-
-    return true;
-  }
+  // =========================================================================
+  // Temperature status
+  // =========================================================================
 
   TemperatureStatus getTemperatureStatus()
   {
-    return calculateTemperatureStatus(
-        snap.temperatureC);
+    return snap.temperatureStatus;
   }
 
   const char *getTemperatureStatusText()
   {
-    switch (getTemperatureStatus())
+    switch (snap.temperatureStatus)
     {
     case TEMP_STATUS_LOW:
       return "LOW";
@@ -514,25 +717,55 @@ namespace device_manager
     case TEMP_STATUS_HIGH:
       return "HIGH";
 
+    case TEMP_STATUS_INVALID:
     default:
       return "INVALID";
     }
   }
 
-  // =========================================================
-  // TEMPERATURE LATCH
-  // =========================================================
+  // =========================================================================
+  // Tank relay latch
+  // =========================================================================
+
+  void setRelayLatchMode(RelayLatchMode mode)
+  {
+    if (mode > LATCH_AT_LOW)
+      return;
+
+    tankLatchMode = mode;
+
+    // Changing automation configuration resets the existing latch.
+    tankLatchTriggered = false;
+
+    // If tank automation was responsible for the relay and no other
+    // automatic source remains, updateAutomaticRelay() will turn it off
+    // during the next update cycle.
+  }
+
+  RelayLatchMode getRelayLatchMode()
+  {
+    return tankLatchMode;
+  }
+
+  bool isTankLatchTriggered()
+  {
+    return tankLatchTriggered;
+  }
+
+  // =========================================================================
+  // Temperature relay latch
+  // =========================================================================
 
   void setTemperatureLatchMode(
       TemperatureLatchMode mode)
   {
-    if (mode > TEMP_LATCH_HIGH)
-    {
+    if (mode > TEMP_LATCH_AT_HIGH)
       return;
-    }
 
-    temperatureLatchMode = mode;
+    temperatureLatchMode =
+        mode;
 
+    // Changing the mode resets its previous latch.
     temperatureLatchTriggered = false;
   }
 
@@ -541,81 +774,123 @@ namespace device_manager
     return temperatureLatchMode;
   }
 
-  // =========================================================
-  // APPLY ALL SETTINGS
-  // =========================================================
+  bool isTemperatureLatchTriggered()
+  {
+    return temperatureLatchTriggered;
+  }
+
+  // =========================================================================
+  // Compatibility aliases
+  // =========================================================================
+
+  void setTemperatureRelayLatchMode(
+      TemperatureLatchMode mode)
+  {
+    setTemperatureLatchMode(mode);
+  }
+
+  TemperatureLatchMode getTemperatureRelayLatchMode()
+  {
+    return getTemperatureLatchMode();
+  }
+
+  // =========================================================================
+  // Combined automatic relay demand
+  // =========================================================================
+
+  bool isAutomaticRelayDemand()
+  {
+    return tankLatchTriggered ||
+           temperatureLatchTriggered;
+  }
+
+  // =========================================================================
+  // Apply all settings
+  // =========================================================================
 
   bool applySettings(
       float fullDistance,
       float lowDistance,
-      float fullPercent,
-      float lowPercent,
-      RelayLatchMode tankMode,
       float lowTemperature,
       float highTemperature,
-      TemperatureLatchMode temperatureMode)
+      RelayLatchMode newTankLatchMode,
+      TemperatureLatchMode newTemperatureLatchMode)
   {
-    if (!isfinite(fullDistance) ||
-        !isfinite(lowDistance) ||
-        !isfinite(fullPercent) ||
-        !isfinite(lowPercent) ||
-        !isfinite(lowTemperature) ||
-        !isfinite(highTemperature))
+    // Validate all settings BEFORE modifying anything.
+    if (!isValidNumber(fullDistance) ||
+        !isValidNumber(lowDistance) ||
+        !isValidNumber(lowTemperature) ||
+        !isValidNumber(highTemperature))
     {
       return false;
     }
 
-    if (fullDistance <= 0.0f ||
-        lowDistance <= fullDistance ||
-        lowDistance > 500.0f)
-    {
+    if (fullDistance <= 0.0f)
       return false;
-    }
 
-    if (fullPercent <= lowPercent ||
-        fullPercent > 100.0f ||
-        lowPercent < 0.0f)
-    {
+    if (lowDistance <= fullDistance)
       return false;
-    }
 
-    if (lowTemperature >= highTemperature)
-    {
+    if (highTemperature <= lowTemperature)
       return false;
-    }
 
-    if (lowTemperature < -200.0f ||
-        highTemperature > 850.0f)
-    {
+    if (newTankLatchMode > LATCH_AT_LOW)
       return false;
-    }
 
-    if (tankMode > LATCH_AT_LOW)
-    {
+    if (newTemperatureLatchMode > TEMP_LATCH_AT_HIGH)
       return false;
-    }
 
-    if (temperatureMode > TEMP_LATCH_HIGH)
-    {
-      return false;
-    }
+    // ---------------------------------------------------------------------
+    // Apply settings
+    // ---------------------------------------------------------------------
 
-    fullDistanceCm = fullDistance;
-    lowDistanceCm = lowDistance;
+    fullDistanceCm =
+        fullDistance;
 
-    fullLevelPercent = fullPercent;
-    lowLevelPercent = lowPercent;
+    lowDistanceCm =
+        lowDistance;
 
-    relayLatchMode = tankMode;
+    lowTemperatureC =
+        lowTemperature;
 
-    lowTemperatureC = lowTemperature;
-    highTemperatureC = highTemperature;
+    highTemperatureC =
+        highTemperature;
 
-    temperatureLatchMode = temperatureMode;
+    tankLatchMode =
+        newTankLatchMode;
+
+    temperatureLatchMode =
+        newTemperatureLatchMode;
+
+    // ---------------------------------------------------------------------
+    // Reset previous latch states.
+    //
+    // The next update cycle evaluates the actual sensors against the new
+    // configuration.
+    // ---------------------------------------------------------------------
 
     tankLatchTriggered = false;
+
     temperatureLatchTriggered = false;
 
     return true;
+  }
+
+  // =========================================================================
+  // Clear automatic latches
+  // =========================================================================
+
+  void clearAutomaticLatches()
+  {
+    tankLatchTriggered = false;
+
+    temperatureLatchTriggered = false;
+
+    if (automaticRelayActive)
+    {
+      load_relay::turnOff();
+
+      automaticRelayActive = false;
+    }
   }
 }

@@ -5,13 +5,16 @@
 
 #include "temp_sensor/temp_sensor.h"
 #include "ultrasonic_sensor/ultrasonic_sensor.h"
+
 #include "buzzer/buzzer.h"
 #include "load_relay/load_relay.h"
 #include "lcd_screen/lcd_screen.h"
 #include "led_indicator/led_indicator.h"
+
 #include "storage/storage.h"
 #include "sleep_wake/sleep_wake.h"
 #include "reset/reset.h"
+
 #include "device_manager/device_manager.h"
 #include "local_server/local_server.h"
 
@@ -26,8 +29,7 @@ static constexpr unsigned long
 
 static void printSerialReport()
 {
-  unsigned long now =
-      millis();
+  unsigned long now = millis();
 
   if ((unsigned long)(now - lastSerialReport) <
       SERIAL_REPORT_INTERVAL_MS)
@@ -44,15 +46,16 @@ static void printSerialReport()
   Serial.println(
       "========== HOT LIQUID SYSTEM ==========");
 
+  // -------------------------------------------------------
+  // Temperature
+  // -------------------------------------------------------
+
   if (snap.tempValid)
   {
-    Serial.print(
-        "Temperature: ");
-
+    Serial.print("Temperature: ");
     Serial.print(
         snap.temperatureC,
         2);
-
     Serial.println(" C");
   }
   else
@@ -61,24 +64,27 @@ static void printSerialReport()
         "Temperature: INVALID");
   }
 
+  Serial.print("Temperature status: ");
+  Serial.println(
+      device_manager::
+          getTemperatureStatusText());
+
+  // -------------------------------------------------------
+  // Ultrasonic / Tank
+  // -------------------------------------------------------
+
   if (snap.levelValid)
   {
-    Serial.print(
-        "Distance: ");
-
+    Serial.print("Distance: ");
     Serial.print(
         snap.distanceCm,
         2);
-
     Serial.println(" cm");
 
-    Serial.print(
-        "Level: ");
-
+    Serial.print("Level: ");
     Serial.print(
         snap.levelPercent,
         1);
-
     Serial.println(" %");
   }
   else
@@ -87,36 +93,45 @@ static void printSerialReport()
         "Ultrasonic: INVALID");
   }
 
-  Serial.print(
-      "Temperature status: ");
+  // -------------------------------------------------------
+  // Relay
+  // -------------------------------------------------------
 
-  Serial.println(
-      device_manager::
-          getTemperatureStatusText());
-
-  Serial.print(
-      "Relay: ");
-
+  Serial.print("Relay: ");
   Serial.println(
       snap.relayOn
           ? "ON"
           : "OFF");
 
-  Serial.print(
-      "Tank latch: ");
+  // -------------------------------------------------------
+  // Tank latch
+  // -------------------------------------------------------
 
+  Serial.print("Tank latch: ");
   Serial.println(
       snap.tankLatchTriggered
           ? "TRIGGERED"
           : "NOT TRIGGERED");
 
-  Serial.print(
-      "Temperature latch: ");
+  // -------------------------------------------------------
+  // Temperature latch
+  // -------------------------------------------------------
 
+  Serial.print("Temperature latch: ");
   Serial.println(
       snap.temperatureLatchTriggered
           ? "TRIGGERED"
           : "NOT TRIGGERED");
+
+  // -------------------------------------------------------
+  // Automatic relay demand
+  // -------------------------------------------------------
+
+  Serial.print("Automatic relay demand: ");
+  Serial.println(
+      snap.automaticRelayDemand
+          ? "YES"
+          : "NO");
 
   Serial.println(
       "========================================");
@@ -188,19 +203,6 @@ void setup()
       device_manager::
           getLowDistanceCm();
 
-  float fullLevel =
-      device_manager::
-          getFullLevelPercent();
-
-  float lowLevel =
-      device_manager::
-          getLowLevelPercent();
-
-  uint8_t tankLatch =
-      static_cast<uint8_t>(
-          device_manager::
-              getRelayLatchMode());
-
   float lowTemperature =
       device_manager::
           getLowTemperatureC();
@@ -209,21 +211,32 @@ void setup()
       device_manager::
           getHighTemperatureC();
 
+  uint8_t tankLatch =
+      static_cast<uint8_t>(
+          device_manager::
+              getRelayLatchMode());
+
   uint8_t temperatureLatch =
       static_cast<uint8_t>(
           device_manager::
               getTemperatureLatchMode());
 
+  // -------------------------------------------------------
+  // Load settings from storage
+  // -------------------------------------------------------
+
   bool settingsLoaded =
       storage::loadTankSettings(
           fullDistance,
           lowDistance,
-          fullLevel,
-          lowLevel,
           tankLatch,
           lowTemperature,
           highTemperature,
           temperatureLatch);
+
+  // -------------------------------------------------------
+  // Apply saved settings
+  // -------------------------------------------------------
 
   if (settingsLoaded)
   {
@@ -231,16 +244,18 @@ void setup()
         device_manager::applySettings(
             fullDistance,
             lowDistance,
-            fullLevel,
-            lowLevel,
-            static_cast<
-                device_manager::
-                    RelayLatchMode>(tankLatch),
             lowTemperature,
             highTemperature,
+
             static_cast<
                 device_manager::
-                    TemperatureLatchMode>(temperatureLatch));
+                    RelayLatchMode>(
+                tankLatch),
+
+            static_cast<
+                device_manager::
+                    TemperatureLatchMode>(
+                temperatureLatch));
 
     if (applied)
     {
@@ -292,6 +307,10 @@ void setup()
       "Hot Liquid Monitoring and Control System started.");
 
   buzzer::beep(120);
+
+  // -------------------------------------------------------
+  // Serial startup information
+  // -------------------------------------------------------
 
   Serial.println();
   Serial.println(

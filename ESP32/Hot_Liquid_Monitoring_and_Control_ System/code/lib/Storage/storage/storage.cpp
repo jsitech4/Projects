@@ -565,26 +565,28 @@ namespace storage
 
   // =========================================================
   // LOAD SETTINGS
+  // =========================================================
   //
-  // New format:
+  // Current format:
   //
   // fullDistance,
   // lowDistance,
-  // fullLevelPercent,
-  // lowLevelPercent,
   // tankLatchMode,
   // lowTemperature,
   // highTemperature,
   // temperatureLatchMode
   //
-  // Older 3-value files are also accepted.
+  // Legacy 3-value files are also accepted:
+  //
+  // fullPercent,lowPercent,latchMode
+  //
+  // Legacy files are converted to the current distance-based
+  // system using default distance and temperature settings.
   // =========================================================
 
   bool loadTankSettings(
       float &fullDistance,
       float &lowDistance,
-      float &fullPercent,
-      float &lowPercent,
       uint8_t &tankLatch,
       float &lowTemperature,
       float &highTemperature,
@@ -595,8 +597,7 @@ namespace storage
       return false;
     }
 
-    if (!activeFS->exists(
-            tankSettingsFile))
+    if (!activeFS->exists(tankSettingsFile))
     {
       return false;
     }
@@ -671,10 +672,10 @@ namespace storage
     }
 
     // -----------------------------------------------------
-    // New settings format
+    // Current 6-value settings format
     // -----------------------------------------------------
 
-    if (valueCount >= 8)
+    if (valueCount >= 6)
     {
       float savedFullDistance =
           values[0];
@@ -682,28 +683,24 @@ namespace storage
       float savedLowDistance =
           values[1];
 
-      float savedFullPercent =
-          values[2];
-
-      float savedLowPercent =
-          values[3];
-
       int savedTankLatch =
-          static_cast<int>(values[4]);
+          static_cast<int>(values[2]);
 
       float savedLowTemperature =
-          values[5];
+          values[3];
 
       float savedHighTemperature =
-          values[6];
+          values[4];
 
       int savedTemperatureLatch =
-          static_cast<int>(values[7]);
+          static_cast<int>(values[5]);
+
+      // ---------------------------------------------------
+      // Validate
+      // ---------------------------------------------------
 
       if (!isfinite(savedFullDistance) ||
           !isfinite(savedLowDistance) ||
-          !isfinite(savedFullPercent) ||
-          !isfinite(savedLowPercent) ||
           !isfinite(savedLowTemperature) ||
           !isfinite(savedHighTemperature))
       {
@@ -711,17 +708,8 @@ namespace storage
       }
 
       if (savedFullDistance <= 0.0f ||
-          savedLowDistance <=
-              savedFullDistance ||
+          savedLowDistance <= savedFullDistance ||
           savedLowDistance > 500.0f)
-      {
-        return false;
-      }
-
-      if (savedFullPercent <=
-              savedLowPercent ||
-          savedFullPercent > 100.0f ||
-          savedLowPercent < 0.0f)
       {
         return false;
       }
@@ -750,17 +738,15 @@ namespace storage
         return false;
       }
 
+      // ---------------------------------------------------
+      // Apply loaded values
+      // ---------------------------------------------------
+
       fullDistance =
           savedFullDistance;
 
       lowDistance =
           savedLowDistance;
-
-      fullPercent =
-          savedFullPercent;
-
-      lowPercent =
-          savedLowPercent;
 
       tankLatch =
           static_cast<uint8_t>(
@@ -785,8 +771,9 @@ namespace storage
     // Old:
     // fullPercent,lowPercent,latchMode
     //
-    // We retain the old level settings and use the new
-    // default distance/temperature calibration.
+    // The old percentage thresholds are no longer stored.
+    // We therefore convert the old file to the default
+    // distance calibration.
     // -----------------------------------------------------
 
     if (valueCount >= 3)
@@ -800,8 +787,13 @@ namespace storage
       int savedLatch =
           static_cast<int>(values[2]);
 
-      if (savedFullPercent <=
-              savedLowPercent ||
+      if (!isfinite(savedFullPercent) ||
+          !isfinite(savedLowPercent))
+      {
+        return false;
+      }
+
+      if (savedFullPercent <= savedLowPercent ||
           savedFullPercent > 100.0f ||
           savedLowPercent < 0.0f ||
           savedLatch < 0 ||
@@ -810,20 +802,21 @@ namespace storage
         return false;
       }
 
-      fullDistance = 2.0f;
+      // ---------------------------------------------------
+      // Convert legacy percentage configuration.
+      //
+      // The new system derives percentage from distance.
+      // Use the existing/default distance calibration.
+      // ---------------------------------------------------
+
+      fullDistance = 5.0f;
       lowDistance = 40.0f;
-
-      fullPercent =
-          savedFullPercent;
-
-      lowPercent =
-          savedLowPercent;
 
       tankLatch =
           static_cast<uint8_t>(
               savedLatch);
 
-      lowTemperature = 20.0f;
+      lowTemperature = 30.0f;
       highTemperature = 80.0f;
 
       temperatureLatch = 0;
@@ -837,12 +830,20 @@ namespace storage
   // =========================================================
   // SAVE SETTINGS
   // =========================================================
+  //
+  // Current format:
+  //
+  // fullDistance,
+  // lowDistance,
+  // tankLatchMode,
+  // lowTemperature,
+  // highTemperature,
+  // temperatureLatchMode
+  // =========================================================
 
   bool saveTankSettings(
       float fullDistance,
       float lowDistance,
-      float fullPercent,
-      float lowPercent,
       uint8_t tankLatch,
       float lowTemperature,
       float highTemperature,
@@ -853,15 +854,21 @@ namespace storage
       return false;
     }
 
+    // -----------------------------------------------------
+    // Validate numeric values
+    // -----------------------------------------------------
+
     if (!isfinite(fullDistance) ||
         !isfinite(lowDistance) ||
-        !isfinite(fullPercent) ||
-        !isfinite(lowPercent) ||
         !isfinite(lowTemperature) ||
         !isfinite(highTemperature))
     {
       return false;
     }
+
+    // -----------------------------------------------------
+    // Validate tank distance calibration
+    // -----------------------------------------------------
 
     if (fullDistance <= 0.0f ||
         lowDistance <= fullDistance ||
@@ -870,17 +877,18 @@ namespace storage
       return false;
     }
 
-    if (fullPercent <= lowPercent ||
-        fullPercent > 100.0f ||
-        lowPercent < 0.0f)
-    {
-      return false;
-    }
+    // -----------------------------------------------------
+    // Validate tank latch mode
+    // -----------------------------------------------------
 
     if (tankLatch > 2)
     {
       return false;
     }
+
+    // -----------------------------------------------------
+    // Validate temperature thresholds
+    // -----------------------------------------------------
 
     if (lowTemperature >= highTemperature)
     {
@@ -893,10 +901,18 @@ namespace storage
       return false;
     }
 
+    // -----------------------------------------------------
+    // Validate temperature latch mode
+    // -----------------------------------------------------
+
     if (temperatureLatch > 2)
     {
       return false;
     }
+
+    // -----------------------------------------------------
+    // Open settings file
+    // -----------------------------------------------------
 
     File file =
         activeFS->open(
@@ -908,16 +924,14 @@ namespace storage
       return false;
     }
 
+    // -----------------------------------------------------
+    // Write current 6-value format
+    // -----------------------------------------------------
+
     file.print(fullDistance, 2);
     file.print(',');
 
     file.print(lowDistance, 2);
-    file.print(',');
-
-    file.print(fullPercent, 1);
-    file.print(',');
-
-    file.print(lowPercent, 1);
     file.print(',');
 
     file.print(tankLatch);
@@ -935,4 +949,5 @@ namespace storage
 
     return true;
   }
+
 }

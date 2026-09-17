@@ -2668,119 +2668,80 @@ loadLogs,
   {
     sendCors();
 
-    const char *requiredArgs[] =
-        {
-            "full_distance",
-            "low_distance",
-            "full_level",
-            "low_level",
-            "tank_latch",
-            "low_temperature",
-            "high_temperature",
-            "temperature_latch"};
+    // -------------------------------------------------------
+    // Required arguments
+    // -------------------------------------------------------
 
-    for (size_t i = 0;
-         i < 8;
-         i++)
+    if (!server.hasArg("fullDistance") ||
+        !server.hasArg("lowDistance") ||
+        !server.hasArg("lowTemperature") ||
+        !server.hasArg("highTemperature") ||
+        !server.hasArg("tankLatch") ||
+        !server.hasArg("temperatureLatch"))
     {
-      if (!server.hasArg(
-              requiredArgs[i]))
-      {
-        server.send(
-            400,
-            "application/json",
-            "{\"ok\":false,\"message\":\"Missing setting parameter\"}");
+      server.send(
+          400,
+          "application/json",
+          "{\"ok\":false,\"error\":\"Missing settings.\"}");
 
-        return;
-      }
+      return;
     }
 
-    // -----------------------------------------------------
-    // Parse
-    // -----------------------------------------------------
+    // -------------------------------------------------------
+    // Read settings
+    // -------------------------------------------------------
 
     float fullDistance =
-        server.arg(
-                  "full_distance")
-            .toFloat();
+        server.arg("fullDistance").toFloat();
 
     float lowDistance =
-        server.arg(
-                  "low_distance")
-            .toFloat();
-
-    float fullLevel =
-        server.arg(
-                  "full_level")
-            .toFloat();
-
-    float lowLevel =
-        server.arg(
-                  "low_level")
-            .toFloat();
-
-    int tankLatch =
-        server.arg(
-                  "tank_latch")
-            .toInt();
+        server.arg("lowDistance").toFloat();
 
     float lowTemperature =
-        server.arg(
-                  "low_temperature")
-            .toFloat();
+        server.arg("lowTemperature").toFloat();
 
     float highTemperature =
-        server.arg(
-                  "high_temperature")
-            .toFloat();
+        server.arg("highTemperature").toFloat();
+
+    int tankLatch =
+        server.arg("tankLatch").toInt();
 
     int temperatureLatch =
-        server.arg(
-                  "temperature_latch")
-            .toInt();
+        server.arg("temperatureLatch").toInt();
 
-    // -----------------------------------------------------
-    // Validate
-    // -----------------------------------------------------
-
-    if (!isfinite(fullDistance) ||
-        !isfinite(lowDistance) ||
-        !isfinite(fullLevel) ||
-        !isfinite(lowLevel) ||
-        !isfinite(lowTemperature) ||
-        !isfinite(highTemperature))
-    {
-      server.send(
-          400,
-          "application/json",
-          "{\"ok\":false,\"message\":\"Invalid numeric value\"}");
-
-      return;
-    }
+    // -------------------------------------------------------
+    // Validate distance settings
+    // -------------------------------------------------------
 
     if (fullDistance <= 0.0f ||
-        lowDistance <= fullDistance ||
-        lowDistance > 500.0f)
+        lowDistance <= 0.0f ||
+        fullDistance >= lowDistance)
     {
       server.send(
           400,
           "application/json",
-          "{\"ok\":false,\"message\":\"Full distance must be smaller than low distance\"}");
+          "{\"ok\":false,\"error\":\"Invalid tank distance settings.\"}");
 
       return;
     }
 
-    if (fullLevel <= lowLevel ||
-        fullLevel > 100.0f ||
-        lowLevel < 0.0f)
+    // -------------------------------------------------------
+    // Validate temperature settings
+    // -------------------------------------------------------
+
+    if (lowTemperature >= highTemperature)
     {
       server.send(
           400,
           "application/json",
-          "{\"ok\":false,\"message\":\"Invalid level thresholds\"}");
+          "{\"ok\":false,\"error\":\"Low temperature must be below high temperature.\"}");
 
       return;
     }
+
+    // -------------------------------------------------------
+    // Validate tank latch mode
+    // -------------------------------------------------------
 
     if (tankLatch < 0 ||
         tankLatch > 2)
@@ -2788,31 +2749,14 @@ loadLogs,
       server.send(
           400,
           "application/json",
-          "{\"ok\":false,\"message\":\"Invalid tank latch mode\"}");
+          "{\"ok\":false,\"error\":\"Invalid tank latch mode.\"}");
 
       return;
     }
 
-    if (lowTemperature >= highTemperature)
-    {
-      server.send(
-          400,
-          "application/json",
-          "{\"ok\":false,\"message\":\"Low temperature must be below high temperature\"}");
-
-      return;
-    }
-
-    if (lowTemperature < -200.0f ||
-        highTemperature > 850.0f)
-    {
-      server.send(
-          400,
-          "application/json",
-          "{\"ok\":false,\"message\":\"Temperature outside supported range\"}");
-
-      return;
-    }
+    // -------------------------------------------------------
+    // Validate temperature latch mode
+    // -------------------------------------------------------
 
     if (temperatureLatch < 0 ||
         temperatureLatch > 2)
@@ -2820,78 +2764,89 @@ loadLogs,
       server.send(
           400,
           "application/json",
-          "{\"ok\":false,\"message\":\"Invalid temperature latch mode\"}");
+          "{\"ok\":false,\"error\":\"Invalid temperature latch mode.\"}");
 
       return;
     }
 
-    // -----------------------------------------------------
-    // Persist FIRST
-    //
-    // Runtime settings are only changed after the flash
-    // write succeeds.
-    // -----------------------------------------------------
+    // -------------------------------------------------------
+    // Convert latch modes
+    // -------------------------------------------------------
+
+    device_manager::RelayLatchMode tankLatchMode =
+        static_cast<
+            device_manager::RelayLatchMode>(
+            tankLatch);
+
+    device_manager::TemperatureLatchMode temperatureLatchMode =
+        static_cast<
+            device_manager::TemperatureLatchMode>(
+            temperatureLatch);
+
+    // -------------------------------------------------------
+    // Apply settings to device manager
+    // -------------------------------------------------------
+
+    bool applied =
+        device_manager::applySettings(
+            fullDistance,
+            lowDistance,
+            lowTemperature,
+            highTemperature,
+            tankLatchMode,
+            temperatureLatchMode);
+
+    if (!applied)
+    {
+      server.send(
+          400,
+          "application/json",
+          "{\"ok\":false,\"error\":\"Settings rejected by device manager.\"}");
+
+      return;
+    }
+
+    // -------------------------------------------------------
+    // Save settings to internal flash
+    // -------------------------------------------------------
 
     bool saved =
         storage::saveTankSettings(
             fullDistance,
             lowDistance,
-            fullLevel,
-            lowLevel,
             static_cast<uint8_t>(
-                tankLatch),
+                tankLatchMode),
             lowTemperature,
             highTemperature,
             static_cast<uint8_t>(
-                temperatureLatch));
+                temperatureLatchMode));
 
     if (!saved)
     {
       server.send(
           500,
           "application/json",
-          "{\"ok\":false,\"message\":\"Could not save settings to internal flash\"}");
+          "{\"ok\":false,\"error\":\"Settings applied but could not be saved.\"}");
 
       return;
     }
 
-    // -----------------------------------------------------
-    // Apply runtime settings
-    // -----------------------------------------------------
-
-    bool applied =
-        device_manager::applySettings(
-            fullDistance,
-            lowDistance,
-            fullLevel,
-            lowLevel,
-            static_cast<
-                device_manager::
-                    RelayLatchMode>(tankLatch),
-            lowTemperature,
-            highTemperature,
-            static_cast<
-                device_manager::
-                    TemperatureLatchMode>(temperatureLatch));
-
-    if (!applied)
-    {
-      server.send(
-          500,
-          "application/json",
-          "{\"ok\":false,\"message\":\"Settings were saved but could not be applied\"}");
-
-      return;
-    }
+    // -------------------------------------------------------
+    // Log configuration change
+    // -------------------------------------------------------
 
     storage::logEvent(
         "SETTINGS",
-        "Dashboard settings saved and applied.");
+        "Tank and temperature control settings updated from dashboard.");
+
+    // -------------------------------------------------------
+    // Success
+    // -------------------------------------------------------
 
     server.send(
         200,
         "application/json",
-        "{\"ok\":true,\"message\":\"Settings saved and applied\"}");
+        "{\"ok\":true}");
   }
 
   // =========================================================

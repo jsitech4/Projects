@@ -1,0 +1,40 @@
+Processing esp32-s3 (platform: espressif32; board: esp32-s3-devkitc-1; framework: arduino)
+--------------------------------------------------------------------------------
+Verbose mode can be enabled via `-v, --verbose` option
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/esp32-s3-devkitc-1.html
+PLATFORM: Espressif 32 (6.12.0) > Espressif ESP32-S3-DevKitC-1-N8 (8 MB QD, No PSRAM)
+HARDWARE: ESP32S3 240MHz, 320KB RAM, 8MB Flash
+DEBUG: Current (esp-builtin) On-board (esp-builtin) External (cmsis-dap, esp-bridge, esp-prog, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
+PACKAGES: 
+ - framework-arduinoespressif32 @ 3.20017.241212+sha.dcc1105b 
+ - tool-esptoolpy @ 2.40900.250804 (4.9.0) 
+ - toolchain-riscv32-esp @ 8.4.0+2021r2-patch5 
+ - toolchain-xtensa-esp32s3 @ 8.4.0+2021r2-patch5
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ chain, Compatibility ~ soft
+Found 47 compatible libraries
+Scanning dependencies...
+Dependency Graph
+|-- LiquidCrystal_I2C @ 1.1.4
+|-- Adafruit ADXL345 @ 1.3.4
+|-- Adafruit MAX31865 library @ 1.6.2
+|-- Actuators
+|-- Control
+|-- Display
+|-- Communication
+|-- Pins
+|-- System
+|-- Storage
+|-- Sensors
+|-- Wire @ 2.0.0
+Building in release mode
+Linking .pio\build\esp32-s3\firmware.elf
+c:/users/jsi tech/.platformio/packages/toolchain-xtensa-esp32s3/bin/../lib/gcc/xtensa-esp32s3-elf/8.4.0/../../../../xtensa-esp32s3-elf/bin/ld.exe: .pio/build/esp32-s3/src/main.cpp.o:(.literal._Z5setupv+0x5c): undefined reference to `storage::loadTankSettings(float&, float&, unsigned char&, float&, float&, unsigned char&)'
+c:/users/jsi tech/.platformio/packages/toolchain-xtensa-esp32s3/bin/../lib/gcc/xtensa-esp32s3-elf/8.4.0/../../../../xtensa-esp32s3-elf/bin/ld.exe: .pio/build/esp32-s3/src/main.cpp.o: in function `setup()':
+C:\Users\JSI Tech\Documents\My Kicad File\Github\KiCad_Design\Projects\ESP32\Hot_Liquid_Monitoring_and_Control_ System\code/src/main.cpp:229: undefined reference to `storage::loadTankSettings(float&, float&, unsigned char&, float&, float&, unsigned char&)'
+c:/users/jsi tech/.platformio/packages/toolchain-xtensa-esp32s3/bin/../lib/gcc/xtensa-esp32s3-elf/8.4.0/../../../../xtensa-esp32s3-elf/bin/ld.exe: .pio/build/esp32-s3/libfb1/libCommunication.a(local_server.cpp.o):(.literal._ZN12local_serverL18handleSaveSettingsEv+0x50): undefined reference to `storage::saveTankSettings(float, float, unsigned char, float, float, unsigned char)'
+c:/users/jsi tech/.platformio/packages/toolchain-xtensa-esp32s3/bin/../lib/gcc/xtensa-esp32s3-elf/8.4.0/../../../../xtensa-esp32s3-elf/bin/ld.exe: .pio/build/esp32-s3/libfb1/libCommunication.a(local_server.cpp.o): in function `local_server::handleSaveSettings()':
+C:\Users\JSI Tech\Documents\My Kicad File\Github\KiCad_Design\Projects\ESP32\Hot_Liquid_Monitoring_and_Control_ System\code/lib/Communication/local_server/local_server.cpp:2814: undefined reference to `storage::saveTankSettings(float, float, unsigned char, float, float, unsigned char)'
+collect2.exe: error: ld returned 1 exit status
+*** [.pio\build\esp32-s3\firmware.elf] Error 1
+========================= [FAILED] Took 16.13 seconds =========================
