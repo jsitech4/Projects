@@ -7,11 +7,11 @@ namespace storage
 {
   void begin();
   void update();
-
   void logNow();
 
-  void logEvent(const String &event,
-                const String &message);
+  void logEvent(
+      const String &event,
+      const String &message);
 
   bool isReady();
   bool isSdReady();
@@ -19,29 +19,48 @@ namespace storage
 
   String getBackendName();
 
-  void setLogInterval(unsigned long intervalMs);
+  void setLogInterval(
+      unsigned long intervalMs);
 
   const char *getFileName();
   const char *getLiquidLogFileName();
   const char *getAnalysisLogFileName();
   const char *getEventLogFileName();
 
-  String readFile(const char *path);
+  String readFile(
+      const char *path);
 
-  String readTail(const char *path,
-                  size_t maxBytes);
+  String readTail(
+      const char *path,
+      size_t maxBytes);
 
-  size_t getFileSize(const char *path);
+  size_t getFileSize(
+      const char *path);
 
-  File openRead(const char *path);
+  File openRead(
+      const char *path);
 
   // =========================================================
   // Persistent system settings
+  //
+  // Current format:
+  //
+  // fullDistanceCm,
+  // lowDistanceCm,
+  // fullLevelPercent,
+  // lowLevelPercent,
+  // tankLatchMode,
+  // lowTemperatureC,
+  // highTemperatureC,
+  // temperatureLatchMode
+  //
   // =========================================================
 
   bool loadTankSettings(
       float &fullDistanceCm,
       float &lowDistanceCm,
+      float &fullLevelPercent,
+      float &lowLevelPercent,
       uint8_t &tankLatchMode,
       float &lowTemperatureC,
       float &highTemperatureC,
@@ -50,6 +69,8 @@ namespace storage
   bool saveTankSettings(
       float fullDistanceCm,
       float lowDistanceCm,
+      float fullLevelPercent,
+      float lowLevelPercent,
       uint8_t tankLatchMode,
       float lowTemperatureC,
       float highTemperatureC,

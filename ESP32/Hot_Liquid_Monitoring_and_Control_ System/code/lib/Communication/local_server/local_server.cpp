@@ -4,11 +4,9 @@
 #include <math.h>
 
 #include "local_server.h"
-
 #include "device_manager/device_manager.h"
 #include "temp_sensor/temp_sensor.h"
 #include "ultrasonic_sensor/ultrasonic_sensor.h"
-#include "load_relay/load_relay.h"
 #include "storage/storage.h"
 
 namespace local_server
@@ -17,8 +15,7 @@ namespace local_server
 
   static bool running = false;
 
-  static String ipAddress =
-      "0.0.0.0";
+  static String ipAddress = "0.0.0.0";
 
   static const char *apSsid =
       "Hot Liquid Monitoring and Control System";
@@ -27,7 +24,7 @@ namespace local_server
       "12345678";
 
   // =========================================================
-  // SETTINGS UI STATE
+  // DASHBOARD
   // =========================================================
 
   static const char indexPage[] PROGMEM = R"HTML(
@@ -38,8 +35,9 @@ namespace local_server
 
 <meta charset="UTF-8">
 
-<meta name="viewport"
-      content="width=device-width,initial-scale=1.0">
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1.0">
 
 <title>
 Hot Liquid Monitoring and Control System
@@ -48,449 +46,474 @@ Hot Liquid Monitoring and Control System
 <style>
 
 :root{
---bg:#eef3f8;
---card:#ffffff;
---text:#18212f;
---muted:#667085;
---accent:#2563eb;
---good:#16a34a;
---warn:#ca8a04;
---bad:#dc2626;
---orange:#ea580c;
---line:rgba(100,116,139,.22);
---shadow:0 14px 35px rgba(15,23,42,.12);
+  --bg:#eef3f8;
+  --card:#ffffff;
+  --text:#18212f;
+  --muted:#667085;
+  --accent:#2563eb;
+  --good:#16a34a;
+  --warn:#ca8a04;
+  --bad:#dc2626;
+  --orange:#ea580c;
+  --line:rgba(100,116,139,.22);
+  --shadow:0 14px 35px rgba(15,23,42,.12);
 }
 
 [data-theme=dark]{
---bg:#0b1220;
---card:#111c2f;
---text:#e5edf8;
---muted:#98a2b3;
---accent:#60a5fa;
---line:rgba(148,163,184,.18);
---shadow:0 14px 35px rgba(0,0,0,.35);
+  --bg:#0b1220;
+  --card:#111c2f;
+  --text:#e5edf8;
+  --muted:#98a2b3;
+  --accent:#60a5fa;
+  --line:rgba(148,163,184,.18);
+  --shadow:0 14px 35px rgba(0,0,0,.35);
 }
 
 *{
-box-sizing:border-box;
+  box-sizing:border-box;
 }
 
 html{
-scroll-behavior:smooth;
+  scroll-behavior:smooth;
 }
 
 body{
-margin:0;
-min-height:100vh;
-font-family:Arial,Helvetica,sans-serif;
-background:
-radial-gradient(
-circle at top left,
-rgba(37,99,235,.14),
-transparent 32%
-),
-var(--bg);
-color:var(--text);
-display:flex;
-justify-content:center;
+  margin:0;
+  min-height:100vh;
+  font-family:Arial,Helvetica,sans-serif;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(37,99,235,.14),
+      transparent 32%
+    ),
+    var(--bg);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
 }
 
 .page{
-width:100%;
-max-width:1220px;
-margin:0 auto;
+  width:100%;
+  max-width:1220px;
+  margin:0 auto;
 }
 
 .header{
-padding:22px 18px;
-display:flex;
-justify-content:center;
-align-items:center;
-gap:14px;
-max-width:1180px;
-margin:auto;
-flex-wrap:wrap;
-text-align:center;
+  padding:22px 18px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:14px;
+  max-width:1180px;
+  margin:auto;
+  flex-wrap:wrap;
+  text-align:center;
 }
 
 .title{
-flex:1 1 560px;
-display:flex;
-flex-direction:column;
-align-items:center;
+  flex:1 1 560px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
 .title h1{
-margin:0;
-font-size:25px;
-letter-spacing:-.4px;
+  margin:0;
+  font-size:25px;
+  letter-spacing:-.4px;
 }
 
 .title p{
-margin:6px auto 0;
-color:var(--muted);
-line-height:1.4;
-max-width:760px;
+  margin:6px auto 0;
+  color:var(--muted);
+  line-height:1.4;
+  max-width:760px;
 }
 
 .top-actions{
-display:flex;
-justify-content:center;
-align-items:center;
-gap:10px;
-flex:1 1 100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  flex:1 1 100%;
 }
 
 .pill{
-border:0;
-border-radius:999px;
-padding:10px 14px;
-background:var(--card);
-color:var(--text);
-box-shadow:var(--shadow);
-font-weight:700;
+  border:0;
+  border-radius:999px;
+  padding:10px 14px;
+  background:var(--card);
+  color:var(--text);
+  box-shadow:var(--shadow);
+  font-weight:700;
 }
 
 .theme-btn{
-width:44px;
-height:44px;
-border:0;
-border-radius:50%;
-background:var(--card);
-color:var(--text);
-box-shadow:var(--shadow);
-cursor:pointer;
-font-size:20px;
+  width:44px;
+  height:44px;
+  border:0;
+  border-radius:50%;
+  background:var(--card);
+  color:var(--text);
+  box-shadow:var(--shadow);
+  cursor:pointer;
+  font-size:20px;
 }
 
 .container{
-max-width:1180px;
-margin:auto;
-padding:0 16px 30px;
+  max-width:1180px;
+  margin:auto;
+  padding:0 16px 30px;
 }
 
 .grid{
-display:grid;
-grid-template-columns:
-repeat(12,minmax(0,1fr));
-gap:16px;
+  display:grid;
+  grid-template-columns:
+    repeat(12,minmax(0,1fr));
+  gap:16px;
 }
 
 .card{
-background:var(--card);
-border:1px solid var(--line);
-border-radius:22px;
-padding:18px;
-box-shadow:var(--shadow);
-text-align:center;
-display:flex;
-flex-direction:column;
-align-items:center;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:18px;
+  box-shadow:var(--shadow);
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
-.span3{grid-column:span 3}
-.span4{grid-column:span 4}
-.span5{grid-column:span 5}
-.span6{grid-column:span 6}
-.span7{grid-column:span 7}
-.span8{grid-column:span 8}
-.span12{grid-column:span 12}
+.span3{
+  grid-column:span 3
+}
+
+.span4{
+  grid-column:span 4
+}
+
+.span5{
+  grid-column:span 5
+}
+
+.span6{
+  grid-column:span 6
+}
+
+.span7{
+  grid-column:span 7
+}
+
+.span8{
+  grid-column:span 8
+}
+
+.span12{
+  grid-column:span 12
+}
 
 .label{
-font-size:13px;
-color:var(--muted);
-margin-bottom:8px;
-font-weight:700;
-text-transform:uppercase;
-letter-spacing:.04em;
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:8px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.04em;
 }
 
 .value{
-font-size:29px;
-font-weight:800;
+  font-size:29px;
+  font-weight:800;
 }
 
 .unit{
-font-size:14px;
-color:var(--muted);
-font-weight:500;
+  font-size:14px;
+  color:var(--muted);
+  font-weight:500;
 }
 
 .small{
-color:var(--muted);
-font-size:13px;
-line-height:1.5;
-max-width:760px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+  max-width:760px;
 }
 
 .status{
-display:inline-block;
-padding:9px 13px;
-border-radius:999px;
-font-weight:800;
-font-size:13px;
-background:#e5e7eb;
-color:#111827;
+  display:inline-block;
+  padding:9px 13px;
+  border-radius:999px;
+  font-weight:800;
+  font-size:13px;
+  background:#e5e7eb;
+  color:#111827;
 }
 
 .status.NORMAL{
-background:#dcfce7;
-color:#166534;
+  background:#dcfce7;
+  color:#166534;
 }
 
 .status.LOW{
-background:#dbeafe;
-color:#1d4ed8;
+  background:#dbeafe;
+  color:#1d4ed8;
 }
 
 .status.HIGH{
-background:#fee2e2;
-color:#991b1b;
+  background:#fee2e2;
+  color:#991b1b;
 }
 
 .status.INVALID{
-background:#e5e7eb;
-color:#475569;
+  background:#e5e7eb;
+  color:#475569;
+}
+
+.status.FULL{
+  background:#fee2e2;
+  color:#991b1b;
 }
 
 .bar{
-width:100%;
-max-width:520px;
-height:12px;
-background:rgba(100,116,139,.22);
-border-radius:999px;
-overflow:hidden;
-margin-top:10px;
+  width:100%;
+  max-width:520px;
+  height:12px;
+  background:rgba(100,116,139,.22);
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:10px;
 }
 
 .fill{
-height:100%;
-width:0%;
-background:var(--accent);
-transition:width .35s ease;
-border-radius:999px;
+  height:100%;
+  width:0%;
+  background:var(--accent);
+  transition:width .35s ease;
+  border-radius:999px;
 }
 
 .fill.good{
-background:var(--good);
+  background:var(--good);
 }
 
 .fill.warn{
-background:var(--warn);
+  background:var(--warn);
 }
 
 .fill.bad{
-background:var(--bad);
+  background:var(--bad);
 }
 
 .tank-wrap{
-display:flex;
-align-items:center;
-justify-content:center;
-gap:28px;
-width:100%;
-padding:8px 0 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:28px;
+  width:100%;
+  padding:8px 0 14px;
 }
 
 .tank{
-position:relative;
-width:170px;
-height:250px;
-border:4px solid var(--text);
-border-radius:18px 18px 28px 28px;
-background:rgba(148,163,184,.10);
-overflow:hidden;
+  position:relative;
+  width:170px;
+  height:250px;
+  border:4px solid var(--text);
+  border-radius:18px 18px 28px 28px;
+  background:rgba(148,163,184,.10);
+  overflow:hidden;
 }
 
 .tank:before{
-content:'';
-position:absolute;
-left:24px;
-right:24px;
-top:12px;
-height:7px;
-border:2px solid var(--text);
-border-radius:8px;
+  content:'';
+  position:absolute;
+  left:24px;
+  right:24px;
+  top:12px;
+  height:7px;
+  border:2px solid var(--text);
+  border-radius:8px;
 }
 
 .liquid{
-position:absolute;
-left:0;
-right:0;
-bottom:0;
-height:0%;
-background:
-linear-gradient(
-180deg,
-#38bdf8,
-#0284c7
-);
-transition:height .5s ease;
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:0%;
+  background:
+    linear-gradient(
+      180deg,
+      #38bdf8,
+      #0284c7
+    );
+  transition:height .5s ease;
 }
 
 .tank-label{
-position:absolute;
-inset:0;
-display:flex;
-align-items:center;
-justify-content:center;
-z-index:1;
-font-size:27px;
-font-weight:800;
-color:#fff;
-text-shadow:
-0 2px 4px rgba(0,0,0,.5);
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1;
+  font-size:27px;
+  font-weight:800;
+  color:#fff;
+  text-shadow:
+    0 2px 4px rgba(0,0,0,.5);
 }
 
 .valve{
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:10px;
-min-width:150px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  min-width:150px;
 }
 
 .valve-body{
-width:74px;
-height:74px;
-border:5px solid var(--text);
-transform:rotate(45deg);
-background:var(--bad);
-transition:background .25s ease;
+  width:74px;
+  height:74px;
+  border:5px solid var(--text);
+  transform:rotate(45deg);
+  background:var(--bad);
+  transition:background .25s ease;
 }
 
 .valve-body.open{
-background:var(--good);
+  background:var(--good);
 }
 
 .valve-stem{
-width:8px;
-height:38px;
-background:var(--text);
-margin-top:-32px;
-z-index:1;
+  width:8px;
+  height:38px;
+  background:var(--text);
+  margin-top:-32px;
+  z-index:1;
 }
 
 .valve-title{
-font-size:18px;
-font-weight:800;
+  font-size:18px;
+  font-weight:800;
 }
 
 .valve-state{
-font-size:13px;
-color:var(--muted);
+  font-size:13px;
+  color:var(--muted);
 }
 
 .actions{
-display:flex;
-justify-content:center;
-gap:10px;
-flex-wrap:wrap;
-width:100%;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  width:100%;
 }
 
 .btn{
-border:0;
-border-radius:14px;
-padding:11px 14px;
-font-weight:800;
-background:var(--accent);
-color:#fff;
-cursor:pointer;
+  border:0;
+  border-radius:14px;
+  padding:11px 14px;
+  font-weight:800;
+  background:var(--accent);
+  color:#fff;
+  cursor:pointer;
 }
 
 .btn.secondary{
-background:#64748b;
+  background:#64748b;
 }
 
 .btn.danger{
-background:var(--bad);
+  background:var(--bad);
 }
 
 .btn.good{
-background:var(--good);
+  background:var(--good);
 }
 
 input,
 select{
-padding:9px 10px;
-border-radius:10px;
-border:1px solid var(--line);
-background:var(--card);
-color:var(--text);
-font-size:14px;
-min-width:150px;
+  padding:9px 10px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:var(--card);
+  color:var(--text);
+  font-size:14px;
+  min-width:150px;
 }
 
 .metric-row{
-width:100%;
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:12px;
-border-top:1px solid var(--line);
-padding:12px 0;
-text-align:left;
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  border-top:1px solid var(--line);
+  padding:12px 0;
+  text-align:left;
 }
 
 .metric-row:first-of-type{
-border-top:0;
+  border-top:0;
 }
 
 .metric-row strong{
-font-size:14px;
+  font-size:14px;
 }
 
 pre{
-width:100%;
-background:rgba(100,116,139,.12);
-border:1px solid var(--line);
-border-radius:16px;
-padding:12px;
-overflow:auto;
-max-height:330px;
-font-size:12px;
-white-space:pre-wrap;
-text-align:left;
+  width:100%;
+  background:rgba(100,116,139,.12);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  overflow:auto;
+  max-height:330px;
+  font-size:12px;
+  white-space:pre-wrap;
+  text-align:left;
 }
 
 canvas{
-width:100%;
-height:260px;
-display:block;
+  width:100%;
+  height:260px;
+  display:block;
 }
 
 .footer{
-margin-top:16px;
-text-align:center;
-color:var(--muted);
-font-size:12px;
+  margin-top:16px;
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
 }
 
 @media(max-width:900px){
 
-.span3,
-.span4,
-.span5,
-.span6,
-.span7,
-.span8{
-grid-column:span 12;
-}
+  .span3,
+  .span4,
+  .span5,
+  .span6,
+  .span7,
+  .span8{
+    grid-column:span 12;
+  }
 
-.value{
-font-size:24px;
-}
+  .value{
+    font-size:24px;
+  }
 
-.metric-row{
-flex-direction:column;
-text-align:center;
-}
+  .metric-row{
+    flex-direction:column;
+    text-align:center;
+  }
 
-input,
-select{
-width:100%;
-}
+  input,
+  select{
+    width:100%;
+  }
 
 }
 
@@ -519,15 +542,16 @@ ultrasonic measurement and valve control.
 
 <div class="top-actions">
 
-<span class="pill"
-      id="backendPill">
+<span
+  class="pill"
+  id="backendPill">
 Backend: --
 </span>
 
 <button
-class="theme-btn"
-id="themeIcon"
-onclick="toggleTheme()">
+  class="theme-btn"
+  id="themeIcon"
+  onclick="toggleTheme()">
 🌙
 </button>
 
@@ -547,19 +571,21 @@ onclick="toggleTheme()">
 Temperature
 </div>
 
-<div class="value"
-     id="temp">
+<div
+  class="value"
+  id="temp">
 -- <span class="unit">°C</span>
 </div>
 
 <span
-class="status NORMAL"
-id="tempStatus">
+  class="status NORMAL"
+  id="tempStatus">
 NORMAL
 </span>
 
-<p class="small"
-   id="tempRange">
+<p
+  class="small"
+  id="tempRange">
 Thresholds: -- / -- °C
 </p>
 
@@ -573,8 +599,9 @@ Thresholds: -- / -- °C
 Ultrasonic Distance
 </div>
 
-<div class="value"
-     id="distance">
+<div
+  class="value"
+  id="distance">
 -- <span class="unit">cm</span>
 </div>
 
@@ -593,13 +620,15 @@ to liquid surface.
 Tank Level
 </div>
 
-<div class="value"
-     id="levelPercent">
+<div
+  class="value"
+  id="levelPercent">
 -- <span class="unit">%</span>
 </div>
 
-<p class="small"
-   id="calibrationText">
+<p
+  class="small"
+  id="calibrationText">
 Calibration: -- cm full / -- cm low
 </p>
 
@@ -613,13 +642,15 @@ Calibration: -- cm full / -- cm low
 Tank Condition
 </div>
 
-<span class="status NORMAL"
-      id="levelStatus">
+<span
+  class="status NORMAL"
+  id="levelStatus">
 NORMAL
 </span>
 
-<p class="small"
-   id="levelConditionText">
+<p
+  class="small"
+  id="levelConditionText">
 Waiting for measurement.
 </p>
 
@@ -637,12 +668,14 @@ Tank And Valve
 
 <div class="tank">
 
-<div class="liquid"
-     id="liquidFill">
+<div
+  class="liquid"
+  id="liquidFill">
 </div>
 
-<div class="tank-label"
-     id="tankLabel">
+<div
+  class="tank-label"
+  id="tankLabel">
 --%
 </div>
 
@@ -650,8 +683,9 @@ Tank And Valve
 
 <div class="valve">
 
-<div class="valve-body"
-     id="valveBody">
+<div
+  class="valve-body"
+  id="valveBody">
 </div>
 
 <div class="valve-stem">
@@ -661,8 +695,9 @@ Tank And Valve
 Outlet Valve
 </div>
 
-<div class="valve-state"
-     id="valveState">
+<div
+  class="valve-state"
+  id="valveState">
 Relay OFF
 </div>
 
@@ -672,14 +707,15 @@ Relay OFF
 
 <div class="bar">
 
-<div class="fill good"
-     id="tankFill">
+<div
+  class="fill good"
+  id="tankFill">
 </div>
 
 </div>
 
 <p class="small">
-The valve symbol follows the physical relay state.
+The valve symbol follows the commanded relay state.
 </p>
 
 </div>
@@ -692,13 +728,15 @@ The valve symbol follows the physical relay state.
 Sensor Status
 </div>
 
-<div class="value"
-     id="sensorStatus">
+<div
+  class="value"
+  id="sensorStatus">
 WAITING
 </div>
 
-<p class="small"
-   id="sensorStatusText">
+<p
+  class="small"
+  id="sensorStatusText">
 Waiting for PT100 and ultrasonic measurements.
 </p>
 
@@ -746,30 +784,35 @@ NOT TRIGGERED
 Valve Control
 </div>
 
-<p class="small"
-   id="relay">
+<p
+  class="small"
+  id="relay">
 Valve relay: --
 </p>
 
 <div class="actions">
 
 <button
-class="btn good"
-onclick="cmd('/api/relay?state=on')">
+  class="btn good"
+  onclick="cmd('/api/relay?state=on')">
 Valve OPEN
 </button>
 
 <button
-class="btn danger"
-onclick="cmd('/api/relay?state=off')">
+  class="btn danger"
+  onclick="cmd('/api/relay?state=off')">
 Valve CLOSE
 </button>
 
 </div>
 
 <p class="small">
-Manual commands directly control the relay.
-Active automatic latch conditions can turn it ON again.
+
+Manual OPEN/CLOSE sets the manual relay request.
+An active automatic latch can force the valve ON.
+When automatic demand clears, the valve returns
+to the manual request.
+
 </p>
 
 </div>
@@ -791,11 +834,11 @@ Full tank distance
 <span>
 
 <input
-id="fullDistance"
-type="number"
-min="1"
-max="499"
-step="0.1">
+  id="fullDistance"
+  type="number"
+  min="1"
+  max="499"
+  step="0.1">
 
 cm
 
@@ -812,11 +855,11 @@ Low / empty tank distance
 <span>
 
 <input
-id="lowDistance"
-type="number"
-min="1"
-max="500"
-step="0.1">
+  id="lowDistance"
+  type="number"
+  min="1"
+  max="500"
+  step="0.1">
 
 cm
 
@@ -833,11 +876,11 @@ Full level trigger
 <span>
 
 <input
-id="fullThreshold"
-type="number"
-min="1"
-max="100"
-step="1">
+  id="fullThreshold"
+  type="number"
+  min="1"
+  max="100"
+  step="1">
 
 %
 
@@ -854,11 +897,11 @@ Low level trigger
 <span>
 
 <input
-id="lowThreshold"
-type="number"
-min="0"
-max="99"
-step="1">
+  id="lowThreshold"
+  type="number"
+  min="0"
+  max="99"
+  step="1">
 
 %
 
@@ -903,11 +946,11 @@ Low temperature threshold
 <span>
 
 <input
-id="lowTemperature"
-type="number"
-min="-200"
-max="849"
-step="0.1">
+  id="lowTemperature"
+  type="number"
+  min="-200"
+  max="849"
+  step="0.1">
 
 °C
 
@@ -924,11 +967,11 @@ High temperature threshold
 <span>
 
 <input
-id="highTemperature"
-type="number"
-min="-199"
-max="850"
-step="0.1">
+  id="highTemperature"
+  type="number"
+  min="-199"
+  max="850"
+  step="0.1">
 
 °C
 
@@ -967,14 +1010,14 @@ Latch at HIGH temperature
 <div class="actions">
 
 <button
-class="btn good"
-onclick="saveSettings()">
+  class="btn good"
+  onclick="saveSettings()">
 Save settings
 </button>
 
 <span
-class="small"
-id="settingsMessage">
+  class="small"
+  id="settingsMessage">
 Saved settings are restored after reboot.
 </span>
 
@@ -997,32 +1040,32 @@ Loading...
 <div class="actions">
 
 <button
-class="btn secondary"
-onclick="loadLogs()">
+  class="btn secondary"
+  onclick="loadLogs()">
 Refresh Logs
 </button>
 
 <button
-class="btn secondary"
-onclick="cmd('/api/log_now')">
+  class="btn secondary"
+  onclick="cmd('/api/log_now')">
 Log Now
 </button>
 
 <button
-class="btn"
-onclick="location.href='/download/motor_log.csv'">
+  class="btn"
+  onclick="location.href='/download/motor_log.csv'">
 Download Liquid CSV
 </button>
 
 <button
-class="btn"
-onclick="location.href='/download/analysis_log.csv'">
+  class="btn"
+  onclick="location.href='/download/analysis_log.csv'">
 Download Analysis CSV
 </button>
 
 <button
-class="btn"
-onclick="location.href='/download/event_log.csv'">
+  class="btn"
+  onclick="location.href='/download/event_log.csv'">
 Download Events CSV
 </button>
 
@@ -1063,9 +1106,9 @@ Trend Graph
 </div>
 
 <canvas
-id="chart"
-width="1000"
-height="260">
+  id="chart"
+  width="1000"
+  height="260">
 </canvas>
 
 <p class="small">
@@ -1079,6 +1122,9 @@ Temperature and tank level history.
 <div class="footer">
 
 ESP32-S3 WROOM-1U
+
+<br>
+
 Hot Liquid Monitoring and Control System
 
 </div>
@@ -1100,53 +1146,51 @@ let settingsSaving = false;
 // =========================================================
 
 document.documentElement.setAttribute(
-'data-theme',
-localStorage.getItem('theme') || 'light'
+  'data-theme',
+  localStorage.getItem('theme') || 'light'
 );
 
 updateThemeIcon();
 
 function updateThemeIcon(){
 
-const icon =
-document.getElementById('themeIcon');
+  const icon =
+    document.getElementById('themeIcon');
 
-if(!icon){
-return;
-}
+  if(!icon){
+    return;
+  }
 
-icon.textContent =
-document.documentElement
-.getAttribute('data-theme') === 'dark'
-? '☀️'
-: '🌙';
-
+  icon.textContent =
+    document.documentElement
+      .getAttribute('data-theme') === 'dark'
+      ? '☀️'
+      : '🌙';
 }
 
 function toggleTheme(){
 
-const d =
-document.documentElement;
+  const d =
+    document.documentElement;
 
-const theme =
-d.getAttribute('data-theme') === 'dark'
-? 'light'
-: 'dark';
+  const theme =
+    d.getAttribute('data-theme') === 'dark'
+    ? 'light'
+    : 'dark';
 
-d.setAttribute(
-'data-theme',
-theme
-);
+  d.setAttribute(
+    'data-theme',
+    theme
+  );
 
-localStorage.setItem(
-'theme',
-theme
-);
+  localStorage.setItem(
+    'theme',
+    theme
+  );
 
-updateThemeIcon();
+  updateThemeIcon();
 
-drawChart();
-
+  drawChart();
 }
 
 // =========================================================
@@ -1155,23 +1199,21 @@ drawChart();
 
 function fmt(value, decimals){
 
-const v = Number(value);
+  const v = Number(value);
 
-if(!Number.isFinite(v)){
-return '--';
-}
+  if(!Number.isFinite(v)){
+    return '--';
+  }
 
-return v.toFixed(decimals);
-
+  return v.toFixed(decimals);
 }
 
 function clamp(value,min,max){
 
-return Math.max(
-min,
-Math.min(max,value)
-);
-
+  return Math.max(
+    min,
+    Math.min(max,value)
+  );
 }
 
 // =========================================================
@@ -1180,72 +1222,102 @@ Math.min(max,value)
 
 function markSettingsDirty(){
 
-settingsDirty = true;
+  settingsDirty = true;
 
-const message =
-document.getElementById(
-'settingsMessage'
-);
+  const message =
+    document.getElementById(
+      'settingsMessage'
+    );
 
-if(message){
+  if(message){
 
-message.textContent =
-'Unsaved changes.';
+    message.textContent =
+      'Unsaved changes.';
 
-}
-
+  }
 }
 
 // =========================================================
-// LOAD SETTINGS INTO UI
+// LOAD SETTINGS
 // =========================================================
 
 function updateSettingsControls(s){
 
-if(settingsDirty){
-return;
-}
+  if(settingsDirty){
+    return;
+  }
 
-document.getElementById(
-'fullDistance'
-).value =
-s.full_distance_cm;
+  const fullDistance =
+    document.getElementById(
+      'fullDistance'
+    );
 
-document.getElementById(
-'lowDistance'
-).value =
-s.low_distance_cm;
+  const lowDistance =
+    document.getElementById(
+      'lowDistance'
+    );
 
-document.getElementById(
-'fullThreshold'
-).value =
-s.full_level_percent;
+  const fullThreshold =
+    document.getElementById(
+      'fullThreshold'
+    );
 
-document.getElementById(
-'lowThreshold'
-).value =
-s.low_level_percent;
+  const lowThreshold =
+    document.getElementById(
+      'lowThreshold'
+    );
 
-document.getElementById(
-'tankLatchMode'
-).value =
-s.tank_latch_mode;
+  const tankLatch =
+    document.getElementById(
+      'tankLatchMode'
+    );
 
-document.getElementById(
-'lowTemperature'
-).value =
-s.low_temperature_c;
+  const lowTemperature =
+    document.getElementById(
+      'lowTemperature'
+    );
 
-document.getElementById(
-'highTemperature'
-).value =
-s.high_temperature_c;
+  const highTemperature =
+    document.getElementById(
+      'highTemperature'
+    );
 
-document.getElementById(
-'temperatureLatchMode'
-).value =
-s.temperature_latch_mode;
+  const temperatureLatch =
+    document.getElementById(
+      'temperatureLatchMode'
+    );
 
+  if(fullDistance)
+    fullDistance.value =
+      s.full_distance_cm;
+
+  if(lowDistance)
+    lowDistance.value =
+      s.low_distance_cm;
+
+  if(fullThreshold)
+    fullThreshold.value =
+      s.full_level_percent;
+
+  if(lowThreshold)
+    lowThreshold.value =
+      s.low_level_percent;
+
+  if(tankLatch)
+    tankLatch.value =
+      s.tank_latch_mode;
+
+  if(lowTemperature)
+    lowTemperature.value =
+      s.low_temperature_c;
+
+  if(highTemperature)
+    highTemperature.value =
+      s.high_temperature_c;
+
+  if(temperatureLatch)
+    temperatureLatch.value =
+      s.temperature_latch_mode;
 }
 
 // =========================================================
@@ -1254,42 +1326,41 @@ s.temperature_latch_mode;
 
 function setFill(id,value){
 
-const element =
-document.getElementById(id);
+  const element =
+    document.getElementById(id);
 
-if(!element){
-return;
-}
+  if(!element){
+    return;
+  }
 
-const v =
-clamp(
-Number(value) || 0,
-0,
-100
-);
+  const v =
+    clamp(
+      Number(value) || 0,
+      0,
+      100
+    );
 
-element.style.width =
-v + '%';
+  element.style.width =
+    v + '%';
 
-if(v >= 75){
+  if(v >= 75){
 
-element.className =
-'fill good';
+    element.className =
+      'fill good';
 
-}
-else if(v >= 40){
+  }
+  else if(v >= 40){
 
-element.className =
-'fill warn';
+    element.className =
+      'fill warn';
 
-}
-else{
+  }
+  else{
 
-element.className =
-'fill bad';
+    element.className =
+      'fill bad';
 
-}
-
+  }
 }
 
 // =========================================================
@@ -1298,27 +1369,34 @@ element.className =
 
 async function cmd(url){
 
-try{
+  try{
 
-const response =
-await fetch(url);
+    const response =
+      await fetch(
+        url,
+        {
+          cache:'no-store'
+        }
+      );
 
-if(!response.ok){
-throw new Error(
-'Command failed'
-);
-}
+    if(!response.ok){
 
-await loadStatus();
+      throw new Error(
+        'Command failed'
+      );
 
-await loadLogs();
+    }
 
-}
-catch(error){
+    await loadStatus();
 
-console.error(error);
+    await loadLogs();
 
-}
+  }
+  catch(error){
+
+    console.error(error);
+
+  }
 
 }
 
@@ -1328,359 +1406,422 @@ console.error(error);
 
 async function loadStatus(){
 
-try{
+  try{
 
-const response =
-await fetch(
-'/api/status',
-{
-cache:'no-store'
-}
-);
+    const response =
+      await fetch(
+        '/api/status',
+        {
+          cache:'no-store'
+        }
+      );
 
-const s =
-await response.json();
+    if(!response.ok){
 
-// ---------------------------------------------------------
-// Temperature
-// ---------------------------------------------------------
+      throw new Error(
+        'Status request failed'
+      );
 
-document.getElementById(
-'temp'
-).innerHTML =
-s.temp_valid
-?
-fmt(
-s.temperature_c,
-1
-) +
-' <span class="unit">°C</span>'
-:
-'N/A';
+    }
 
-const tempStatus =
-document.getElementById(
-'tempStatus'
-);
+    const s =
+      await response.json();
 
-tempStatus.textContent =
-s.temperature_status;
+    // -------------------------------------------------------
+    // Temperature
+    // -------------------------------------------------------
 
-tempStatus.className =
-'status ' +
-s.temperature_status;
+    document.getElementById(
+      'temp'
+    ).innerHTML =
 
-document.getElementById(
-'tempRange'
-).textContent =
-'Low: ' +
-fmt(
-s.low_temperature_c,
-1
-) +
-' °C | High: ' +
-fmt(
-s.high_temperature_c,
-1
-) +
-' °C';
+      s.temp_valid
 
-// ---------------------------------------------------------
-// Distance
-// ---------------------------------------------------------
+      ?
 
-document.getElementById(
-'distance'
-).innerHTML =
-s.level_valid
-?
-fmt(
-s.distance_cm,
-1
-) +
-' <span class="unit">cm</span>'
-:
-'N/A';
+      fmt(
+        s.temperature_c,
+        1
+      ) +
+      ' <span class="unit">°C</span>'
 
-// ---------------------------------------------------------
-// Level
-// ---------------------------------------------------------
+      :
 
-document.getElementById(
-'levelPercent'
-).innerHTML =
-s.level_valid
-?
-fmt(
-s.level_percent,
-0
-) +
-' <span class="unit">%</span>'
-:
-'N/A';
+      'N/A';
 
-const level =
-s.level_valid
-?
-clamp(
-Number(s.level_percent),
-0,
-100
-)
-:
-0;
+    const tempStatus =
+      document.getElementById(
+        'tempStatus'
+      );
 
-document.getElementById(
-'liquidFill'
-).style.height =
-level + '%';
+    tempStatus.textContent =
+      s.temperature_status;
 
-setFill(
-'tankFill',
-level
-);
+    tempStatus.className =
+      'status ' +
+      s.temperature_status;
 
-document.getElementById(
-'tankLabel'
-).textContent =
-s.level_valid
-?
-fmt(
-s.level_percent,
-0
-) + '%'
-:
-'N/A';
+    document.getElementById(
+      'tempRange'
+    ).textContent =
 
-document.getElementById(
-'calibrationText'
-).textContent =
-'Calibration: ' +
-fmt(
-s.full_distance_cm,
-1
-) +
-' cm full / ' +
-fmt(
-s.low_distance_cm,
-1
-) +
-' cm low';
+      'Low: ' +
 
-// ---------------------------------------------------------
-// Tank status
-// ---------------------------------------------------------
+      fmt(
+        s.low_temperature_c,
+        1
+      ) +
 
-const levelStatus =
-document.getElementById(
-'levelStatus'
-);
+      ' °C | High: ' +
 
-let levelText =
-'NORMAL';
+      fmt(
+        s.high_temperature_c,
+        1
+      ) +
 
-if(!s.level_valid){
+      ' °C';
 
-levelText =
-'INVALID';
+    // -------------------------------------------------------
+    // Distance
+    // -------------------------------------------------------
 
-}
-else if(
-s.level_percent >=
-s.full_level_percent
-){
+    document.getElementById(
+      'distance'
+    ).innerHTML =
 
-levelText =
-'FULL';
+      s.level_valid
 
-}
-else if(
-s.level_percent <=
-s.low_level_percent
-){
+      ?
 
-levelText =
-'LOW';
+      fmt(
+        s.distance_cm,
+        1
+      ) +
+      ' <span class="unit">cm</span>'
 
-}
+      :
 
-levelStatus.textContent =
-levelText;
+      'N/A';
 
-levelStatus.className =
-'status ' +
-(
-levelText === 'FULL'
-?
-'HIGH'
-:
-levelText === 'LOW'
-?
-'LOW'
-:
-levelText === 'INVALID'
-?
-'INVALID'
-:
-'NORMAL'
-);
+    // -------------------------------------------------------
+    // Level
+    // -------------------------------------------------------
 
-document.getElementById(
-'levelConditionText'
-).textContent =
-'Full trigger: ' +
-fmt(
-s.full_level_percent,
-0
-) +
-'% | Low trigger: ' +
-fmt(
-s.low_level_percent,
-0
-) +
-'%';
+    document.getElementById(
+      'levelPercent'
+    ).innerHTML =
 
-// ---------------------------------------------------------
-// Backend
-// ---------------------------------------------------------
+      s.level_valid
 
-document.getElementById(
-'backend'
-);
+      ?
 
-document.getElementById(
-'backendPill'
-).textContent =
-'Backend: ' +
-s.backend;
+      fmt(
+        s.level_percent,
+        0
+      ) +
+      ' <span class="unit">%</span>'
 
-// ---------------------------------------------------------
-// Sensors
-// ---------------------------------------------------------
+      :
 
-const sensorsReady =
-s.temp_valid &&
-s.level_valid;
+      'N/A';
 
-document.getElementById(
-'sensorStatus'
-).textContent =
-sensorsReady
-?
-'READY'
-:
-'WAITING';
+    const level =
 
-document.getElementById(
-'sensorStatusText'
-).textContent =
-sensorsReady
-?
-'PT100 and ultrasonic measurements are valid.'
-:
-'Waiting for valid sensor readings.';
+      s.level_valid
 
-// ---------------------------------------------------------
-// Relay
-// ---------------------------------------------------------
+      ?
 
-document.getElementById(
-'relay'
-).textContent =
-'Valve relay: ' +
-(s.relay_on ? 'ON' : 'OFF') +
-' | Requested: ' +
-(s.relay_requested ? 'ON' : 'OFF');
+      clamp(
+        Number(s.level_percent),
+        0,
+        100
+      )
 
-document.getElementById(
-'valveState'
-).textContent =
-s.relay_on
-?
-'Relay ON / Valve OPEN'
-:
-'Relay OFF / Valve CLOSED';
+      :
 
-document.getElementById(
-'valveBody'
-).className =
-'valve-body' +
-(s.relay_on ? ' open' : '');
+      0;
 
-// ---------------------------------------------------------
-// Latch states
-// ---------------------------------------------------------
+    document.getElementById(
+      'liquidFill'
+    ).style.height =
+      level + '%';
 
-document.getElementById(
-'tankLatchState'
-).textContent =
-s.tank_latch_triggered
-?
-'TRIGGERED'
-:
-'NOT TRIGGERED';
+    setFill(
+      'tankFill',
+      level
+    );
 
-document.getElementById(
-'temperatureLatchState'
-).textContent =
-s.temperature_latch_triggered
-?
-'TRIGGERED'
-:
-'NOT TRIGGERED';
+    document.getElementById(
+      'tankLabel'
+    ).textContent =
 
-// ---------------------------------------------------------
-// Settings
-// ---------------------------------------------------------
+      s.level_valid
 
-updateSettingsControls(s);
+      ?
 
-// ---------------------------------------------------------
-// Chart
-// ---------------------------------------------------------
+      fmt(
+        s.level_percent,
+        0
+      ) + '%'
 
-if(
-s.temp_valid ||
-s.level_valid
-){
+      :
 
-points.push({
+      'N/A';
 
-temp:
-s.temp_valid
-?
-Number(s.temperature_c)
-:
-null,
+    document.getElementById(
+      'calibrationText'
+    ).textContent =
 
-level:
-s.level_valid
-?
-Number(s.level_percent)
-:
-null
+      'Calibration: ' +
 
-});
+      fmt(
+        s.full_distance_cm,
+        1
+      ) +
 
-if(points.length > 70){
+      ' cm full / ' +
 
-points.shift();
+      fmt(
+        s.low_distance_cm,
+        1
+      ) +
 
-}
+      ' cm low';
 
-drawChart();
+    // -------------------------------------------------------
+    // Tank status
+    // -------------------------------------------------------
 
-}
+    const levelStatus =
+      document.getElementById(
+        'levelStatus'
+      );
 
-}
-catch(error){
+    let levelText =
+      'NORMAL';
 
-console.error(
-'Status error:',
-error
-);
+    if(!s.level_valid){
 
-}
+      levelText =
+        'INVALID';
+
+    }
+    else if(
+      s.level_percent >=
+      s.full_level_percent
+    ){
+
+      levelText =
+        'FULL';
+
+    }
+    else if(
+      s.level_percent <=
+      s.low_level_percent
+    ){
+
+      levelText =
+        'LOW';
+
+    }
+
+    levelStatus.textContent =
+      levelText;
+
+    levelStatus.className =
+      'status ' +
+      levelText;
+
+    document.getElementById(
+      'levelConditionText'
+    ).textContent =
+
+      'Full trigger: ' +
+
+      fmt(
+        s.full_level_percent,
+        0
+      ) +
+
+      '% | Low trigger: ' +
+
+      fmt(
+        s.low_level_percent,
+        0
+      ) +
+
+      '%';
+
+    // -------------------------------------------------------
+    // Backend
+    // -------------------------------------------------------
+
+    document.getElementById(
+      'backendPill'
+    ).textContent =
+      'Backend: ' +
+      s.backend;
+
+    // -------------------------------------------------------
+    // Sensors
+    // -------------------------------------------------------
+
+    const sensorsReady =
+      s.temp_valid &&
+      s.level_valid;
+
+    document.getElementById(
+      'sensorStatus'
+    ).textContent =
+
+      sensorsReady
+      ? 'READY'
+      : 'WAITING';
+
+    document.getElementById(
+      'sensorStatusText'
+    ).textContent =
+
+      sensorsReady
+
+      ?
+
+      'PT100 and ultrasonic measurements are valid.'
+
+      :
+
+      'Waiting for valid sensor readings.';
+
+    // -------------------------------------------------------
+    // Relay
+    // -------------------------------------------------------
+
+    document.getElementById(
+      'relay'
+    ).textContent =
+
+      'Valve relay: ' +
+
+      (s.relay_on
+        ? 'ON'
+        : 'OFF') +
+
+      ' | Manual: ' +
+
+      (s.manual_relay_request
+        ? 'ON'
+        : 'OFF') +
+
+      ' | Automatic: ' +
+
+      (s.automatic_relay_demand
+        ? 'ON'
+        : 'OFF');
+
+    document.getElementById(
+      'valveState'
+    ).textContent =
+
+      s.relay_on
+
+      ?
+
+      'Relay ON / Valve OPEN'
+
+      :
+
+      'Relay OFF / Valve CLOSED';
+
+    document.getElementById(
+      'valveBody'
+    ).className =
+
+      'valve-body' +
+
+      (s.relay_on
+        ? ' open'
+        : '');
+
+    // -------------------------------------------------------
+    // Latch states
+    // -------------------------------------------------------
+
+    document.getElementById(
+      'tankLatchState'
+    ).textContent =
+
+      s.tank_latch_triggered
+
+      ?
+
+      'TRIGGERED'
+
+      :
+
+      'NOT TRIGGERED';
+
+    document.getElementById(
+      'temperatureLatchState'
+    ).textContent =
+
+      s.temperature_latch_triggered
+
+      ?
+
+      'TRIGGERED'
+
+      :
+
+      'NOT TRIGGERED';
+
+    // -------------------------------------------------------
+    // Settings
+    // -------------------------------------------------------
+
+    updateSettingsControls(s);
+
+    // -------------------------------------------------------
+    // Chart
+    // -------------------------------------------------------
+
+    if(
+      s.temp_valid ||
+      s.level_valid
+    ){
+
+      points.push({
+
+        temp:
+          s.temp_valid
+          ? Number(s.temperature_c)
+          : null,
+
+        level:
+          s.level_valid
+          ? Number(s.level_percent)
+          : null
+
+      });
+
+      if(points.length > 70){
+
+        points.shift();
+
+      }
+
+      drawChart();
+
+    }
+
+  }
+  catch(error){
+
+    console.error(
+      'Status error:',
+      error
+    );
+
+  }
 
 }
 
@@ -1690,215 +1831,255 @@ error
 
 async function saveSettings(){
 
-if(settingsSaving){
-return;
-}
+  if(settingsSaving){
+    return;
+  }
 
-const fullDistance =
-Number(
-document.getElementById(
-'fullDistance'
-).value
-);
+  const fullDistance =
+    Number(
+      document.getElementById(
+        'fullDistance'
+      ).value
+    );
 
-const lowDistance =
-Number(
-document.getElementById(
-'lowDistance'
-).value
-);
+  const lowDistance =
+    Number(
+      document.getElementById(
+        'lowDistance'
+      ).value
+    );
 
-const fullThreshold =
-Number(
-document.getElementById(
-'fullThreshold'
-).value
-);
+  const fullThreshold =
+    Number(
+      document.getElementById(
+        'fullThreshold'
+      ).value
+    );
 
-const lowThreshold =
-Number(
-document.getElementById(
-'lowThreshold'
-).value
-);
+  const lowThreshold =
+    Number(
+      document.getElementById(
+        'lowThreshold'
+      ).value
+    );
 
-const tankLatch =
-Number(
-document.getElementById(
-'tankLatchMode'
-).value
-);
+  const tankLatch =
+    Number(
+      document.getElementById(
+        'tankLatchMode'
+      ).value
+    );
 
-const lowTemperature =
-Number(
-document.getElementById(
-'lowTemperature'
-).value
-);
+  const lowTemperature =
+    Number(
+      document.getElementById(
+        'lowTemperature'
+      ).value
+    );
 
-const highTemperature =
-Number(
-document.getElementById(
-'highTemperature'
-).value
-);
+  const highTemperature =
+    Number(
+      document.getElementById(
+        'highTemperature'
+      ).value
+    );
 
-const temperatureLatch =
-Number(
-document.getElementById(
-'temperatureLatchMode'
-).value
-);
+  const temperatureLatch =
+    Number(
+      document.getElementById(
+        'temperatureLatchMode'
+      ).value
+    );
 
-const message =
-document.getElementById(
-'settingsMessage'
-);
+  const message =
+    document.getElementById(
+      'settingsMessage'
+    );
 
-// ---------------------------------------------------------
-// Validation
-// ---------------------------------------------------------
+  // ---------------------------------------------------------
+  // Validation
+  // ---------------------------------------------------------
 
-if(
-!Number.isFinite(fullDistance) ||
-!Number.isFinite(lowDistance) ||
-fullDistance <= 0 ||
-lowDistance <= fullDistance
-){
+  if(
+    !Number.isFinite(fullDistance) ||
+    !Number.isFinite(lowDistance) ||
+    fullDistance <= 0 ||
+    lowDistance <= fullDistance
+  ){
 
-message.textContent =
-'Full distance must be smaller than low distance.';
+    message.textContent =
+      'Full distance must be smaller than low distance.';
 
-return;
+    return;
 
-}
+  }
 
-if(
-!Number.isFinite(fullThreshold) ||
-!Number.isFinite(lowThreshold) ||
-fullThreshold <= lowThreshold ||
-fullThreshold > 100 ||
-lowThreshold < 0
-){
+  if(
+    !Number.isFinite(fullThreshold) ||
+    !Number.isFinite(lowThreshold) ||
+    fullThreshold <= lowThreshold ||
+    fullThreshold > 100 ||
+    lowThreshold < 0
+  ){
 
-message.textContent =
-'Full level must be higher than low level.';
+    message.textContent =
+      'Full level must be higher than low level.';
 
-return;
+    return;
 
-}
+  }
 
-if(
-!Number.isFinite(lowTemperature) ||
-!Number.isFinite(highTemperature) ||
-lowTemperature >= highTemperature
-){
+  if(
+    !Number.isFinite(lowTemperature) ||
+    !Number.isFinite(highTemperature) ||
+    lowTemperature >= highTemperature
+  ){
 
-message.textContent =
-'Low temperature must be below high temperature.';
+    message.textContent =
+      'Low temperature must be below high temperature.';
 
-return;
+    return;
 
-}
+  }
 
-settingsSaving = true;
+  if(
+    tankLatch < 0 ||
+    tankLatch > 2
+  ){
 
-message.textContent =
-'Saving settings...';
+    message.textContent =
+      'Invalid tank latch mode.';
 
-// ---------------------------------------------------------
-// Build request
-// ---------------------------------------------------------
+    return;
 
-const query =
-'/api/settings/save?' +
+  }
 
-'full_distance=' +
-encodeURIComponent(
-fullDistance
-) +
+  if(
+    temperatureLatch < 0 ||
+    temperatureLatch > 2
+  ){
 
-'&low_distance=' +
-encodeURIComponent(
-lowDistance
-) +
+    message.textContent =
+      'Invalid temperature latch mode.';
 
-'&full_level=' +
-encodeURIComponent(
-fullThreshold
-) +
+    return;
 
-'&low_level=' +
-encodeURIComponent(
-lowThreshold
-) +
+  }
 
-'&tank_latch=' +
-encodeURIComponent(
-tankLatch
-) +
+  settingsSaving = true;
 
-'&low_temperature=' +
-encodeURIComponent(
-lowTemperature
-) +
+  message.textContent =
+    'Saving settings...';
 
-'&high_temperature=' +
-encodeURIComponent(
-highTemperature
-) +
+  // ---------------------------------------------------------
+  // Build request
+  // ---------------------------------------------------------
 
-'&temperature_latch=' +
-encodeURIComponent(
-temperatureLatch
-);
+  const query =
 
-// ---------------------------------------------------------
-// Send
-// ---------------------------------------------------------
+    '/api/settings/save?' +
 
-try{
+    'full_distance=' +
+    encodeURIComponent(
+      fullDistance
+    ) +
 
-const response =
-await fetch(
-query,
-{
-cache:'no-store'
-}
-);
+    '&low_distance=' +
+    encodeURIComponent(
+      lowDistance
+    ) +
 
-const result =
-await response.json();
+    '&full_level=' +
+    encodeURIComponent(
+      fullThreshold
+    ) +
 
-if(result.ok){
+    '&low_level=' +
+    encodeURIComponent(
+      lowThreshold
+    ) +
 
-settingsDirty = false;
+    '&tank_latch=' +
+    encodeURIComponent(
+      tankLatch
+    ) +
 
-message.textContent =
-'Settings saved to internal flash and applied.';
+    '&low_temperature=' +
+    encodeURIComponent(
+      lowTemperature
+    ) +
 
-await loadStatus();
+    '&high_temperature=' +
+    encodeURIComponent(
+      highTemperature
+    ) +
 
-}
-else{
+    '&temperature_latch=' +
+    encodeURIComponent(
+      temperatureLatch
+    );
 
-message.textContent =
-result.message ||
-'Settings were not saved.';
+  // ---------------------------------------------------------
+  // Send
+  // ---------------------------------------------------------
 
-}
+  try{
 
-}
-catch(error){
+    const response =
+      await fetch(
+        query,
+        {
+          cache:'no-store'
+        }
+      );
 
-console.error(error);
+    let result;
 
-message.textContent =
-'Dashboard could not save settings.';
+    try{
 
-}
+      result =
+        await response.json();
 
-settingsSaving = false;
+    }
+    catch(parseError){
+
+      throw new Error(
+        'Invalid server response'
+      );
+
+    }
+
+    if(result.ok){
+
+      settingsDirty =
+        false;
+
+      message.textContent =
+        'Settings saved to internal flash and applied.';
+
+      await loadStatus();
+
+    }
+    else{
+
+      message.textContent =
+        result.error ||
+        result.message ||
+        'Settings were not saved.';
+
+    }
+
+  }
+  catch(error){
+
+    console.error(error);
+
+    message.textContent =
+      'Dashboard could not save settings.';
+
+  }
+
+  settingsSaving = false;
 
 }
 
@@ -1908,43 +2089,54 @@ settingsSaving = false;
 
 async function loadLogs(){
 
-try{
+  try{
 
-const response =
-await fetch(
-'/api/logs',
-{
-cache:'no-store'
-}
-);
+    const response =
+      await fetch(
+        '/api/logs',
+        {
+          cache:'no-store'
+        }
+      );
 
-const s =
-await response.json();
+    if(!response.ok){
 
-document.getElementById(
-'motorLog'
-).textContent =
-s.motor_log ||
-'No liquid log yet';
+      throw new Error(
+        'Log request failed'
+      );
 
-document.getElementById(
-'analysisLog'
-).textContent =
-s.analysis_log ||
-'No analysis log yet';
+    }
 
-document.getElementById(
-'eventLog'
-).textContent =
-s.event_log ||
-'No event log yet';
+    const s =
+      await response.json();
 
-}
-catch(error){
+    document.getElementById(
+      'motorLog'
+    ).textContent =
 
-console.error(error);
+      s.motor_log ||
+      'No liquid log yet';
 
-}
+    document.getElementById(
+      'analysisLog'
+    ).textContent =
+
+      s.analysis_log ||
+      'No analysis log yet';
+
+    document.getElementById(
+      'eventLog'
+    ).textContent =
+
+      s.event_log ||
+      'No event log yet';
+
+  }
+  catch(error){
+
+    console.error(error);
+
+  }
 
 }
 
@@ -1954,167 +2146,178 @@ console.error(error);
 
 function drawChart(){
 
-const canvas =
-document.getElementById(
-'chart'
-);
+  const canvas =
+    document.getElementById(
+      'chart'
+    );
 
-const ctx =
-canvas.getContext('2d');
+  if(!canvas){
+    return;
+  }
 
-const w =
-canvas.width;
+  const ctx =
+    canvas.getContext('2d');
 
-const h =
-canvas.height;
+  const w =
+    canvas.width;
 
-ctx.clearRect(
-0,
-0,
-w,
-h
-);
+  const h =
+    canvas.height;
 
-ctx.strokeStyle =
-getComputedStyle(
-document.documentElement
-)
-.getPropertyValue(
-'--line'
-);
+  ctx.clearRect(
+    0,
+    0,
+    w,
+    h
+  );
 
-ctx.lineWidth = 1;
+  ctx.strokeStyle =
+    getComputedStyle(
+      document.documentElement
+    )
+    .getPropertyValue('--line');
 
-for(
-let i = 0;
-i < 5;
-i++
-){
+  ctx.lineWidth = 1;
 
-const y =
-30 + i * 45;
+  for(
+    let i = 0;
+    i < 5;
+    i++
+  ){
 
-ctx.beginPath();
+    const y =
+      30 + i * 45;
 
-ctx.moveTo(
-30,
-y
-);
+    ctx.beginPath();
 
-ctx.lineTo(
-w - 20,
-y
-);
+    ctx.moveTo(
+      30,
+      y
+    );
 
-ctx.stroke();
+    ctx.lineTo(
+      w - 20,
+      y
+    );
 
-}
+    ctx.stroke();
 
-drawLine(
-ctx,
-points.map(
-p => p.temp
-),
-0,
-100,
-'#ea580c'
-);
+  }
 
-drawLine(
-ctx,
-points.map(
-p => p.level
-),
-0,
-100,
-'#16a34a'
-);
+  drawLine(
+    ctx,
+    points.map(
+      p => p.temp
+    ),
+    0,
+    100,
+    '#ea580c'
+  );
+
+  drawLine(
+    ctx,
+    points.map(
+      p => p.level
+    ),
+    0,
+    100,
+    '#16a34a'
+  );
 
 }
 
 function drawLine(
-ctx,
-arr,
-min,
-max,
-color
+  ctx,
+  arr,
+  min,
+  max,
+  color
 ){
 
-if(arr.length < 2){
-return;
-}
+  if(arr.length < 2){
+    return;
+  }
 
-const valid =
-arr.map(
-(v,i) => ({
-v,
-i
-})
-)
-.filter(
-x =>
-Number.isFinite(x.v)
-);
+  const valid =
+    arr.map(
+      (v,i) => ({
+        v,
+        i
+      })
+    )
+    .filter(
+      x =>
+        Number.isFinite(x.v)
+    );
 
-if(valid.length < 2){
-return;
-}
+  if(valid.length < 2){
+    return;
+  }
 
-const w =
-ctx.canvas.width;
+  const w =
+    ctx.canvas.width;
 
-const h =
-ctx.canvas.height;
+  const h =
+    ctx.canvas.height;
 
-ctx.strokeStyle =
-color;
+  ctx.strokeStyle =
+    color;
 
-ctx.lineWidth = 3;
+  ctx.lineWidth = 3;
 
-ctx.beginPath();
+  ctx.beginPath();
 
-valid.forEach(
-(item,index) => {
+  valid.forEach(
+    (item,index) => {
 
-const x =
-30 +
-(item.i /
-Math.max(
-1,
-points.length - 1
-)) *
-(w - 55);
+      const x =
 
-const y =
-h -
-25 -
-(
-(item.v - min) /
-(max - min)
-) *
-(h - 55);
+        30 +
 
-if(index === 0){
+        (
+          item.i /
+          Math.max(
+            1,
+            points.length - 1
+          )
+        ) *
 
-ctx.moveTo(
-x,
-y
-);
+        (w - 55);
 
-}
-else{
+      const y =
 
-ctx.lineTo(
-x,
-y
-);
+        h -
 
-}
+        25 -
 
-}
-);
+        (
+          (item.v - min) /
+          (max - min)
+        ) *
 
-ctx.stroke();
+        (h - 55);
+
+      if(index === 0){
+
+        ctx.moveTo(
+          x,
+          y
+        );
+
+      }
+      else{
+
+        ctx.lineTo(
+          x,
+          y
+        );
+
+      }
+
+    }
+  );
+
+  ctx.stroke();
 
 }
 
@@ -2123,36 +2326,36 @@ ctx.stroke();
 // =========================================================
 
 [
-'fullDistance',
-'lowDistance',
-'fullThreshold',
-'lowThreshold',
-'tankLatchMode',
-'lowTemperature',
-'highTemperature',
-'temperatureLatchMode'
+  'fullDistance',
+  'lowDistance',
+  'fullThreshold',
+  'lowThreshold',
+  'tankLatchMode',
+  'lowTemperature',
+  'highTemperature',
+  'temperatureLatchMode'
 ]
 .forEach(
-id => {
+  id => {
 
-const element =
-document.getElementById(id);
+    const element =
+      document.getElementById(id);
 
-if(element){
+    if(element){
 
-element.addEventListener(
-'input',
-markSettingsDirty
-);
+      element.addEventListener(
+        'input',
+        markSettingsDirty
+      );
 
-element.addEventListener(
-'change',
-markSettingsDirty
-);
+      element.addEventListener(
+        'change',
+        markSettingsDirty
+      );
 
-}
+    }
 
-}
+  }
 );
 
 // =========================================================
@@ -2164,13 +2367,13 @@ loadStatus();
 loadLogs();
 
 setInterval(
-loadStatus,
-1000
+  loadStatus,
+  1000
 );
 
 setInterval(
-loadLogs,
-10000
+  loadLogs,
+  10000
 );
 
 </script>
@@ -2191,9 +2394,10 @@ loadLogs,
     out.reserve(
         input.length() + 8);
 
-    for (size_t i = 0;
-         i < input.length();
-         i++)
+    for (
+        size_t i = 0;
+        i < input.length();
+        i++)
     {
       char c =
           input[i];
@@ -2221,6 +2425,30 @@ loadLogs,
     }
 
     return out;
+  }
+
+  // =========================================================
+  // ARGUMENT HELPERS
+  // =========================================================
+
+  static bool hasArgAny(
+      const char *snakeName,
+      const char *camelName)
+  {
+    return server.hasArg(snakeName) ||
+           server.hasArg(camelName);
+  }
+
+  static String getArgAny(
+      const char *snakeName,
+      const char *camelName)
+  {
+    if (server.hasArg(snakeName))
+    {
+      return server.arg(snakeName);
+    }
+
+    return server.arg(camelName);
   }
 
   // =========================================================
@@ -2265,26 +2493,29 @@ loadLogs,
 
     String json;
 
-    json.reserve(1800);
+    json.reserve(2600);
 
     json += "{";
+
+    // -------------------------------------------------------
+    // Uptime
+    // -------------------------------------------------------
 
     json += "\"uptime_ms\":";
     json += String(millis());
     json += ",";
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Temperature
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     json += "\"temperature_c\":";
 
     if (snap.tempValid)
     {
-      json +=
-          String(
-              snap.temperatureC,
-              2);
+      json += String(
+          snap.temperatureC,
+          2);
     }
     else
     {
@@ -2294,6 +2525,7 @@ loadLogs,
     json += ",";
 
     json += "\"temp_valid\":";
+
     json +=
         snap.tempValid
             ? "true"
@@ -2301,46 +2533,41 @@ loadLogs,
 
     json += ",";
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Temperature settings
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     json += "\"low_temperature_c\":";
-    json +=
-        String(
-            device_manager::
-                getLowTemperatureC(),
-            2);
-
+    json += String(
+        snap.lowTemperatureC,
+        2);
     json += ",";
 
     json += "\"high_temperature_c\":";
-    json +=
-        String(
-            device_manager::
-                getHighTemperatureC(),
-            2);
-
+    json += String(
+        snap.highTemperatureC,
+        2);
     json += ",";
 
     json += "\"temperature_status\":\"";
+
     json +=
         device_manager::
             getTemperatureStatusText();
+
     json += "\",";
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Distance
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     json += "\"distance_cm\":";
 
     if (snap.levelValid)
     {
-      json +=
-          String(
-              snap.distanceCm,
-              2);
+      json += String(
+          snap.distanceCm,
+          2);
     }
     else
     {
@@ -2350,6 +2577,7 @@ loadLogs,
     json += ",";
 
     json += "\"level_valid\":";
+
     json +=
         snap.levelValid
             ? "true"
@@ -2357,18 +2585,17 @@ loadLogs,
 
     json += ",";
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Level
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     json += "\"level_percent\":";
 
     if (snap.levelValid)
     {
-      json +=
-          String(
-              snap.levelPercent,
-              1);
+      json += String(
+          snap.levelPercent,
+          1);
     }
     else
     {
@@ -2378,55 +2605,43 @@ loadLogs,
     json += ",";
 
     json += "\"full_distance_cm\":";
-    json +=
-        String(
-            device_manager::
-                getFullDistanceCm(),
-            2);
-
+    json += String(
+        snap.fullDistanceCm,
+        2);
     json += ",";
 
     json += "\"low_distance_cm\":";
-    json +=
-        String(
-            device_manager::
-                getLowDistanceCm(),
-            2);
-
+    json += String(
+        snap.lowDistanceCm,
+        2);
     json += ",";
 
     json += "\"full_level_percent\":";
-    json +=
-        String(
-            device_manager::
-                getFullLevelPercent(),
-            1);
-
+    json += String(
+        snap.fullLevelPercent,
+        1);
     json += ",";
 
     json += "\"low_level_percent\":";
-    json +=
-        String(
-            device_manager::
-                getLowLevelPercent(),
-            1);
-
+    json += String(
+        snap.lowLevelPercent,
+        1);
     json += ",";
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Tank latch
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     json += "\"tank_latch_mode\":";
-    json +=
-        String(
-            static_cast<uint8_t>(
-                device_manager::
-                    getRelayLatchMode()));
+
+    json += String(
+        static_cast<uint8_t>(
+            snap.relayLatchMode));
 
     json += ",";
 
     json += "\"tank_latch_triggered\":";
+
     json +=
         snap.tankLatchTriggered
             ? "true"
@@ -2434,20 +2649,20 @@ loadLogs,
 
     json += ",";
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Temperature latch
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     json += "\"temperature_latch_mode\":";
-    json +=
-        String(
-            static_cast<uint8_t>(
-                device_manager::
-                    getTemperatureLatchMode()));
+
+    json += String(
+        static_cast<uint8_t>(
+            snap.temperatureLatchMode));
 
     json += ",";
 
     json += "\"temperature_latch_triggered\":";
+
     json +=
         snap.temperatureLatchTriggered
             ? "true"
@@ -2455,31 +2670,52 @@ loadLogs,
 
     json += ",";
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Relay
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     json += "\"relay_on\":";
+
     json +=
-        load_relay::isOn()
+        snap.relayOn
             ? "true"
             : "false";
 
     json += ",";
 
     json += "\"relay_requested\":";
+
     json +=
-        load_relay::getRequestedState()
+        snap.relayRequested
             ? "true"
             : "false";
 
     json += ",";
 
-    // -----------------------------------------------------
+    json += "\"manual_relay_request\":";
+
+    json +=
+        snap.manualRelayRequest
+            ? "true"
+            : "false";
+
+    json += ",";
+
+    json += "\"automatic_relay_demand\":";
+
+    json +=
+        snap.automaticRelayDemand
+            ? "true"
+            : "false";
+
+    json += ",";
+
+    // -------------------------------------------------------
     // Storage
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     json += "\"sd_ready\":";
+
     json +=
         storage::isSdReady()
             ? "true"
@@ -2488,6 +2724,7 @@ loadLogs,
     json += ",";
 
     json += "\"internal_ready\":";
+
     json +=
         storage::isInternalReady()
             ? "true"
@@ -2496,35 +2733,37 @@ loadLogs,
     json += ",";
 
     json += "\"backend\":\"";
+
     json +=
         jsonEscape(
             storage::getBackendName());
+
     json += "\",";
 
     json += "\"liquid_log_size\":";
-    json +=
-        String(
-            storage::getFileSize(
-                storage::
-                    getLiquidLogFileName()));
+
+    json += String(
+        storage::getFileSize(
+            storage::
+                getLiquidLogFileName()));
 
     json += ",";
 
     json += "\"analysis_log_size\":";
-    json +=
-        String(
-            storage::getFileSize(
-                storage::
-                    getAnalysisLogFileName()));
+
+    json += String(
+        storage::getFileSize(
+            storage::
+                getAnalysisLogFileName()));
 
     json += ",";
 
     json += "\"event_log_size\":";
-    json +=
-        String(
-            storage::getFileSize(
-                storage::
-                    getEventLogFileName()));
+
+    json += String(
+        storage::getFileSize(
+            storage::
+                getEventLogFileName()));
 
     json += "}";
 
@@ -2612,22 +2851,34 @@ loadLogs,
 
     state.toLowerCase();
 
+    // -------------------------------------------------------
+    // MANUAL ON
+    // -------------------------------------------------------
+
     if (state == "on")
     {
-      load_relay::turnOn();
+      device_manager::
+          setManualRelayRequest(true);
 
       storage::logEvent(
           "RELAY",
-          "Relay requested ON from dashboard.");
+          "Manual relay request set ON from dashboard.");
     }
+
+    // -------------------------------------------------------
+    // MANUAL OFF
+    // -------------------------------------------------------
+
     else if (state == "off")
     {
-      load_relay::turnOff();
+      device_manager::
+          setManualRelayRequest(false);
 
       storage::logEvent(
           "RELAY",
-          "Relay requested OFF from dashboard.");
+          "Manual relay request set OFF from dashboard.");
     }
+
     else
     {
       server.send(
@@ -2638,10 +2889,61 @@ loadLogs,
       return;
     }
 
+    // -------------------------------------------------------
+    // Return current state
+    // -------------------------------------------------------
+
+    device_manager::Snapshot snap =
+        device_manager::getSnapshot();
+
+    String response;
+
+    response.reserve(400);
+
+    response += "{";
+
+    response += "\"ok\":true,";
+
+    response += "\"relay_on\":";
+
+    response +=
+        snap.relayOn
+            ? "true"
+            : "false";
+
+    response += ",";
+
+    response += "\"relay_requested\":";
+
+    response +=
+        snap.relayRequested
+            ? "true"
+            : "false";
+
+    response += ",";
+
+    response += "\"manual_relay_request\":";
+
+    response +=
+        snap.manualRelayRequest
+            ? "true"
+            : "false";
+
+    response += ",";
+
+    response += "\"automatic_relay_demand\":";
+
+    response +=
+        snap.automaticRelayDemand
+            ? "true"
+            : "false";
+
+    response += "}";
+
     server.send(
         200,
         "application/json",
-        "{\"ok\":true}");
+        response);
   }
 
   // =========================================================
@@ -2670,14 +2972,42 @@ loadLogs,
 
     // -------------------------------------------------------
     // Required arguments
+    //
+    // Both snake_case and camelCase are accepted.
     // -------------------------------------------------------
 
-    if (!server.hasArg("fullDistance") ||
-        !server.hasArg("lowDistance") ||
-        !server.hasArg("lowTemperature") ||
-        !server.hasArg("highTemperature") ||
-        !server.hasArg("tankLatch") ||
-        !server.hasArg("temperatureLatch"))
+    if (
+        !hasArgAny(
+            "full_distance",
+            "fullDistance") ||
+
+        !hasArgAny(
+            "low_distance",
+            "lowDistance") ||
+
+        !hasArgAny(
+            "full_level",
+            "fullThreshold") ||
+
+        !hasArgAny(
+            "low_level",
+            "lowThreshold") ||
+
+        !hasArgAny(
+            "low_temperature",
+            "lowTemperature") ||
+
+        !hasArgAny(
+            "high_temperature",
+            "highTemperature") ||
+
+        !hasArgAny(
+            "tank_latch",
+            "tankLatch") ||
+
+        !hasArgAny(
+            "temperature_latch",
+            "temperatureLatch"))
     {
       server.send(
           400,
@@ -2692,30 +3022,63 @@ loadLogs,
     // -------------------------------------------------------
 
     float fullDistance =
-        server.arg("fullDistance").toFloat();
+        getArgAny(
+            "full_distance",
+            "fullDistance")
+            .toFloat();
 
     float lowDistance =
-        server.arg("lowDistance").toFloat();
+        getArgAny(
+            "low_distance",
+            "lowDistance")
+            .toFloat();
+
+    float fullLevel =
+        getArgAny(
+            "full_level",
+            "fullThreshold")
+            .toFloat();
+
+    float lowLevel =
+        getArgAny(
+            "low_level",
+            "lowThreshold")
+            .toFloat();
 
     float lowTemperature =
-        server.arg("lowTemperature").toFloat();
+        getArgAny(
+            "low_temperature",
+            "lowTemperature")
+            .toFloat();
 
     float highTemperature =
-        server.arg("highTemperature").toFloat();
+        getArgAny(
+            "high_temperature",
+            "highTemperature")
+            .toFloat();
 
     int tankLatch =
-        server.arg("tankLatch").toInt();
+        getArgAny(
+            "tank_latch",
+            "tankLatch")
+            .toInt();
 
     int temperatureLatch =
-        server.arg("temperatureLatch").toInt();
+        getArgAny(
+            "temperature_latch",
+            "temperatureLatch")
+            .toInt();
 
     // -------------------------------------------------------
     // Validate distance settings
     // -------------------------------------------------------
 
-    if (fullDistance <= 0.0f ||
-        lowDistance <= 0.0f ||
-        fullDistance >= lowDistance)
+    if (
+        !isfinite(fullDistance) ||
+        !isfinite(lowDistance) ||
+        fullDistance <= 0.0f ||
+        lowDistance <= fullDistance ||
+        lowDistance > 500.0f)
     {
       server.send(
           400,
@@ -2726,24 +3089,49 @@ loadLogs,
     }
 
     // -------------------------------------------------------
-    // Validate temperature settings
+    // Validate level settings
     // -------------------------------------------------------
 
-    if (lowTemperature >= highTemperature)
+    if (
+        !isfinite(fullLevel) ||
+        !isfinite(lowLevel) ||
+        lowLevel < 0.0f ||
+        fullLevel > 100.0f ||
+        fullLevel <= lowLevel)
     {
       server.send(
           400,
           "application/json",
-          "{\"ok\":false,\"error\":\"Low temperature must be below high temperature.\"}");
+          "{\"ok\":false,\"error\":\"Invalid tank level settings.\"}");
 
       return;
     }
 
     // -------------------------------------------------------
-    // Validate tank latch mode
+    // Validate temperature settings
     // -------------------------------------------------------
 
-    if (tankLatch < 0 ||
+    if (
+        !isfinite(lowTemperature) ||
+        !isfinite(highTemperature) ||
+        lowTemperature >= highTemperature ||
+        lowTemperature < -200.0f ||
+        highTemperature > 850.0f)
+    {
+      server.send(
+          400,
+          "application/json",
+          "{\"ok\":false,\"error\":\"Invalid temperature settings.\"}");
+
+      return;
+    }
+
+    // -------------------------------------------------------
+    // Validate tank latch
+    // -------------------------------------------------------
+
+    if (
+        tankLatch < 0 ||
         tankLatch > 2)
     {
       server.send(
@@ -2755,10 +3143,11 @@ loadLogs,
     }
 
     // -------------------------------------------------------
-    // Validate temperature latch mode
+    // Validate temperature latch
     // -------------------------------------------------------
 
-    if (temperatureLatch < 0 ||
+    if (
+        temperatureLatch < 0 ||
         temperatureLatch > 2)
     {
       server.send(
@@ -2784,19 +3173,17 @@ loadLogs,
             temperatureLatch);
 
     // -------------------------------------------------------
-    // Apply settings to device manager
+    // Apply complete device-manager configuration
     // -------------------------------------------------------
 
-    bool applied =
-        device_manager::applySettings(
+    if (
+        !device_manager::applySettings(
             fullDistance,
             lowDistance,
             lowTemperature,
             highTemperature,
             tankLatchMode,
-            temperatureLatchMode);
-
-    if (!applied)
+            temperatureLatchMode))
     {
       server.send(
           400,
@@ -2807,13 +3194,34 @@ loadLogs,
     }
 
     // -------------------------------------------------------
-    // Save settings to internal flash
+    // Apply level thresholds
+    // -------------------------------------------------------
+
+    device_manager::setLevelThresholds(
+        fullLevel,
+        lowLevel);
+
+    // -------------------------------------------------------
+    // Save complete persistent configuration
+    //
+    // New storage format:
+    //
+    // fullDistance
+    // lowDistance
+    // fullLevel
+    // lowLevel
+    // tankLatch
+    // lowTemperature
+    // highTemperature
+    // temperatureLatch
     // -------------------------------------------------------
 
     bool saved =
         storage::saveTankSettings(
             fullDistance,
             lowDistance,
+            fullLevel,
+            lowLevel,
             static_cast<uint8_t>(
                 tankLatchMode),
             lowTemperature,
@@ -2840,13 +3248,80 @@ loadLogs,
         "Tank and temperature control settings updated from dashboard.");
 
     // -------------------------------------------------------
-    // Success
+    // Return complete configuration
     // -------------------------------------------------------
+
+    device_manager::Snapshot snap =
+        device_manager::getSnapshot();
+
+    String response;
+
+    response.reserve(800);
+
+    response += "{";
+
+    response += "\"ok\":true,";
+
+    response += "\"full_distance_cm\":";
+    response += String(
+        snap.fullDistanceCm,
+        2);
+
+    response += ",";
+
+    response += "\"low_distance_cm\":";
+    response += String(
+        snap.lowDistanceCm,
+        2);
+
+    response += ",";
+
+    response += "\"full_level_percent\":";
+    response += String(
+        snap.fullLevelPercent,
+        1);
+
+    response += ",";
+
+    response += "\"low_level_percent\":";
+    response += String(
+        snap.lowLevelPercent,
+        1);
+
+    response += ",";
+
+    response += "\"low_temperature_c\":";
+    response += String(
+        snap.lowTemperatureC,
+        2);
+
+    response += ",";
+
+    response += "\"high_temperature_c\":";
+    response += String(
+        snap.highTemperatureC,
+        2);
+
+    response += ",";
+
+    response += "\"tank_latch_mode\":";
+    response += String(
+        static_cast<uint8_t>(
+            snap.relayLatchMode));
+
+    response += ",";
+
+    response += "\"temperature_latch_mode\":";
+    response += String(
+        static_cast<uint8_t>(
+            snap.temperatureLatchMode));
+
+    response += "}";
 
     server.send(
         200,
         "application/json",
-        "{\"ok\":true}");
+        response);
   }
 
   // =========================================================
@@ -2905,7 +3380,8 @@ loadLogs,
 
   void begin()
   {
-    WiFi.mode(WIFI_AP);
+    WiFi.mode(
+        WIFI_AP);
 
     WiFi.softAP(
         apSsid,
@@ -2995,4 +3471,5 @@ loadLogs,
   {
     return String(apSsid);
   }
+
 }

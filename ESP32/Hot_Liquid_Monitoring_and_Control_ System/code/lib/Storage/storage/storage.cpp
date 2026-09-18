@@ -4,7 +4,6 @@
 #include <math.h>
 
 #include "storage.h"
-
 #include "temp_sensor/temp_sensor.h"
 #include "ultrasonic_sensor/ultrasonic_sensor.h"
 #include "load_relay/load_relay.h"
@@ -26,7 +25,6 @@ namespace storage
   // =========================================================
 
   static unsigned long lastLog = 0;
-
   static unsigned long logInterval = 5000;
 
   static const char *liquidLogFile =
@@ -58,7 +56,8 @@ namespace storage
            activeFS != nullptr;
   }
 
-  static bool fileExists(const char *path)
+  static bool fileExists(
+      const char *path)
   {
     if (!hasActiveStorage())
     {
@@ -68,7 +67,8 @@ namespace storage
     return activeFS->exists(path);
   }
 
-  static String cleanCsvText(String text)
+  static String cleanCsvText(
+      String text)
   {
     text.replace("\r", " ");
     text.replace("\n", " ");
@@ -87,12 +87,16 @@ namespace storage
     }
 
     File file =
-        activeFS->open(path, FILE_APPEND);
+        activeFS->open(
+            path,
+            FILE_APPEND);
 
     if (!file)
     {
       file =
-          activeFS->open(path, FILE_WRITE);
+          activeFS->open(
+              path,
+              FILE_WRITE);
     }
 
     if (!file)
@@ -121,7 +125,9 @@ namespace storage
     }
 
     File file =
-        activeFS->open(path, FILE_WRITE);
+        activeFS->open(
+            path,
+            FILE_WRITE);
 
     if (!file)
     {
@@ -169,7 +175,6 @@ namespace storage
     }
 
     activeFS = &LittleFS;
-
     ready = true;
 
     createHeaders();
@@ -196,7 +201,6 @@ namespace storage
         logInterval)
     {
       lastLog = now;
-
       logNow();
     }
   }
@@ -215,12 +219,11 @@ namespace storage
     device_manager::Snapshot snap =
         device_manager::getSnapshot();
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Liquid log
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     String liquidLine;
-
     liquidLine.reserve(180);
 
     liquidLine += String(millis());
@@ -229,7 +232,9 @@ namespace storage
     if (snap.tempValid)
     {
       liquidLine +=
-          String(snap.temperatureC, 2);
+          String(
+              snap.temperatureC,
+              2);
     }
     else
     {
@@ -239,14 +244,18 @@ namespace storage
     liquidLine += ",";
 
     liquidLine +=
-        snap.tempValid ? "1" : "0";
+        snap.tempValid
+            ? "1"
+            : "0";
 
     liquidLine += ",";
 
     if (snap.levelValid)
     {
       liquidLine +=
-          String(snap.distanceCm, 3);
+          String(
+              snap.distanceCm,
+              3);
     }
     else
     {
@@ -258,7 +267,9 @@ namespace storage
     if (snap.levelValid)
     {
       liquidLine +=
-          String(snap.levelPercent, 1);
+          String(
+              snap.levelPercent,
+              1);
     }
     else
     {
@@ -268,23 +279,26 @@ namespace storage
     liquidLine += ",";
 
     liquidLine +=
-        snap.relayOn ? "1" : "0";
+        snap.relayOn
+            ? "1"
+            : "0";
 
     liquidLine += ",";
 
     liquidLine +=
-        snap.relayRequested ? "1" : "0";
+        snap.relayRequested
+            ? "1"
+            : "0";
 
     appendLine(
         liquidLogFile,
         liquidLine);
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Analysis log
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     String analysisLine;
-
     analysisLine.reserve(120);
 
     analysisLine += String(millis());
@@ -293,7 +307,9 @@ namespace storage
     if (snap.tempValid)
     {
       analysisLine +=
-          String(snap.temperatureC, 2);
+          String(
+              snap.temperatureC,
+              2);
     }
     else
     {
@@ -305,7 +321,9 @@ namespace storage
     if (snap.levelValid)
     {
       analysisLine +=
-          String(snap.levelPercent, 1);
+          String(
+              snap.levelPercent,
+              1);
     }
     else
     {
@@ -317,7 +335,9 @@ namespace storage
     if (snap.levelValid)
     {
       analysisLine +=
-          String(snap.distanceCm, 1);
+          String(
+              snap.distanceCm,
+              1);
     }
     else
     {
@@ -352,10 +372,13 @@ namespace storage
     line += String(millis());
     line += ",";
 
-    line += cleanCsvText(event);
+    line +=
+        cleanCsvText(event);
+
     line += ",";
 
-    line += cleanCsvText(message);
+    line +=
+        cleanCsvText(message);
 
     appendLine(
         eventLogFile,
@@ -423,7 +446,8 @@ namespace storage
   // READ FILE
   // =========================================================
 
-  String readFile(const char *path)
+  String readFile(
+      const char *path)
   {
     if (!hasActiveStorage())
     {
@@ -431,7 +455,9 @@ namespace storage
     }
 
     File file =
-        activeFS->open(path, FILE_READ);
+        activeFS->open(
+            path,
+            FILE_READ);
 
     if (!file)
     {
@@ -444,7 +470,8 @@ namespace storage
 
     while (file.available())
     {
-      content += char(file.read());
+      content +=
+          char(file.read());
 
       count++;
 
@@ -473,7 +500,9 @@ namespace storage
     }
 
     File file =
-        activeFS->open(path, FILE_READ);
+        activeFS->open(
+            path,
+            FILE_READ);
 
     if (!file)
     {
@@ -484,7 +513,8 @@ namespace storage
 
     if (size > maxBytes)
     {
-      file.seek(size - maxBytes);
+      file.seek(
+          size - maxBytes);
     }
 
     String content;
@@ -493,7 +523,8 @@ namespace storage
 
     while (file.available())
     {
-      content += char(file.read());
+      content +=
+          char(file.read());
 
       count++;
 
@@ -525,7 +556,8 @@ namespace storage
   // FILE SIZE
   // =========================================================
 
-  size_t getFileSize(const char *path)
+  size_t getFileSize(
+      const char *path)
   {
     if (!hasActiveStorage())
     {
@@ -533,7 +565,9 @@ namespace storage
     }
 
     File file =
-        activeFS->open(path, FILE_READ);
+        activeFS->open(
+            path,
+            FILE_READ);
 
     if (!file)
     {
@@ -551,7 +585,8 @@ namespace storage
   // OPEN FILE
   // =========================================================
 
-  File openRead(const char *path)
+  File openRead(
+      const char *path)
   {
     if (!hasActiveStorage())
     {
@@ -571,22 +606,49 @@ namespace storage
   //
   // fullDistance,
   // lowDistance,
-  // tankLatchMode,
+  // fullLevel,
+  // lowLevel,
+  // tankLatch,
   // lowTemperature,
   // highTemperature,
-  // temperatureLatchMode
+  // temperatureLatch
+  //
+  // Example:
+  //
+  // 5.00,40.00,90.00,20.00,0,30.00,80.00,0
+  //
+  // ---------------------------------------------------------
+  //
+  // Previous 6-value format is still accepted:
+  //
+  // fullDistance,
+  // lowDistance,
+  // tankLatch,
+  // lowTemperature,
+  // highTemperature,
+  // temperatureLatch
+  //
+  // For old 6-value files, level thresholds are restored
+  // to the device-manager defaults:
+  //
+  // fullLevel = 90%
+  // lowLevel  = 20%
+  //
+  // ---------------------------------------------------------
   //
   // Legacy 3-value files are also accepted:
   //
-  // fullPercent,lowPercent,latchMode
+  // fullPercent,
+  // lowPercent,
+  // latchMode
   //
-  // Legacy files are converted to the current distance-based
-  // system using default distance and temperature settings.
   // =========================================================
 
   bool loadTankSettings(
       float &fullDistance,
       float &lowDistance,
+      float &fullLevel,
+      float &lowLevel,
       uint8_t &tankLatch,
       float &lowTemperature,
       float &highTemperature,
@@ -597,7 +659,8 @@ namespace storage
       return false;
     }
 
-    if (!activeFS->exists(tankSettingsFile))
+    if (!activeFS->exists(
+            tankSettingsFile))
     {
       return false;
     }
@@ -624,9 +687,9 @@ namespace storage
       return false;
     }
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Parse comma-separated values
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     float values[8];
 
@@ -636,7 +699,9 @@ namespace storage
     while (valueCount < 8)
     {
       int comma =
-          line.indexOf(',', start);
+          line.indexOf(
+              ',',
+              start);
 
       String token;
 
@@ -668,12 +733,150 @@ namespace storage
         break;
       }
 
-      start = comma + 1;
+      start =
+          comma + 1;
     }
 
-    // -----------------------------------------------------
-    // Current 6-value settings format
-    // -----------------------------------------------------
+    // =======================================================
+    // CURRENT 8-VALUE FORMAT
+    // =======================================================
+
+    if (valueCount >= 8)
+    {
+      float savedFullDistance =
+          values[0];
+
+      float savedLowDistance =
+          values[1];
+
+      float savedFullLevel =
+          values[2];
+
+      float savedLowLevel =
+          values[3];
+
+      int savedTankLatch =
+          static_cast<int>(
+              values[4]);
+
+      float savedLowTemperature =
+          values[5];
+
+      float savedHighTemperature =
+          values[6];
+
+      int savedTemperatureLatch =
+          static_cast<int>(
+              values[7]);
+
+      // -----------------------------------------------------
+      // Validate finite values
+      // -----------------------------------------------------
+
+      if (!isfinite(savedFullDistance) ||
+          !isfinite(savedLowDistance) ||
+          !isfinite(savedFullLevel) ||
+          !isfinite(savedLowLevel) ||
+          !isfinite(savedLowTemperature) ||
+          !isfinite(savedHighTemperature))
+      {
+        return false;
+      }
+
+      // -----------------------------------------------------
+      // Validate distance calibration
+      // -----------------------------------------------------
+
+      if (savedFullDistance <= 0.0f ||
+          savedLowDistance <= savedFullDistance ||
+          savedLowDistance > 500.0f)
+      {
+        return false;
+      }
+
+      // -----------------------------------------------------
+      // Validate level thresholds
+      // -----------------------------------------------------
+
+      if (savedLowLevel < 0.0f ||
+          savedFullLevel > 100.0f ||
+          savedFullLevel <= savedLowLevel)
+      {
+        return false;
+      }
+
+      // -----------------------------------------------------
+      // Validate tank latch
+      // -----------------------------------------------------
+
+      if (savedTankLatch < 0 ||
+          savedTankLatch > 2)
+      {
+        return false;
+      }
+
+      // -----------------------------------------------------
+      // Validate temperature
+      // -----------------------------------------------------
+
+      if (savedLowTemperature >=
+          savedHighTemperature)
+      {
+        return false;
+      }
+
+      if (savedLowTemperature < -200.0f ||
+          savedHighTemperature > 850.0f)
+      {
+        return false;
+      }
+
+      // -----------------------------------------------------
+      // Validate temperature latch
+      // -----------------------------------------------------
+
+      if (savedTemperatureLatch < 0 ||
+          savedTemperatureLatch > 2)
+      {
+        return false;
+      }
+
+      // -----------------------------------------------------
+      // Apply
+      // -----------------------------------------------------
+
+      fullDistance =
+          savedFullDistance;
+
+      lowDistance =
+          savedLowDistance;
+
+      fullLevel =
+          savedFullLevel;
+
+      lowLevel =
+          savedLowLevel;
+
+      tankLatch =
+          static_cast<uint8_t>(
+              savedTankLatch);
+
+      lowTemperature =
+          savedLowTemperature;
+
+      highTemperature =
+          savedHighTemperature;
+
+      temperatureLatch =
+          static_cast<uint8_t>(
+              savedTemperatureLatch);
+
+      return true;
+    }
+
+    // =======================================================
+    // PREVIOUS 6-VALUE FORMAT
+    // =======================================================
 
     if (valueCount >= 6)
     {
@@ -684,7 +887,8 @@ namespace storage
           values[1];
 
       int savedTankLatch =
-          static_cast<int>(values[2]);
+          static_cast<int>(
+              values[2]);
 
       float savedLowTemperature =
           values[3];
@@ -693,11 +897,12 @@ namespace storage
           values[4];
 
       int savedTemperatureLatch =
-          static_cast<int>(values[5]);
+          static_cast<int>(
+              values[5]);
 
-      // ---------------------------------------------------
+      // -----------------------------------------------------
       // Validate
-      // ---------------------------------------------------
+      // -----------------------------------------------------
 
       if (!isfinite(savedFullDistance) ||
           !isfinite(savedLowDistance) ||
@@ -738,15 +943,24 @@ namespace storage
         return false;
       }
 
-      // ---------------------------------------------------
-      // Apply loaded values
-      // ---------------------------------------------------
+      // -----------------------------------------------------
+      // Apply old settings
+      //
+      // Level percentages did not exist in this format.
+      // Restore device-manager defaults.
+      // -----------------------------------------------------
 
       fullDistance =
           savedFullDistance;
 
       lowDistance =
           savedLowDistance;
+
+      fullLevel =
+          90.0f;
+
+      lowLevel =
+          20.0f;
 
       tankLatch =
           static_cast<uint8_t>(
@@ -765,16 +979,9 @@ namespace storage
       return true;
     }
 
-    // -----------------------------------------------------
-    // Legacy 3-value format
-    //
-    // Old:
-    // fullPercent,lowPercent,latchMode
-    //
-    // The old percentage thresholds are no longer stored.
-    // We therefore convert the old file to the default
-    // distance calibration.
-    // -----------------------------------------------------
+    // =======================================================
+    // LEGACY 3-VALUE FORMAT
+    // =======================================================
 
     if (valueCount >= 3)
     {
@@ -785,7 +992,8 @@ namespace storage
           values[1];
 
       int savedLatch =
-          static_cast<int>(values[2]);
+          static_cast<int>(
+              values[2]);
 
       if (!isfinite(savedFullPercent) ||
           !isfinite(savedLowPercent))
@@ -793,7 +1001,8 @@ namespace storage
         return false;
       }
 
-      if (savedFullPercent <= savedLowPercent ||
+      if (savedFullPercent <=
+              savedLowPercent ||
           savedFullPercent > 100.0f ||
           savedLowPercent < 0.0f ||
           savedLatch < 0 ||
@@ -802,24 +1011,38 @@ namespace storage
         return false;
       }
 
-      // ---------------------------------------------------
-      // Convert legacy percentage configuration.
+      // -----------------------------------------------------
+      // Preserve the legacy percentage thresholds.
       //
-      // The new system derives percentage from distance.
-      // Use the existing/default distance calibration.
-      // ---------------------------------------------------
+      // The new system still derives level from distance,
+      // so use the default distance calibration while
+      // retaining the old percentage thresholds.
+      // -----------------------------------------------------
 
-      fullDistance = 5.0f;
-      lowDistance = 40.0f;
+      fullDistance =
+          5.0f;
+
+      lowDistance =
+          40.0f;
+
+      fullLevel =
+          savedFullPercent;
+
+      lowLevel =
+          savedLowPercent;
 
       tankLatch =
           static_cast<uint8_t>(
               savedLatch);
 
-      lowTemperature = 30.0f;
-      highTemperature = 80.0f;
+      lowTemperature =
+          30.0f;
 
-      temperatureLatch = 0;
+      highTemperature =
+          80.0f;
+
+      temperatureLatch =
+          0;
 
       return true;
     }
@@ -835,15 +1058,20 @@ namespace storage
   //
   // fullDistance,
   // lowDistance,
-  // tankLatchMode,
+  // fullLevel,
+  // lowLevel,
+  // tankLatch,
   // lowTemperature,
   // highTemperature,
-  // temperatureLatchMode
+  // temperatureLatch
+  //
   // =========================================================
 
   bool saveTankSettings(
       float fullDistance,
       float lowDistance,
+      float fullLevel,
+      float lowLevel,
       uint8_t tankLatch,
       float lowTemperature,
       float highTemperature,
@@ -854,21 +1082,23 @@ namespace storage
       return false;
     }
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Validate numeric values
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     if (!isfinite(fullDistance) ||
         !isfinite(lowDistance) ||
+        !isfinite(fullLevel) ||
+        !isfinite(lowLevel) ||
         !isfinite(lowTemperature) ||
         !isfinite(highTemperature))
     {
       return false;
     }
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Validate tank distance calibration
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     if (fullDistance <= 0.0f ||
         lowDistance <= fullDistance ||
@@ -877,20 +1107,32 @@ namespace storage
       return false;
     }
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
+    // Validate level thresholds
+    // -------------------------------------------------------
+
+    if (lowLevel < 0.0f ||
+        fullLevel > 100.0f ||
+        fullLevel <= lowLevel)
+    {
+      return false;
+    }
+
+    // -------------------------------------------------------
     // Validate tank latch mode
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     if (tankLatch > 2)
     {
       return false;
     }
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Validate temperature thresholds
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
-    if (lowTemperature >= highTemperature)
+    if (lowTemperature >=
+        highTemperature)
     {
       return false;
     }
@@ -901,18 +1143,18 @@ namespace storage
       return false;
     }
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Validate temperature latch mode
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     if (temperatureLatch > 2)
     {
       return false;
     }
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------
     // Open settings file
-    // -----------------------------------------------------
+    // -------------------------------------------------------
 
     File file =
         activeFS->open(
@@ -924,30 +1166,56 @@ namespace storage
       return false;
     }
 
-    // -----------------------------------------------------
-    // Write current 6-value format
-    // -----------------------------------------------------
+    // =======================================================
+    // Write 8-value settings format
+    // =======================================================
 
-    file.print(fullDistance, 2);
+    file.print(
+        fullDistance,
+        2);
+
     file.print(',');
 
-    file.print(lowDistance, 2);
+    file.print(
+        lowDistance,
+        2);
+
     file.print(',');
 
-    file.print(tankLatch);
+    file.print(
+        fullLevel,
+        2);
+
     file.print(',');
 
-    file.print(lowTemperature, 2);
+    file.print(
+        lowLevel,
+        2);
+
     file.print(',');
 
-    file.print(highTemperature, 2);
+    file.print(
+        tankLatch);
+
     file.print(',');
 
-    file.println(temperatureLatch);
+    file.print(
+        lowTemperature,
+        2);
+
+    file.print(',');
+
+    file.print(
+        highTemperature,
+        2);
+
+    file.print(',');
+
+    file.println(
+        temperatureLatch);
 
     file.close();
 
     return true;
   }
-
 }

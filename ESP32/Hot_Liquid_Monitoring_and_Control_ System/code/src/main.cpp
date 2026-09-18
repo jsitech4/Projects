@@ -5,27 +5,24 @@
 
 #include "temp_sensor/temp_sensor.h"
 #include "ultrasonic_sensor/ultrasonic_sensor.h"
-
 #include "buzzer/buzzer.h"
 #include "load_relay/load_relay.h"
 #include "lcd_screen/lcd_screen.h"
 #include "led_indicator/led_indicator.h"
-
 #include "storage/storage.h"
 #include "sleep_wake/sleep_wake.h"
 #include "reset/reset.h"
-
 #include "device_manager/device_manager.h"
 #include "local_server/local_server.h"
 
-// =========================================================
+// ============================================================
 // SERIAL REPORT
-// =========================================================
+// ============================================================
 
 static unsigned long lastSerialReport = 0;
 
-static constexpr unsigned long
-    SERIAL_REPORT_INTERVAL_MS = 3000;
+static constexpr unsigned long SERIAL_REPORT_INTERVAL_MS =
+    3000;
 
 static void printSerialReport()
 {
@@ -43,12 +40,11 @@ static void printSerialReport()
       device_manager::getSnapshot();
 
   Serial.println();
-  Serial.println(
-      "========== HOT LIQUID SYSTEM ==========");
+  Serial.println("========== HOT LIQUID SYSTEM ==========");
 
-  // -------------------------------------------------------
+  // ----------------------------------------------------------
   // Temperature
-  // -------------------------------------------------------
+  // ----------------------------------------------------------
 
   if (snap.tempValid)
   {
@@ -64,14 +60,15 @@ static void printSerialReport()
         "Temperature: INVALID");
   }
 
-  Serial.print("Temperature status: ");
-  Serial.println(
-      device_manager::
-          getTemperatureStatusText());
+  Serial.print(
+      "Temperature status: ");
 
-  // -------------------------------------------------------
-  // Ultrasonic / Tank
-  // -------------------------------------------------------
+  Serial.println(
+      device_manager::getTemperatureStatusText());
+
+  // ----------------------------------------------------------
+  // Ultrasonic / Level
+  // ----------------------------------------------------------
 
   if (snap.levelValid)
   {
@@ -93,53 +90,130 @@ static void printSerialReport()
         "Ultrasonic: INVALID");
   }
 
-  // -------------------------------------------------------
+  // ----------------------------------------------------------
   // Relay
-  // -------------------------------------------------------
+  // ----------------------------------------------------------
 
-  Serial.print("Relay: ");
+  Serial.print("Relay physical command: ");
+
   Serial.println(
       snap.relayOn
           ? "ON"
           : "OFF");
 
-  // -------------------------------------------------------
-  // Tank latch
-  // -------------------------------------------------------
+  Serial.print(
+      "Manual relay request: ");
 
-  Serial.print("Tank latch: ");
   Serial.println(
-      snap.tankLatchTriggered
-          ? "TRIGGERED"
-          : "NOT TRIGGERED");
+      snap.manualRelayRequest
+          ? "ON"
+          : "OFF");
 
-  // -------------------------------------------------------
-  // Temperature latch
-  // -------------------------------------------------------
+  Serial.print(
+      "Automatic relay demand: ");
 
-  Serial.print("Temperature latch: ");
-  Serial.println(
-      snap.temperatureLatchTriggered
-          ? "TRIGGERED"
-          : "NOT TRIGGERED");
-
-  // -------------------------------------------------------
-  // Automatic relay demand
-  // -------------------------------------------------------
-
-  Serial.print("Automatic relay demand: ");
   Serial.println(
       snap.automaticRelayDemand
           ? "YES"
           : "NO");
 
+  Serial.print(
+      "Final relay request: ");
+
+  Serial.println(
+      snap.relayRequested
+          ? "ON"
+          : "OFF");
+
+  // ----------------------------------------------------------
+  // Tank latch
+  // ----------------------------------------------------------
+
+  Serial.print(
+      "Tank latch: ");
+
+  Serial.println(
+      snap.tankLatchTriggered
+          ? "TRIGGERED"
+          : "NOT TRIGGERED");
+
+  // ----------------------------------------------------------
+  // Temperature latch
+  // ----------------------------------------------------------
+
+  Serial.print(
+      "Temperature latch: ");
+
+  Serial.println(
+      snap.temperatureLatchTriggered
+          ? "TRIGGERED"
+          : "NOT TRIGGERED");
+
+  // ----------------------------------------------------------
+  // Thresholds
+  // ----------------------------------------------------------
+
+  Serial.print(
+      "Full distance: ");
+
+  Serial.print(
+      snap.fullDistanceCm,
+      2);
+
+  Serial.println(" cm");
+
+  Serial.print(
+      "Low distance: ");
+
+  Serial.print(
+      snap.lowDistanceCm,
+      2);
+
+  Serial.println(" cm");
+
+  Serial.print(
+      "Full level threshold: ");
+
+  Serial.print(
+      snap.fullLevelPercent,
+      1);
+
+  Serial.println(" %");
+
+  Serial.print(
+      "Low level threshold: ");
+
+  Serial.print(
+      snap.lowLevelPercent,
+      1);
+
+  Serial.println(" %");
+
+  Serial.print(
+      "Low temperature threshold: ");
+
+  Serial.print(
+      snap.lowTemperatureC,
+      2);
+
+  Serial.println(" C");
+
+  Serial.print(
+      "High temperature threshold: ");
+
+  Serial.print(
+      snap.highTemperatureC,
+      2);
+
+  Serial.println(" C");
+
   Serial.println(
       "========================================");
 }
 
-// =========================================================
+// ============================================================
 // SETUP
-// =========================================================
+// ============================================================
 
 void setup()
 {
@@ -150,12 +224,13 @@ void setup()
   delay(100);
 
   Serial.println();
+
   Serial.println(
       "Starting Hot Liquid Monitoring and Control System...");
 
-  // -------------------------------------------------------
-  // Hardware
-  // -------------------------------------------------------
+  // ==========================================================
+  // HARDWARE INITIALIZATION
+  // ==========================================================
 
   Pins::begin();
 
@@ -179,64 +254,70 @@ void setup()
       Pins::ULTRASONIC_TRIG,
       Pins::ULTRASONIC_ECHO);
 
-  // -------------------------------------------------------
-  // Device manager
-  // -------------------------------------------------------
+  // ==========================================================
+  // DEVICE MANAGER
+  // ==========================================================
 
   device_manager::begin();
 
-  // -------------------------------------------------------
-  // Storage
-  // -------------------------------------------------------
+  // ==========================================================
+  // STORAGE
+  // ==========================================================
 
   storage::begin();
 
-  // -------------------------------------------------------
-  // Load persistent settings
-  // -------------------------------------------------------
+  // ==========================================================
+  // LOAD DEFAULT SETTINGS
+  //
+  // These are already supplied by device_manager.
+  // We copy them into local variables so saved settings
+  // can replace them if valid.
+  // ==========================================================
 
   float fullDistance =
-      device_manager::
-          getFullDistanceCm();
+      device_manager::getFullDistanceCm();
 
   float lowDistance =
-      device_manager::
-          getLowDistanceCm();
+      device_manager::getLowDistanceCm();
+
+  float fullLevel =
+      device_manager::getFullLevelPercent();
+
+  float lowLevel =
+      device_manager::getLowLevelPercent();
 
   float lowTemperature =
-      device_manager::
-          getLowTemperatureC();
+      device_manager::getLowTemperatureC();
 
   float highTemperature =
-      device_manager::
-          getHighTemperatureC();
+      device_manager::getHighTemperatureC();
 
   uint8_t tankLatch =
       static_cast<uint8_t>(
-          device_manager::
-              getRelayLatchMode());
+          device_manager::getRelayLatchMode());
 
   uint8_t temperatureLatch =
       static_cast<uint8_t>(
-          device_manager::
-              getTemperatureLatchMode());
+          device_manager::getTemperatureLatchMode());
 
-  // -------------------------------------------------------
-  // Load settings from storage
-  // -------------------------------------------------------
+  // ==========================================================
+  // LOAD SAVED SETTINGS
+  // ==========================================================
 
   bool settingsLoaded =
       storage::loadTankSettings(
           fullDistance,
           lowDistance,
+          fullLevel,
+          lowLevel,
           tankLatch,
           lowTemperature,
           highTemperature,
           temperatureLatch);
 
-  // -------------------------------------------------------
-  // Apply saved settings
-  // -------------------------------------------------------
+  // ==========================================================
+  // APPLY SAVED SETTINGS
+  // ==========================================================
 
   if (settingsLoaded)
   {
@@ -246,25 +327,84 @@ void setup()
             lowDistance,
             lowTemperature,
             highTemperature,
-
             static_cast<
-                device_manager::
-                    RelayLatchMode>(
+                device_manager::RelayLatchMode>(
                 tankLatch),
-
             static_cast<
-                device_manager::
-                    TemperatureLatchMode>(
+                device_manager::TemperatureLatchMode>(
                 temperatureLatch));
 
     if (applied)
     {
+      // ------------------------------------------------------
+      // Level thresholds are managed separately because
+      // applySettings() handles distance/temperature/latches.
+      // ------------------------------------------------------
+
+      device_manager::setLevelThresholds(
+          fullLevel,
+          lowLevel);
+
       storage::logEvent(
           "SETTINGS",
           "Saved settings restored from internal flash.");
 
       Serial.println(
           "Saved settings restored.");
+
+      Serial.print(
+          "Full distance: ");
+
+      Serial.print(
+          fullDistance,
+          2);
+
+      Serial.println(" cm");
+
+      Serial.print(
+          "Low distance: ");
+
+      Serial.print(
+          lowDistance,
+          2);
+
+      Serial.println(" cm");
+
+      Serial.print(
+          "Full level: ");
+
+      Serial.print(
+          fullLevel,
+          1);
+
+      Serial.println(" %");
+
+      Serial.print(
+          "Low level: ");
+
+      Serial.print(
+          lowLevel,
+          1);
+
+      Serial.println(" %");
+
+      Serial.print(
+          "Low temperature: ");
+
+      Serial.print(
+          lowTemperature,
+          2);
+
+      Serial.println(" C");
+
+      Serial.print(
+          "High temperature: ");
+
+      Serial.print(
+          highTemperature,
+          2);
+
+      Serial.println(" C");
     }
     else
     {
@@ -286,21 +426,21 @@ void setup()
         "No valid saved settings. Defaults active.");
   }
 
-  // -------------------------------------------------------
-  // Web dashboard
-  // -------------------------------------------------------
+  // ==========================================================
+  // LOCAL WEB SERVER
+  // ==========================================================
 
   local_server::begin();
 
-  // -------------------------------------------------------
+  // ==========================================================
   // LCD
-  // -------------------------------------------------------
+  // ==========================================================
 
   lcd_screen::begin();
 
-  // -------------------------------------------------------
-  // Startup log
-  // -------------------------------------------------------
+  // ==========================================================
+  // BOOT EVENT
+  // ==========================================================
 
   storage::logEvent(
       "BOOT",
@@ -308,11 +448,12 @@ void setup()
 
   buzzer::beep(120);
 
-  // -------------------------------------------------------
-  // Serial startup information
-  // -------------------------------------------------------
+  // ==========================================================
+  // READY
+  // ==========================================================
 
   Serial.println();
+
   Serial.println(
       "System ready.");
 
@@ -331,31 +472,40 @@ void setup()
   Serial.println();
 }
 
-// =========================================================
+// ============================================================
 // LOOP
-// =========================================================
+// ============================================================
 
 void loop()
 {
-  // -------------------------------------------------------
-  // Sensors
-  // -------------------------------------------------------
+  // ==========================================================
+  // SENSOR UPDATES
+  // ==========================================================
 
   temp_sensor::update();
 
   ultrasonic_sensor::update();
 
-  // -------------------------------------------------------
-  // System control
-  // -------------------------------------------------------
+  // ==========================================================
+  // DEVICE CONTROL
+  //
+  // device_manager owns the control decision.
+  // ==========================================================
 
   device_manager::update();
 
+  // ==========================================================
+  // RELAY
+  //
+  // load_relay only executes the command supplied by the
+  // device manager. It does not make control decisions.
+  // ==========================================================
+
   load_relay::update();
 
-  // -------------------------------------------------------
-  // User interface / indicators
-  // -------------------------------------------------------
+  // ==========================================================
+  // USER INTERFACE / INDICATORS
+  // ==========================================================
 
   buzzer::update();
 
@@ -363,29 +513,29 @@ void loop()
 
   lcd_screen::update();
 
-  // -------------------------------------------------------
-  // Storage
-  // -------------------------------------------------------
+  // ==========================================================
+  // STORAGE / LOGGING
+  // ==========================================================
 
   storage::update();
 
-  // -------------------------------------------------------
-  // Dashboard
-  // -------------------------------------------------------
+  // ==========================================================
+  // WEB DASHBOARD
+  // ==========================================================
 
   local_server::update();
 
-  // -------------------------------------------------------
-  // Power / reset
-  // -------------------------------------------------------
+  // ==========================================================
+  // POWER / SYSTEM SERVICES
+  // ==========================================================
 
   sleep_wake::update();
 
   reset::update();
 
-  // -------------------------------------------------------
-  // Diagnostics
-  // -------------------------------------------------------
+  // ==========================================================
+  // SERIAL MONITOR
+  // ==========================================================
 
   printSerialReport();
 

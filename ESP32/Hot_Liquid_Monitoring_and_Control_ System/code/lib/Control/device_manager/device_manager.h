@@ -4,9 +4,9 @@
 
 namespace device_manager
 {
-  // =========================================================================
+  // ============================================================
   // Tank relay latch modes
-  // =========================================================================
+  // ============================================================
 
   enum RelayLatchMode : uint8_t
   {
@@ -15,9 +15,9 @@ namespace device_manager
     LATCH_AT_LOW = 2
   };
 
-  // =========================================================================
+  // ============================================================
   // Temperature relay latch modes
-  // =========================================================================
+  // ============================================================
 
   enum TemperatureLatchMode : uint8_t
   {
@@ -26,9 +26,9 @@ namespace device_manager
     TEMP_LATCH_AT_HIGH = 2
   };
 
-  // =========================================================================
+  // ============================================================
   // Temperature status
-  // =========================================================================
+  // ============================================================
 
   enum TemperatureStatus : uint8_t
   {
@@ -38,9 +38,9 @@ namespace device_manager
     TEMP_STATUS_HIGH = 3
   };
 
-  // =========================================================================
+  // ============================================================
   // Tank status
-  // =========================================================================
+  // ============================================================
 
   enum TankStatus : uint8_t
   {
@@ -50,13 +50,21 @@ namespace device_manager
     TANK_STATUS_FULL = 3
   };
 
-  // =========================================================================
-  // Device snapshot
-  // =========================================================================
+  // ============================================================
+  // System snapshot
+  // ============================================================
 
   struct Snapshot
   {
+    // ----------------------------------------------------------
+    // General
+    // ----------------------------------------------------------
+
     unsigned long uptimeMs;
+
+    // ----------------------------------------------------------
+    // Sensor data
+    // ----------------------------------------------------------
 
     float temperatureC;
     float distanceCm;
@@ -64,124 +72,174 @@ namespace device_manager
 
     bool tempValid;
     bool levelValid;
-
     bool vibrationReady;
 
+    // ----------------------------------------------------------
+    // Relay state
+    // ----------------------------------------------------------
+
+    // Actual commanded relay state.
     bool relayOn;
+
+    // Effective relay request after combining:
+    // manual request OR automatic demand.
     bool relayRequested;
 
-    // Current conditions
+    // User's persistent manual relay request.
+    bool manualRelayRequest;
+
+    // ----------------------------------------------------------
+    // Status
+    // ----------------------------------------------------------
+
     TemperatureStatus temperatureStatus;
     TankStatus tankStatus;
 
-    // Automatic latch states
-    //
-    // These names are kept exactly as expected by your existing main.cpp.
+    // ----------------------------------------------------------
+    // Automatic latch state
+    // ----------------------------------------------------------
+
     bool tankLatchTriggered;
     bool temperatureLatchTriggered;
 
-    // Combined automatic demand
+    // True when one or more automatic conditions currently
+    // demand the relay to be ON.
     bool automaticRelayDemand;
 
-    // Tank calibration
+    // ----------------------------------------------------------
+    // Tank configuration
+    // ----------------------------------------------------------
+
     float fullDistanceCm;
     float lowDistanceCm;
 
-    // Temperature thresholds
-    float lowTemperatureC;
-    float highTemperatureC;
-
-    // Legacy level percentages
     float fullLevelPercent;
     float lowLevelPercent;
 
-    // Automation modes
+    // ----------------------------------------------------------
+    // Temperature configuration
+    // ----------------------------------------------------------
+
+    float lowTemperatureC;
+    float highTemperatureC;
+
+    // ----------------------------------------------------------
+    // Latch configuration
+    // ----------------------------------------------------------
+
     RelayLatchMode relayLatchMode;
     TemperatureLatchMode temperatureLatchMode;
   };
 
-  // =========================================================================
+  // ============================================================
   // Lifecycle
-  // =========================================================================
+  // ============================================================
 
   void begin();
   void update();
 
-  // =========================================================================
+  // ============================================================
   // Snapshot
-  // =========================================================================
+  // ============================================================
 
   Snapshot getSnapshot();
 
-  // =========================================================================
-  // Tank level
-  // =========================================================================
+  // ============================================================
+  // Level
+  // ============================================================
 
   float getLevelPercent();
 
-  // Legacy percentage threshold API
-  void setLevelThresholds(float fullPercent,
-                          float lowPercent);
+  void setLevelThresholds(
+      float fullPercent,
+      float lowPercent);
 
   float getFullLevelPercent();
   float getLowLevelPercent();
 
-  // Physical ultrasonic calibration
-  bool setTankDistances(float fullDistanceCm,
-                        float lowDistanceCm);
+  // ============================================================
+  // Tank distance
+  // ============================================================
+
+  bool setTankDistances(
+      float fullDistanceCm,
+      float lowDistanceCm);
 
   float getFullDistanceCm();
   float getLowDistanceCm();
 
-  // =========================================================================
+  // ============================================================
   // Temperature
-  // =========================================================================
+  // ============================================================
 
-  bool setTemperatureThresholds(float lowTemperatureC,
-                                float highTemperatureC);
+  bool setTemperatureThresholds(
+      float lowTemperatureC,
+      float highTemperatureC);
 
   float getLowTemperatureC();
   float getHighTemperatureC();
 
   TemperatureStatus getTemperatureStatus();
 
-  // Text representation used by main.cpp/dashboard
   const char *getTemperatureStatusText();
 
-  // =========================================================================
-  // Tank relay latch
-  // =========================================================================
+  // ============================================================
+  // Tank relay latch configuration
+  // ============================================================
 
-  void setRelayLatchMode(RelayLatchMode mode);
+  void setRelayLatchMode(
+      RelayLatchMode mode);
 
   RelayLatchMode getRelayLatchMode();
 
   bool isTankLatchTriggered();
 
-  // =========================================================================
-  // Temperature relay latch
-  // =========================================================================
+  // ============================================================
+  // Temperature relay latch configuration
+  // ============================================================
 
-  void setTemperatureLatchMode(TemperatureLatchMode mode);
+  void setTemperatureLatchMode(
+      TemperatureLatchMode mode);
 
   TemperatureLatchMode getTemperatureLatchMode();
 
   bool isTemperatureLatchTriggered();
 
-  // Compatibility aliases
-  void setTemperatureRelayLatchMode(TemperatureLatchMode mode);
+  // ============================================================
+  // Compatibility temperature latch API
+  // ============================================================
+
+  void setTemperatureRelayLatchMode(
+      TemperatureLatchMode mode);
 
   TemperatureLatchMode getTemperatureRelayLatchMode();
 
-  // =========================================================================
-  // Automatic relay
-  // =========================================================================
+  // ============================================================
+  // Manual relay control
+  // ============================================================
+
+  // Stores the user's manual ON/OFF request separately from
+  // the automatic relay demand.
+  //
+  // Effective relay state:
+  //
+  //     manualRelayRequest OR automaticRelayDemand
+  //
+  // This prevents an automatic event from destroying a
+  // previous manual ON request.
+  void setManualRelayRequest(bool state);
+
+  bool getManualRelayRequest();
+
+  // ============================================================
+  // Automatic relay state
+  // ============================================================
 
   bool isAutomaticRelayDemand();
 
-  // =========================================================================
-  // Apply all settings at once
-  // =========================================================================
+  // ============================================================
+  // Apply complete configuration
+  // ============================================================
 
   bool applySettings(
       float fullDistanceCm,
@@ -191,9 +249,11 @@ namespace device_manager
       RelayLatchMode tankLatchMode,
       TemperatureLatchMode temperatureLatchMode);
 
-  // =========================================================================
-  // Clear automatic latch states
-  // =========================================================================
+  // ============================================================
+  // Clear automatic latches
+  // ============================================================
 
+  // Clears automatic latch conditions while preserving the
+  // user's manual relay request.
   void clearAutomaticLatches();
 }
