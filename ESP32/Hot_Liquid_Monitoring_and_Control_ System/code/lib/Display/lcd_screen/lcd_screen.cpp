@@ -61,10 +61,7 @@ namespace lcd_screen
     lcd.init();
     lcd.backlight();
     lcd.clear();
-
-    printFixed(0, 0, "Hot Liquid Monitor");
-    printFixed(0, 1, "PT100 + Ultrasonic");
-    printFixed(0, 3, "Starting system...");
+    printFixed(0, 2, "Starting system...");
   }
 
   void update()

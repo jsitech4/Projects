@@ -18,7 +18,7 @@ namespace local_server
   static String ipAddress = "0.0.0.0";
 
   static const char *apSsid =
-      "Hot Liquid Monitoring and Control System";
+      "Water Level and Temperture Monitoring System";
 
   static const char *apPassword =
       "12345678";
@@ -40,7 +40,7 @@ namespace local_server
   content="width=device-width,initial-scale=1.0">
 
 <title>
-Hot Liquid Monitoring and Control System
+Water Level and Temperture Monitoring System
 </title>
 
 <style>
@@ -530,12 +530,11 @@ canvas{
 <div class="title">
 
 <h1>
-Hot Liquid Monitoring and Control System
+Water Level and Temperture Monitoring System
 </h1>
 
 <p>
-Live tank level, PT100 temperature,
-ultrasonic measurement and valve control.
+Ogbonna Enyichukwu Tobechi || 23310211578
 </p>
 
 </div>
@@ -715,7 +714,7 @@ Relay OFF
 </div>
 
 <p class="small">
-The valve symbol follows the commanded relay state.
+The valve symbol follows the relay state.
 </p>
 
 </div>
@@ -808,7 +807,7 @@ Valve CLOSE
 
 <p class="small">
 
-Manual OPEN/CLOSE sets the manual relay request.
+Manual OPEN/CLOSE sets the valve request.
 An active automatic latch can force the valve ON.
 When automatic demand clears, the valve returns
 to the manual request.
@@ -1033,7 +1032,7 @@ Saved settings are restored after reboot.
 Recent Liquid Data Log
 </div>
 
-<pre id="motorLog">
+<pre id="systemLog">
 Loading...
 </pre>
 
@@ -1053,7 +1052,7 @@ Log Now
 
 <button
   class="btn"
-  onclick="location.href='/download/motor_log.csv'">
+  onclick="location.href='/download/system_log.csv'">
 Download Liquid CSV
 </button>
 
@@ -1112,7 +1111,7 @@ Trend Graph
 </canvas>
 
 <p class="small">
-Temperature and tank level history.
+Temperature: Orange  ||  Level: Green
 </p>
 
 </div>
@@ -1121,11 +1120,11 @@ Temperature and tank level history.
 
 <div class="footer">
 
-ESP32-S3 WROOM-1U
+Department of Electonics and Computer Engineering
 
 <br>
 
-Hot Liquid Monitoring and Control System
+Lagos State University
 
 </div>
 
@@ -1726,11 +1725,11 @@ async function loadStatus(){
 
       ?
 
-      'Relay ON / Valve OPEN'
+      'Valve OPEN'
 
       :
 
-      'Relay OFF / Valve CLOSED';
+      'Valve CLOSED';
 
     document.getElementById(
       'valveBody'
@@ -2055,7 +2054,7 @@ async function saveSettings(){
         false;
 
       message.textContent =
-        'Settings saved to internal flash and applied.';
+        'Settings saved and applied.';
 
       await loadStatus();
 
@@ -2111,10 +2110,10 @@ async function loadLogs(){
       await response.json();
 
     document.getElementById(
-      'motorLog'
+      'systemLog'
     ).textContent =
 
-      s.motor_log ||
+      s.system_log ||
       'No liquid log yet';
 
     document.getElementById(
@@ -2787,7 +2786,7 @@ setInterval(
 
     json += "{";
 
-    json += "\"motor_log\":\"";
+    json += "\"system_log\":\"";
 
     json +=
         jsonEscape(
@@ -3422,7 +3421,7 @@ setInterval(
         handleSaveSettings);
 
     server.on(
-        "/download/motor_log.csv",
+        "/download/system_log.csv",
         HTTP_GET,
         handleLiquidDownload);
 

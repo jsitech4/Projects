@@ -39,176 +39,19 @@ static void printSerialReport()
   device_manager::Snapshot snap =
       device_manager::getSnapshot();
 
-  Serial.println();
-  Serial.println("========== HOT LIQUID SYSTEM ==========");
-
-  // ----------------------------------------------------------
-  // Temperature
-  // ----------------------------------------------------------
-
   if (snap.tempValid)
   {
-    Serial.print("Temperature: ");
-    Serial.print(
-        snap.temperatureC,
-        2);
-    Serial.println(" C");
   }
   else
   {
-    Serial.println(
-        "Temperature: INVALID");
   }
-
-  Serial.print(
-      "Temperature status: ");
-
-  Serial.println(
-      device_manager::getTemperatureStatusText());
-
-  // ----------------------------------------------------------
-  // Ultrasonic / Level
-  // ----------------------------------------------------------
 
   if (snap.levelValid)
   {
-    Serial.print("Distance: ");
-    Serial.print(
-        snap.distanceCm,
-        2);
-    Serial.println(" cm");
-
-    Serial.print("Level: ");
-    Serial.print(
-        snap.levelPercent,
-        1);
-    Serial.println(" %");
   }
   else
   {
-    Serial.println(
-        "Ultrasonic: INVALID");
   }
-
-  // ----------------------------------------------------------
-  // Relay
-  // ----------------------------------------------------------
-
-  Serial.print("Relay physical command: ");
-
-  Serial.println(
-      snap.relayOn
-          ? "ON"
-          : "OFF");
-
-  Serial.print(
-      "Manual relay request: ");
-
-  Serial.println(
-      snap.manualRelayRequest
-          ? "ON"
-          : "OFF");
-
-  Serial.print(
-      "Automatic relay demand: ");
-
-  Serial.println(
-      snap.automaticRelayDemand
-          ? "YES"
-          : "NO");
-
-  Serial.print(
-      "Final relay request: ");
-
-  Serial.println(
-      snap.relayRequested
-          ? "ON"
-          : "OFF");
-
-  // ----------------------------------------------------------
-  // Tank latch
-  // ----------------------------------------------------------
-
-  Serial.print(
-      "Tank latch: ");
-
-  Serial.println(
-      snap.tankLatchTriggered
-          ? "TRIGGERED"
-          : "NOT TRIGGERED");
-
-  // ----------------------------------------------------------
-  // Temperature latch
-  // ----------------------------------------------------------
-
-  Serial.print(
-      "Temperature latch: ");
-
-  Serial.println(
-      snap.temperatureLatchTriggered
-          ? "TRIGGERED"
-          : "NOT TRIGGERED");
-
-  // ----------------------------------------------------------
-  // Thresholds
-  // ----------------------------------------------------------
-
-  Serial.print(
-      "Full distance: ");
-
-  Serial.print(
-      snap.fullDistanceCm,
-      2);
-
-  Serial.println(" cm");
-
-  Serial.print(
-      "Low distance: ");
-
-  Serial.print(
-      snap.lowDistanceCm,
-      2);
-
-  Serial.println(" cm");
-
-  Serial.print(
-      "Full level threshold: ");
-
-  Serial.print(
-      snap.fullLevelPercent,
-      1);
-
-  Serial.println(" %");
-
-  Serial.print(
-      "Low level threshold: ");
-
-  Serial.print(
-      snap.lowLevelPercent,
-      1);
-
-  Serial.println(" %");
-
-  Serial.print(
-      "Low temperature threshold: ");
-
-  Serial.print(
-      snap.lowTemperatureC,
-      2);
-
-  Serial.println(" C");
-
-  Serial.print(
-      "High temperature threshold: ");
-
-  Serial.print(
-      snap.highTemperatureC,
-      2);
-
-  Serial.println(" C");
-
-  Serial.println(
-      "========================================");
 }
 
 // ============================================================
@@ -222,11 +65,6 @@ void setup()
   Serial.begin(115200);
 
   delay(100);
-
-  Serial.println();
-
-  Serial.println(
-      "Starting Hot Liquid Monitoring and Control System...");
 
   // ==========================================================
   // HARDWARE INITIALIZATION
@@ -348,72 +186,12 @@ void setup()
       storage::logEvent(
           "SETTINGS",
           "Saved settings restored from internal flash.");
-
-      Serial.println(
-          "Saved settings restored.");
-
-      Serial.print(
-          "Full distance: ");
-
-      Serial.print(
-          fullDistance,
-          2);
-
-      Serial.println(" cm");
-
-      Serial.print(
-          "Low distance: ");
-
-      Serial.print(
-          lowDistance,
-          2);
-
-      Serial.println(" cm");
-
-      Serial.print(
-          "Full level: ");
-
-      Serial.print(
-          fullLevel,
-          1);
-
-      Serial.println(" %");
-
-      Serial.print(
-          "Low level: ");
-
-      Serial.print(
-          lowLevel,
-          1);
-
-      Serial.println(" %");
-
-      Serial.print(
-          "Low temperature: ");
-
-      Serial.print(
-          lowTemperature,
-          2);
-
-      Serial.println(" C");
-
-      Serial.print(
-          "High temperature: ");
-
-      Serial.print(
-          highTemperature,
-          2);
-
-      Serial.println(" C");
     }
     else
     {
       storage::logEvent(
           "SETTINGS",
           "Saved settings were invalid and defaults were retained.");
-
-      Serial.println(
-          "Saved settings invalid; defaults retained.");
     }
   }
   else
@@ -421,9 +199,6 @@ void setup()
     storage::logEvent(
         "SETTINGS",
         "No valid saved settings. Default settings are active.");
-
-    Serial.println(
-        "No valid saved settings. Defaults active.");
   }
 
   // ==========================================================
@@ -444,32 +219,13 @@ void setup()
 
   storage::logEvent(
       "BOOT",
-      "Hot Liquid Monitoring and Control System started.");
+      "Water Level and Temperture Monitoring System started.");
 
   buzzer::beep(120);
 
   // ==========================================================
   // READY
   // ==========================================================
-
-  Serial.println();
-
-  Serial.println(
-      "System ready.");
-
-  Serial.print(
-      "Dashboard SSID: ");
-
-  Serial.println(
-      local_server::getSsid());
-
-  Serial.print(
-      "Dashboard IP: http://");
-
-  Serial.println(
-      local_server::getIp());
-
-  Serial.println();
 }
 
 // ============================================================
@@ -537,7 +293,7 @@ void loop()
   // SERIAL MONITOR
   // ==========================================================
 
-  printSerialReport();
+  // printSerialReport();
 
   yield();
 }
