@@ -35,9 +35,43 @@ namespace maintenance_manager
   static float prevVibration2 = NAN;
 
   static String worstMetric = "none";
+  static String faultCauseMetric = "";
 
   static String recommendation =
       "System normal. Continue monitoring.";
+
+  static String selectFaultCauseMetric(
+      bool temperatureFault,
+      bool vibrationFault,
+      float tempSeverity,
+      float vibration1Severity,
+      float vibration2Severity)
+  {
+    if (temperatureFault && vibrationFault)
+    {
+      if (tempSeverity >= vibration1Severity &&
+          tempSeverity >= vibration2Severity)
+      {
+        return "temperature";
+      }
+
+      return vibration1Severity >= vibration2Severity
+                 ? "vibration_sensor_1"
+                 : "vibration_sensor_2";
+    }
+
+    if (temperatureFault)
+      return "temperature";
+
+    if (vibrationFault)
+    {
+      return vibration1Severity >= vibration2Severity
+                 ? "vibration_sensor_1"
+                 : "vibration_sensor_2";
+    }
+
+    return worstMetric;
+  }
 
   static float limitFloat(
       float value,
@@ -317,6 +351,7 @@ namespace maintenance_manager
     lastWarningBeep = 0;
 
     worstMetric = "none";
+    faultCauseMetric = "";
 
     recommendation =
         "System normal. Continue monitoring.";
@@ -419,8 +454,11 @@ namespace maintenance_manager
 
     bool hardFault = false;
 
-    if (tempValid &&
-        tempC >= tempFaultC)
+    bool temperatureFault =
+        tempValid &&
+        tempC >= tempFaultC;
+
+    if (temperatureFault)
     {
       hardFault = true;
     }
@@ -487,7 +525,20 @@ namespace maintenance_manager
     }
 
     if (faultCounter >= 2)
+    {
+      if (!faultLatched)
+      {
+        faultCauseMetric =
+            selectFaultCauseMetric(
+                temperatureFault,
+                vibrationAndFault,
+                tempSeverity,
+                vibration1Severity,
+                vibration2Severity);
+      }
+
       faultLatched = true;
+    }
 
     if (faultLatched)
     {
@@ -654,6 +705,12 @@ namespace maintenance_manager
 
   String getWorstMetric()
   {
+    if (faultLatched &&
+        faultCauseMetric.length() > 0)
+    {
+      return faultCauseMetric;
+    }
+
     return worstMetric;
   }
 
@@ -669,6 +726,8 @@ namespace maintenance_manager
     safeCounter = 0;
 
     faultLatched = false;
+
+    faultCauseMetric = "";
 
     state = STATE_NORMAL;
 

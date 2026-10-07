@@ -11,26 +11,17 @@ namespace led_indicator
   static const uint16_t pwmFreq = 10000;
   static const uint8_t pwmResolution = 8;
 
-  static uint8_t brightness = 0;
-  static bool rising = true;
   static bool state = false;
   static bool forcedMode = false;
+  static bool faultWasActive = false;
 
-  static unsigned long lastUpdate = 0;
   static unsigned long lastBlink = 0;
-  static const uint16_t normalStepTime = 2;
-  static const uint16_t warningStepTime = 1;
-
-  static uint8_t pulseCount = 0;
-  static bool inPause = false;
-  static unsigned long pauseStart = 0;
-  static const uint16_t pauseDuration = 1000;
+  static const uint16_t faultBlinkIntervalMs = 500;
 
   static void writeBrightness(uint8_t value)
   {
-    brightness = value;
-    state = brightness > 0;
-    ledcWrite(pwmChannel, brightness);
+    state = value > 0;
+    ledcWrite(pwmChannel, value);
   }
 
   static void blinkUpdate(uint16_t interval)
@@ -44,71 +35,48 @@ namespace led_indicator
     }
   }
 
-  static void breathingUpdate(uint16_t stepTime)
-  {
-    unsigned long now = millis();
-
-    if (inPause)
-    {
-      if (now - pauseStart >= pauseDuration)
-        inPause = false;
-      else
-        return;
-    }
-
-    if (now - lastUpdate < stepTime)
-      return;
-
-    lastUpdate = now;
-
-    if (rising)
-    {
-      if (brightness < 255)
-        brightness++;
-
-      if (brightness >= 255)
-      {
-        brightness = 255;
-        rising = false;
-      }
-    }
-    else
-    {
-      if (brightness > 0)
-        brightness--;
-
-      if (brightness <= 0)
-      {
-        brightness = 0;
-        rising = true;
-        pulseCount++;
-
-        if (pulseCount >= 2)
-        {
-          pulseCount = 0;
-          inPause = true;
-          pauseStart = now;
-        }
-      }
-    }
-
-    writeBrightness(brightness);
-  }
-
   void begin()
   {
     ledcSetup(pwmChannel, pwmFreq, pwmResolution);
     ledcAttachPin(ledPin, pwmChannel);
     forcedMode = false;
-    writeBrightness(0);
+    faultWasActive = false;
+    lastBlink = millis();
+    writeBrightness(255);
   }
 
   void update()
   {
+    const bool faultActive = device_manager::hasFault();
+
+    // A latched fault takes priority over manual indicator control.
+    if (faultActive)
+    {
+      if (!faultWasActive)
+      {
+        lastBlink = millis();
+        writeBrightness(255);
+      }
+      else
+      {
+        blinkUpdate(faultBlinkIntervalMs);
+      }
+
+      faultWasActive = true;
+      return;
+    }
+
+    if (faultWasActive)
+    {
+      faultWasActive = false;
+      forcedMode = false;
+    }
+
     if (forcedMode)
       return;
 
-    breathingUpdate(normalStepTime);
+    if (!state)
+      writeBrightness(255);
   }
 
   void on()

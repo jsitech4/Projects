@@ -104,8 +104,8 @@ namespace device_manager
   static bool manualRelayRequest = false;
 
   /*
-   * True when one or more automatic conditions currently demand
-   * the relay.
+   * True while one or more automatic faults remain latched and
+   * demand the relay.
    */
   static bool automaticRelayActive = false;
 
@@ -216,12 +216,12 @@ namespace device_manager
       return;
     }
 
-    if (temperatureC < lowTemperatureC)
+    if (temperatureC <= lowTemperatureC)
     {
       temperatureStatus =
           TEMP_STATUS_LOW;
     }
-    else if (temperatureC > highTemperatureC)
+    else if (temperatureC >= highTemperatureC)
     {
       temperatureStatus =
           TEMP_STATUS_HIGH;
@@ -234,86 +234,86 @@ namespace device_manager
   }
 
   // ============================================================
-  // Tank automatic latch
+  // Currently active threshold conditions
   // ============================================================
 
-  static void updateTankLatch()
+  static bool isTankThresholdActive()
   {
-    if (relayLatchMode == LATCH_OFF)
-    {
-      tankLatchTriggered = false;
-      return;
-    }
-
-    /*
-     * Invalid sensor data does not clear an existing latch.
-     */
     if (!levelValid ||
         !isFiniteFloat(levelPercent))
     {
-      return;
+      return false;
     }
 
     if (relayLatchMode == LATCH_AT_FULL)
     {
-      tankLatchTriggered =
-          (levelPercent >= fullLevelPercent);
+      return levelPercent >= fullLevelPercent;
     }
-    else if (relayLatchMode == LATCH_AT_LOW)
+
+    if (relayLatchMode == LATCH_AT_LOW)
     {
-      tankLatchTriggered =
-          (levelPercent <= lowLevelPercent);
+      return levelPercent <= lowLevelPercent;
     }
-    else
-    {
-      tankLatchTriggered = false;
-    }
+
+    return false;
   }
 
-  // ============================================================
-  // Temperature automatic latch
-  // ============================================================
-
-  static void updateTemperatureLatch()
+  static bool isTemperatureThresholdActive()
   {
-    if (temperatureLatchMode == TEMP_LATCH_OFF)
-    {
-      temperatureLatchTriggered = false;
-      return;
-    }
-
-    /*
-     * Invalid sensor data does not clear an existing latch.
-     */
     if (!tempValid ||
         !isFiniteFloat(temperatureC))
     {
-      return;
+      return false;
     }
 
     if (temperatureLatchMode == TEMP_LATCH_AT_LOW)
     {
-      temperatureLatchTriggered =
-          (temperatureC < lowTemperatureC);
+      return temperatureC <= lowTemperatureC;
     }
-    else if (temperatureLatchMode == TEMP_LATCH_AT_HIGH)
+
+    if (temperatureLatchMode == TEMP_LATCH_AT_HIGH)
     {
-      temperatureLatchTriggered =
-          (temperatureC > highTemperatureC);
+      return temperatureC >= highTemperatureC;
     }
-    else
-    {
-      temperatureLatchTriggered = false;
-    }
+
+    return false;
   }
 
   // ============================================================
-  // Automatic relay update
+  // Automatic faults stay latched until explicitly cleared
   // ============================================================
 
-  static void updateAutomaticRelay()
+  static void updateAutomaticLatches()
   {
-    applyRelayDecision();
+    tankLatchTriggered =
+        tankLatchTriggered || isTankThresholdActive();
+
+    temperatureLatchTriggered =
+        temperatureLatchTriggered || isTemperatureThresholdActive();
+  }
+
+  static bool canClearFault()
+  {
+    if (isTankThresholdActive() || isTemperatureThresholdActive())
+    {
+      return false;
+    }
+
+    // A missing reading is not evidence that a latched source has
+    // recovered, even if its latch mode has since been disabled.
+    if (tankLatchTriggered &&
+        (!levelValid || !isFiniteFloat(levelPercent)))
+    {
+      return false;
+    }
+
+    if (temperatureLatchTriggered &&
+        (!tempValid || !isFiniteFloat(temperatureC)))
+    {
+      return false;
+    }
+
+    return true;
   }
 
   // ============================================================
@@ -376,6 +376,12 @@ namespace device_manager
     snapshot.temperatureLatchTriggered =
         temperatureLatchTriggered;
 
+    snapshot.faultLatched =
+        hasFault();
+
+    snapshot.faultClearable =
+        snapshot.faultLatched && canClearFault();
+
     snapshot.automaticRelayDemand =
         automaticRelayActive;
 
@@ -402,6 +408,59 @@ namespace device_manager
 
     snapshot.temperatureLatchMode =
         temperatureLatchMode;
+  }
+
+  // ============================================================
+  // Refresh sensor inputs and derived state
+  // ============================================================
+
+  static void refreshState()
+  {
+    temperatureC =
+        temp_sensor::getTemperatureC();
+
+    tempValid =
+        temp_sensor::isValid() && isFiniteFloat(temperatureC);
+
+    distanceCm =
+        ultrasonic_sensor::getDistanceCm();
+
+    levelValid =
+        ultrasonic_sensor::isValid() && isFiniteFloat(distanceCm);
+
+    // Recalculate from distance on every refresh so new calibration
+    // is applied before checking a threshold or accepting a clear.
+    if (levelValid && lowDistanceCm > fullDistanceCm)
+    {
+      float calculatedLevel =
+          ((lowDistanceCm - distanceCm) /
+           (lowDistanceCm - fullDistanceCm)) *
+          100.0f;
+
+      if (calculatedLevel < 0.0f)
+      {
+        calculatedLevel = 0.0f;
+      }
+
+      if (calculatedLevel > 100.0f)
+      {
+        calculatedLevel = 100.0f;
+      }
+
+      levelPercent = calculatedLevel;
+      levelValid = isFiniteFloat(levelPercent);
+    }
+    else
+    {
+      levelPercent = NAN;
+      levelValid = false;
+    }
+
+    updateTankStatus();
+    updateTemperatureStatus();
+    updateAutomaticLatches();
+    applyRelayDecision();
+    updateSnapshot();
   }
 
   // ============================================================
@@ -509,83 +568,7 @@ namespace device_manager
     lastUpdateMs =
         now;
 
-    // ----------------------------------------------------------
-    // Temperature
-    // ----------------------------------------------------------
-
-    temperatureC =
-        temp_sensor::getTemperatureC();
-
-    tempValid =
-        temp_sensor::isValid();
-
-    // ----------------------------------------------------------
-    // Ultrasonic distance
-    // ----------------------------------------------------------
-
-    distanceCm =
-        ultrasonic_sensor::getDistanceCm();
-
-    levelValid =
-        ultrasonic_sensor::isValid();
-
-    // ----------------------------------------------------------
-    // Level calculation
-    // ----------------------------------------------------------
-
-    if (levelValid &&
-        isFiniteFloat(distanceCm) &&
-        lowDistanceCm > fullDistanceCm)
-    {
-      float calculatedLevel =
-          ((lowDistanceCm - distanceCm) /
-           (lowDistanceCm - fullDistanceCm)) *
-          100.0f;
-
-      if (calculatedLevel < 0.0f)
-      {
-        calculatedLevel = 0.0f;
-      }
-
-      if (calculatedLevel > 100.0f)
-      {
-        calculatedLevel = 100.0f;
-      }
-
-      levelPercent =
-          calculatedLevel;
-    }
-    else
-    {
-      levelPercent =
-          NAN;
-    }
-
-    // ----------------------------------------------------------
-    // Status calculations
-    // ----------------------------------------------------------
-
-    updateTankStatus();
-    updateTemperatureStatus();
-
-    // ----------------------------------------------------------
-    // Automatic latch calculations
-    // ----------------------------------------------------------
-
-    updateTankLatch();
-    updateTemperatureLatch();
-
-    // ----------------------------------------------------------
-    // Relay
-    // ----------------------------------------------------------
-
-    updateAutomaticRelay();
-
-    // ----------------------------------------------------------
-    // Snapshot
-    // ----------------------------------------------------------
-
-    updateSnapshot();
+    refreshState();
   }
 
   // ============================================================
@@ -635,12 +618,7 @@ namespace device_manager
     lowLevelPercent =
         lowPercent;
 
-    updateTankStatus();
-    updateTankLatch();
-
-    applyRelayDecision();
-
-    updateSnapshot();
+    refreshState();
   }
 
   float getFullLevelPercent()
@@ -684,6 +662,8 @@ namespace device_manager
     lowDistanceCm =
         newLowDistanceCm;
 
+    refreshState();
+
     return true;
   }
 
@@ -722,12 +702,7 @@ namespace device_manager
     highTemperatureC =
         newHighTemperatureC;
 
-    updateTemperatureStatus();
-    updateTemperatureLatch();
-
-    applyRelayDecision();
-
-    updateSnapshot();
+    refreshState();
 
     return true;
   }
@@ -784,11 +759,7 @@ namespace device_manager
     relayLatchMode =
         mode;
 
-    updateTankLatch();
-
-    applyRelayDecision();
-
-    updateSnapshot();
+    refreshState();
   }
 
   RelayLatchMode getRelayLatchMode()
@@ -819,11 +790,7 @@ namespace device_manager
     temperatureLatchMode =
         mode;
 
-    updateTemperatureLatch();
-
-    applyRelayDecision();
-
-    updateSnapshot();
+    refreshState();
   }
 
   TemperatureLatchMode getTemperatureLatchMode()
@@ -978,24 +945,8 @@ namespace device_manager
     temperatureLatchMode =
         newTemperatureLatchMode;
 
-    // ----------------------------------------------------------
-    // Recalculate status
-    // ----------------------------------------------------------
-
-    updateTankStatus();
-    updateTemperatureStatus();
-
-    updateTankLatch();
-    updateTemperatureLatch();
-
-    /*
-     * IMPORTANT:
-     *
-     * Do not change manualRelayRequest here.
-     */
-    applyRelayDecision();
-
-    updateSnapshot();
+    // Keep existing faults and the manual request when settings change.
+    refreshState();
 
     return true;
   }
@@ -1004,21 +955,35 @@ namespace device_manager
   // Clear automatic latches
   // ============================================================
 
+  bool hasFault()
+  {
+    return tankLatchTriggered || temperatureLatchTriggered;
+  }
+
+  bool clearFault()
+  {
+    // Read the newest values supplied by the sensor modules rather
+    // than relying on the device manager's one-second update timer.
+    // This also latches any newly active source before the decision.
+    refreshState();
+
+    if (!canClearFault())
+    {
+      return false;
+    }
+
+    tankLatchTriggered = false;
+    temperatureLatchTriggered = false;
+
+    // A manual ON request must survive clearing an automatic fault.
+    applyRelayDecision();
+    updateSnapshot();
+
+    return true;
+  }
+
   void clearAutomaticLatches()
   {
-    tankLatchTriggered =
-        false;
-
-    temperatureLatchTriggered =
-        false;
-
-    /*
-     * Do not blindly turn the relay OFF.
-     *
-     * The manual request may still be ON.
-     */
-    applyRelayDecision();
-
-    updateSnapshot();
+    clearFault();
   }
 }

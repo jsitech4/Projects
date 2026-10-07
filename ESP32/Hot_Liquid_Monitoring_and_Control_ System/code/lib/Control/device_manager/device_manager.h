@@ -102,8 +102,16 @@ namespace device_manager
     bool tankLatchTriggered;
     bool temperatureLatchTriggered;
 
-    // True when one or more automatic conditions currently
-    // demand the relay to be ON.
+    // A threshold fault remains latched until clearFault succeeds,
+    // including after readings recover or settings are changed.
+    bool faultLatched;
+
+    // True when a fault exists and the latest sampled readings
+    // allow it to be cleared. clearFault rechecks current inputs.
+    bool faultClearable;
+
+    // True while one or more automatic faults remain latched
+    // and demand the relay to be ON.
     bool automaticRelayDemand;
 
     // ----------------------------------------------------------
@@ -253,7 +261,17 @@ namespace device_manager
   // Clear automatic latches
   // ============================================================
 
-  // Clears automatic latch conditions while preserving the
-  // user's manual relay request.
+  // True while either threshold fault remains latched.
+  bool hasFault();
+
+  // Refreshes the latest sensor inputs without the update timer.
+  // Clears all faults together only when no enabled threshold is
+  // active and every latched source has a valid, finite reading.
+  // Returns false if clearing is blocked; preserves manual relay
+  // requests. Settings changes never clear faults by themselves.
+  bool clearFault();
+
+  // Compatibility wrapper using the same guarded clearFault
+  // operation; active faults cannot be bypassed through this API.
   void clearAutomaticLatches();
 }

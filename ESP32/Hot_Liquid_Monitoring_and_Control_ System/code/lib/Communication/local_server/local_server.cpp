@@ -434,6 +434,11 @@ body{
   background:var(--good);
 }
 
+.btn:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
 input,
 select{
   padding:9px 10px;
@@ -561,6 +566,37 @@ Backend: --
 <div class="container">
 
 <div class="grid">
+
+<!-- LATCHED FAULT -->
+
+<div class="card span12">
+
+<div class="label">System Fault</div>
+
+<span class="status INVALID" id="faultStatus" role="status">
+WAITING
+</span>
+
+<p class="small" id="faultReason">
+Waiting for fault status.
+</p>
+
+<div class="actions">
+<button class="btn danger" id="clearFaultButton"
+  onclick="clearFault()" disabled>
+Clear Fault
+</button>
+</div>
+
+<p class="small">
+A triggered tank or temperature latch remains acitve until the fault is cleared. Clear it after the triggering condition
+has resolved and the affected sensor has a valid reading.
+</p>
+
+<p class="small" id="faultMessage" role="status" aria-live="polite"></p>
+<p class="small" id="faultConnection" role="status"></p>
+
+</div>
 
 <!-- TEMPERATURE -->
 
@@ -809,8 +845,8 @@ Valve CLOSE
 
 Manual OPEN/CLOSE sets the valve request.
 An active automatic latch can force the valve ON.
-When automatic demand clears, the valve returns
-to the manual request.
+The latch remains active until Clear Fault succeeds,
+then the valve returns to the manual request.
 
 </p>
 
@@ -1140,6 +1176,14 @@ let settingsDirty = false;
 
 let settingsSaving = false;
 
+let faultClearing = false;
+
+let faultSnapshot = null;
+
+let statusRequestId = 0;
+
+let statusAppliedId = 0;
+
 // =========================================================
 // THEME
 // =========================================================
@@ -1400,10 +1444,101 @@ async function cmd(url){
 }
 
 // =========================================================
+// FAULT CONTROL
+// =========================================================
+
+function updateFaultState(s){
+
+  const message = document.getElementById('faultMessage');
+
+  if(faultSnapshot &&
+     faultSnapshot.fault_latched !== s.fault_latched &&
+     !faultClearing){
+    message.textContent = '';
+  }
+
+  faultSnapshot = s;
+
+  const status = document.getElementById('faultStatus');
+  status.textContent = s.fault_latched ? 'FAULT LATCHED' : 'NORMAL';
+  status.className = 'status ' + (s.fault_latched ? 'HIGH' : 'NORMAL');
+
+  const sources = [];
+  if(s.tank_latch_triggered){ sources.push('Tank level'); }
+  if(s.temperature_latch_triggered){ sources.push('Temperature'); }
+
+  document.getElementById('faultReason').textContent =
+    s.fault_latched
+    ? sources.join(' and ') + ' fault latched. ' +
+      (s.fault_clearable
+        ? 'Trigger resolved. Press Clear Fault to resume normal operation.'
+        : 'Cannot clear fault while a triggering condition remains active or an affected sensor reading is invalid.')
+    : 'No latched fault.';
+
+  const button = document.getElementById('clearFaultButton');
+  button.disabled = faultClearing || !s.fault_latched;
+  button.textContent = faultClearing ? 'Clearing...' : 'Clear Fault';
+}
+
+async function clearFault(){
+
+  if(faultClearing || !faultSnapshot || !faultSnapshot.fault_latched){
+    return;
+  }
+
+  faultClearing = true;
+  statusAppliedId = ++statusRequestId; // Ignore status responses from before this action.
+  updateFaultState(faultSnapshot);
+
+  const message = document.getElementById('faultMessage');
+  message.textContent = 'Clearing fault...';
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  try{
+    const response = await fetch('/api/fault/clear', {
+      method:'POST',
+      cache:'no-store',
+      signal:controller.signal
+    });
+    const result = await response.json();
+
+    if(typeof result.fault_latched === 'boolean'){
+      updateFaultState(result);
+    }
+
+    if(!response.ok || !result.ok){
+      throw new Error(result.error || 'Unable to clear fault.');
+    }
+
+    message.textContent = 'Fault cleared.';
+  }
+  catch(error){
+    message.textContent = error.name === 'AbortError'
+      ? 'Clear request timed out. Refreshing fault status; check the connection before retrying.'
+      : 'Clear failed: ' + error.message;
+  }
+  finally{
+    clearTimeout(timeout);
+    faultClearing = false;
+    updateFaultState(faultSnapshot);
+    await loadStatus();
+    await loadLogs();
+  }
+}
+
+// =========================================================
 // STATUS
 // =========================================================
 
 async function loadStatus(){
+
+  if(faultClearing){
+    return;
+  }
+
+  const requestId = ++statusRequestId;
 
   try{
 
@@ -1425,6 +1560,14 @@ async function loadStatus(){
 
     const s =
       await response.json();
+
+    if(requestId < statusAppliedId || faultClearing){
+      return;
+    }
+
+    statusAppliedId = requestId;
+    document.getElementById('faultConnection').textContent = '';
+    updateFaultState(s);
 
     // -------------------------------------------------------
     // Temperature
@@ -1814,6 +1957,13 @@ async function loadStatus(){
 
   }
   catch(error){
+
+    if(requestId < statusAppliedId || faultClearing){
+      return;
+    }
+
+    document.getElementById('faultConnection').textContent =
+      'Cannot refresh status. Check the connection; displayed readings may be out of date.';
 
     console.error(
       'Status error:',
@@ -2670,6 +2820,18 @@ setInterval(
     json += ",";
 
     // -------------------------------------------------------
+    // Latched fault
+    // -------------------------------------------------------
+
+    json += "\"fault_latched\":";
+    json += snap.faultLatched ? "true" : "false";
+    json += ",";
+
+    json += "\"fault_clearable\":";
+    json += snap.faultClearable ? "true" : "false";
+    json += ",";
+
+    // -------------------------------------------------------
     // Relay
     // -------------------------------------------------------
 
@@ -2825,6 +2987,51 @@ setInterval(
         200,
         "application/json",
         json);
+  }
+
+  // =========================================================
+  // CLEAR FAULT
+  // =========================================================
+
+  static void handleClearFault()
+  {
+    sendCors();
+
+    const bool hadFault = device_manager::hasFault();
+    const bool cleared = device_manager::clearFault();
+    const device_manager::Snapshot snap = device_manager::getSnapshot();
+
+    if (cleared && hadFault)
+    {
+      storage::logEvent(
+          "FAULT",
+          "Latched fault cleared from dashboard.");
+    }
+
+    String response;
+    response.reserve(450);
+    response += "{\"ok\":";
+    response += cleared ? "true" : "false";
+    response += ",\"fault_latched\":";
+    response += snap.faultLatched ? "true" : "false";
+    response += ",\"fault_clearable\":";
+    response += snap.faultClearable ? "true" : "false";
+    response += ",\"tank_latch_triggered\":";
+    response += snap.tankLatchTriggered ? "true" : "false";
+    response += ",\"temperature_latch_triggered\":";
+    response += snap.temperatureLatchTriggered ? "true" : "false";
+
+    if (!cleared)
+    {
+      response += ",\"error\":\"Fault remains latched. Resolve the triggering condition and restore valid readings from the affected sensors before clearing.\"";
+    }
+
+    response += "}";
+
+    server.send(
+        cleared ? 200 : 409,
+        "application/json",
+        response);
   }
 
   // =========================================================
@@ -3404,6 +3611,11 @@ setInterval(
         "/api/logs",
         HTTP_GET,
         handleLogs);
+
+    server.on(
+        "/api/fault/clear",
+        HTTP_POST,
+        handleClearFault);
 
     server.on(
         "/api/relay",

@@ -110,7 +110,7 @@ namespace led_indicator
 
     if (maintenance_manager::isFault())
     {
-      blinkUpdate(120);
+      blinkUpdate(60);
       return;
     }
 

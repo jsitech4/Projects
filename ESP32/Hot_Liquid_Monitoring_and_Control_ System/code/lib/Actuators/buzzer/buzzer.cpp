@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "Pins.h"
 #include "buzzer.h"
+#include "device_manager/device_manager.h"
 
 namespace buzzer
 {
@@ -8,6 +9,7 @@ namespace buzzer
   static bool beeping = false;
   static bool alarmRunning = false;
   static bool alarmOutput = false;
+  static bool faultAlarmRunning = false;
 
   static unsigned long beepStart = 0;
   static unsigned long beepDuration = 0;
@@ -19,12 +21,26 @@ namespace buzzer
   void begin()
   {
     pinMode(Pins::BUZZER, OUTPUT);
+    faultAlarmRunning = false;
     off();
   }
 
   void update()
   {
     unsigned long now = millis();
+
+    const bool faultActive = device_manager::hasFault();
+
+    if (faultActive)
+    {
+      startAlarm();
+    }
+    else if (faultAlarmRunning)
+    {
+      stopAlarm();
+    }
+
+    faultAlarmRunning = faultActive;
 
     if (alarmRunning)
     {
