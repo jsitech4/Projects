@@ -1,0 +1,19 @@
+{
+  "name": "cws-device-simulation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "tsx src/index.ts --setup-only",
+    "normal": "tsx src/index.ts --scenario normal",
+    "dry-stress": "tsx src/index.ts --scenario dry-stress",
+    "sensor-fault": "tsx src/index.ts --scenario sensor-fault",
+    "offline-recovery": "tsx src/index.ts --scenario offline-recovery"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "mqtt": "^5.10.2",
+    "pg": "^8.13.1",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": { "@types/node": "^22.10.1", "@types/pg": "^8.11.10", "typescript": "^5.7.2" }
+}

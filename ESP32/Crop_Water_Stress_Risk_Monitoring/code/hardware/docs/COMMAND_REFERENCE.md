@@ -4,7 +4,7 @@ All requests use schema `1.0`, an exact device ID, a unique 1–64 character alp
 
 Commands marked **Yes** require `expected_revision`. Destructive commands also require `confirm_device_id` equal to the target. Unknown arguments are rejected. Optional arguments are marked `?`; `{}` means no arguments. The checked-in command schema contains the types and numerical bounds.
 
-Read operations return snapshots or validation results. Configuration/calibration/preference setters return the committed revision. Acquisition and connection trials return `accepted` before a final response. Bounded LED/buzzer tests report that the operation started; they do not establish electrical functionality.
+Read operations return snapshots or validation results. Configuration and preference setters return the committed revision. Calibration is restricted to the local developer portal. Acquisition and connection trials return `accepted` before a final response. Bounded LED/buzzer tests report that the operation started; they do not establish electrical functionality.
 
 Mutation receipts are written before execution, with final status/error persisted afterward. Repeating an ID returns the stored status without executing again. A `received` receipt after reset has `execution_indeterminate_after_restart`; query the actual state before using a new ID. Accepted operations can be interrupted by reset. Read-only requests can be safely re-executed. There are 32 active mutation receipts, each retained through expiry, and a one-second mutation rate limit. Full replay windows reject new mutations.
 
@@ -39,11 +39,6 @@ Mutation receipts are written before execution, with final status/error persiste
 |---|---|---|
 | `environment.read_now` | Yes | `{}` |
 | `environment.get_status` | No | `{}` |
-| `environment.get_config` | No | `{}` |
-| `environment.set_offsets` | Yes | `temperature_offset?`, `humidity_offset?` |
-| `environment.reset_offsets` | Yes | `{}` |
-| `environment.enable` | Yes | `{}` |
-| `environment.disable` | Yes | `{}` |
 
 ## Soil
 
@@ -51,14 +46,6 @@ Mutation receipts are written before execution, with final status/error persiste
 |---|---|---|
 | `soil.read_now` | Yes | `{}` |
 | `soil.get_status` | No | `{}` |
-| `soil.get_calibration` | No | `{}` |
-| `soil.capture_dry` | Yes | `{}` |
-| `soil.capture_wet` | Yes | `{}` |
-| `soil.set_calibration` | Yes | `dry`, `wet` |
-| `soil.validate_calibration` | No | `dry`, `wet` |
-| `soil.reset_calibration` | Yes | `{}` |
-| `soil.enable` | Yes | `{}` |
-| `soil.disable` | Yes | `{}` |
 
 ## Battery
 
@@ -66,11 +53,6 @@ Mutation receipts are written before execution, with final status/error persiste
 |---|---|---|
 | `battery.read_now` | Yes | `{}` |
 | `battery.get_status` | No | `{}` |
-| `battery.get_calibration` | No | `{}` |
-| `battery.capture_reference` | Yes | `reference_v` |
-| `battery.set_calibration` | Yes | `top_ohm?`, `bottom_ohm?`, `gain?`, `offset?`, `min_mv?`, `max_mv?` |
-| `battery.reset_calibration` | Yes | `{}` |
-| `battery.set_thresholds` | Yes | `low_v?`, `critical_v?` |
 
 ## Solar
 
@@ -78,11 +60,6 @@ Mutation receipts are written before execution, with final status/error persiste
 |---|---|---|
 | `solar.read_now` | Yes | `{}` |
 | `solar.get_status` | No | `{}` |
-| `solar.get_calibration` | No | `{}` |
-| `solar.capture_reference` | Yes | `reference_v` |
-| `solar.set_calibration` | Yes | `top_ohm?`, `bottom_ohm?`, `gain?`, `offset?`, `min_mv?`, `max_mv?` |
-| `solar.reset_calibration` | Yes | `{}` |
-| `solar.set_thresholds` | Yes | `low_v?`, `critical_v?` |
 
 ## Lcd
 
@@ -183,14 +160,14 @@ Mutation receipts are written before execution, with final status/error persiste
 ## Execution details
 
 - `read_now` acquires the complete sensor set and completes only after a record-storage attempt. Get the resulting data with `telemetry.get_last` or the corresponding sensor status command.
-- Soil endpoint and voltage-reference capture use the latest valid ADC result, at most 120 seconds old. A busy acquisition rejects capture. Calibration rules are in [Calibration](CALIBRATION.md).
+- Sensor status commands expose observed readings and quality only. Calibration is local-developer-portal-only; remote configuration exports do not contain calibration settings. See [Calibration](CALIBRATION.md).
 - `wifi.scan` returns the previous scan results and requests a new asynchronous scan. A subsequent call retrieves the completed results.
 - `wifi.configure` / `mqtt.configure` save only after their selected trial passes. `*.test_connection` restores previous settings after the trial.
 - `device.sync_time` requests SNTP and reports the current synchronization state; it does not claim a completed time adjustment.
 - `lcd.set_enabled` configures the optional profile even when absent. Other LCD mutations require detected hardware. Encoder enable is available through `config.patch`.
 - LED/buzzer tests require 20–3,000 ms. Buzzer tests reject disabled or muted output. Notices require 1,000–60,000 ms and at most 80 characters.
 - `storage.export_records` / `telemetry.get_history` use exclusive `after` and `limit: 1`; `more` and `next_cursor` describe pagination.
-- Factory reset preserves records and the administrator verifier. Restore-defaults also preserves Wi-Fi/MQTT. See [Recovery](CONFIGURATION_RECOVERY.md).
+- Factory reset preserves records, the administrator verifier and calibration. Restore-defaults also preserves Wi-Fi/MQTT and calibration. See [Recovery](CONFIGURATION_RECOVERY.md).
 - Firmware check/start-update commands are unsupported and not advertised; updates use physical serial upload. No command executes arbitrary code, file paths or GPIO access.
 
 ## Response and error contract

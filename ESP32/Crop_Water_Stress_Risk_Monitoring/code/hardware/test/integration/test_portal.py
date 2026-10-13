@@ -69,7 +69,7 @@ def ui(browser):
 
 def login(page):
     page.goto('http://192.168.4.1/')
-    page.get_by_label('Administrator password',exact=True).fill('Fixture-password!42')
+    page.get_by_label('Password',exact=True).fill('Fixture-password!42')
     page.get_by_role('button',name='Sign in',exact=True).click()
     expect(page.locator('#admin-panel')).to_be_visible()
 

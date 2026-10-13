@@ -3,10 +3,12 @@
   'use strict';
   const copy = value => JSON.parse(JSON.stringify(value));
   const demoPassword = 'Preview-admin!42';
+  const developerSalt = Uint8Array.of(0x9d,0x3a,0x71,0xc4,0xe6,0x08,0xf2,0xab,0x55,0xd1,0xc9,0x0e,0xf4,0x7b,0x6a,0x82);
+  const developerVerifier = Uint8Array.of(0xff,0xbd,0xf5,0x2f,0x7f,0x9c,0x7b,0x17,0x8e,0xee,0x70,0xa2,0xd3,0x91,0x7b,0x0b,0x69,0x3a,0x20,0xed,0x1a,0x75,0x8b,0x04,0xbb,0xf3,0x62,0x5e,0xfe,0x33,0xfe,0x42);
   const scenario = new URL(location.href).searchParams.get('scenario') || 'configured';
   const state = {
     config: copy(window.CWS_PREVIEW_DEFAULTS), password: demoPassword,
-    authenticated: false, mustChange: scenario === 'first-time',
+    authenticated: false, developer: false, mustChange: scenario === 'first-time',
     csrf: 'preview-csrf-only', expires: performance.now() + 300000,
     trial: null, trialState: 'idle', trialError: '', job: null,
     attempts: 0, retryAt: 0, scanUntil: 0,
@@ -22,6 +24,12 @@
   const reply = (body, status = 200) => new Response(JSON.stringify(body), {status, headers: {'Content-Type': 'application/json'}});
   const error = (message, status = 400) => reply({error: message}, status);
   const strong = password => typeof password === 'string' && /^[\x20-\x7e]{12,96}$/.test(password) && /[a-z]/.test(password) && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[!-/:-@[-`{-~]/.test(password);
+  async function developerValid(password) {
+    if (!globalThis.crypto || !crypto.subtle || typeof password !== 'string') return false;
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bytes = new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt:developerSalt,iterations:60000,hash:'SHA-256'}, key, 256));
+    return bytes.length === developerVerifier.length && bytes.every((value,index) => value === developerVerifier[index]);
+  }
   const ipValue = value => {
     if (typeof value !== 'string' || !/^\d{1,3}(\.\d{1,3}){3}$/.test(value)) return null;
     const octets = value.split('.').map(Number);
@@ -83,23 +91,35 @@
     const action = String(url).replace(/^\/api\//, '');
     if (!String(url).startsWith('/api/')) return error('preview_network_access_disabled', 403);
     settleTrial();
-    if (!remaining()) { state.authenticated = false; state.job = null; return error('setup_window_expired', 403); }
+    if (!remaining()) { state.authenticated = state.developer = false; state.job = null; return error('setup_window_expired', 403); }
     const post = options.method === 'POST';
     let body = {};
     try { if (post) body = JSON.parse(options.body || '{}'); } catch { return error('invalid_json'); }
-    if (action === 'session') return reply({remaining_s: remaining(), authenticated: state.authenticated, must_change_password: state.mustChange, csrf: state.csrf});
-    if (action === 'login' || action === 'password') {
-      if (action === 'password' && (!state.authenticated || new Headers(options.headers).get('X-CSRF-Token') !== state.csrf)) return error('authentication_required', 401);
+    if (action === 'session') return reply({remaining_s: remaining(), authenticated: state.authenticated, must_change_password: state.mustChange, developer_mode: state.developer, csrf: state.csrf});
+    if (action === 'login') {
       if (performance.now() < state.retryAt) return error('login_throttled', 429);
       if (state.job) return error('authentication_busy', 409);
-      const password = action === 'login' ? body.password : body.current;
-      if (password !== state.password) {
+      if (body.password === state.password) {
+        state.authenticated = true; state.developer = false;
+        return reply({must_change_password:state.mustChange,developer_mode:false,csrf:state.csrf});
+      }
+      if (await developerValid(body.password)) {
+        state.authenticated = state.developer = true;
+        return reply({must_change_password:false,developer_mode:true,csrf:state.csrf});
+      }
+      {
         state.attempts++;
         state.retryAt = performance.now() + Math.min(60000, 1000 * 2 ** state.attempts);
         return error('authentication_failed', 401);
       }
-      if (action === 'password' && (!strong(body.next) || body.next !== body.confirm || body.next === body.current)) return error('password_strength_or_confirmation_invalid');
-      state.job = {kind: action, next: body.next, until: performance.now() + 700};
+    }
+    if (action === 'password') {
+      if (!state.authenticated || new Headers(options.headers).get('X-CSRF-Token') !== state.csrf) return error('authentication_required', 401);
+      if (performance.now() < state.retryAt) return error('login_throttled', 429);
+      if (state.job) return error('authentication_busy', 409);
+      if (body.current !== state.password) return error('authentication_failed',401);
+      if (!strong(body.next) || body.next !== body.confirm || body.next === body.current) return error('password_strength_or_confirmation_invalid');
+      state.job = {kind: 'password', next: body.next, until: performance.now() + 700};
       return reply({pending: true, job_id: 'preview-job'}, 202);
     }
     if (action === 'auth_result') {
@@ -108,16 +128,26 @@
       if (performance.now() < job.until) return reply({pending: true}, 202);
       state.job = null; state.attempts = 0;
       if (job.kind === 'password') {
-        state.password = job.next; state.mustChange = false; state.authenticated = false;
+        state.password = job.next; state.mustChange = false; state.authenticated = state.developer = false;
         return reply({ok: true});
       }
       state.authenticated = true;
-      return reply({must_change_password: state.mustChange, csrf: state.csrf});
+      return reply({must_change_password: state.mustChange, developer_mode: false, csrf: state.csrf});
     }
     if (!state.authenticated || (post && new Headers(options.headers).get('X-CSRF-Token') !== state.csrf)) return error('authentication_required', 401);
-    if (action === 'logout') { state.authenticated = false; state.job = null; return reply({ok: true}); }
+    if (action === 'logout') { state.authenticated = state.developer = false; state.job = null; return reply({ok: true}); }
     if (state.mustChange) return error('password_replacement_required', 403);
-    if (action === 'config') return reply(state.config);
+    if (action === 'developer/calibration') {
+      if (!state.developer) return error('developer_authentication_required', 401);
+      if (!post) return reply({revision:state.config.revision,calibration_revision:state.config.calibration_revision,settings:{environment:state.config.environment,soil:state.config.soil,battery:state.config.battery,solar:state.config.solar},measurements:{environment:{raw_temperature_c:26.4,temperature_c:26.4,valid:true},soil:{raw_adc:2000,relative_moisture_pct:null,valid:false,fault_code:'calibration_missing'},battery:{raw_adc:1200,voltage_v:null,valid:false,fault_code:'calibration_missing'},solar:{raw_adc:900,voltage_v:null,valid:false,fault_code:'calibration_missing'}}});
+      if (body.expected_revision !== state.config.revision || !body.settings || typeof body.settings !== 'object') return error('revision_conflict',409);
+      const groups = Object.keys(body.settings);
+      if (!groups.length || groups.some(group => !['environment','soil','battery','solar'].includes(group))) return error('developer_settings_invalid');
+      for (const group of groups) Object.assign(state.config[group], body.settings[group]);
+      state.config.revision++; state.config.calibration_revision++;
+      return reply({ok:true,revision:state.config.revision,calibration_revision:state.config.calibration_revision});
+    }
+    if (action === 'config') { const config = copy(state.config); delete config.environment; delete config.soil; delete config.battery; delete config.solar; return reply(config); }
     if (action === 'status') return reply(status());
     if (action === 'scan') {
       if (post) state.scanUntil = performance.now() + 900;

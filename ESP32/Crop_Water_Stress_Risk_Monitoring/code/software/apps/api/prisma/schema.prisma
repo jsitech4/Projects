@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  MANAGER
+  VIEWER
+}
+enum RiskLevel {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+  UNKNOWN
+}
+enum CommandStatus {
+  QUEUED
+  RECEIVED
+  ACCEPTED
+  APPLIED
+  REJECTED
+  FAILED
+  TIMED_OUT
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  passwordHash String
+  role Role @default(VIEWER)
+  createdAt DateTime @default(now())
+  memberships Membership[]
+  auditLogs AuditLog[]
+}
+model Organization {
+  id String @id @default(cuid())
+  name String
+  createdAt DateTime @default(now())
+  memberships Membership[]
+  sites Site[]
+  devices Device[]
+  alertRules AlertRule[]
+}
+model Membership {
+  userId String
+  organizationId String
+  role Role
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@id([userId, organizationId])
+}
+model Site {
+  id String @id @default(cuid())
+  organizationId String
+  name String
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plots Plot[]
+  @@unique([organizationId, name])
+}
+model Plot {
+  id String @id @default(cuid())
+  siteId String
+  name String
+  crop String?
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  devices Device[]
+  @@unique([siteId, name])
+}
+model Device {
+  id String @id
+  organizationId String
+  plotId String?
+  displayName String?
+  hardwareModel String?
+  firmwareVersion String?
+  lastSeenAt DateTime?
+  lastConfigurationRevision Int?
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plot Plot? @relation(fields: [plotId], references: [id], onDelete: SetNull)
+  messages RawMessage[]
+  telemetry Telemetry[]
+  events DeviceEvent[]
+  commands Command[]
+  risks RiskAssessment[]
+  snapshots DeviceSnapshot[]
+}
+model RawMessage {
+  id String @id @default(cuid())
+  messageId String @unique
+  deviceId String
+  topic String
+  messageType String
+  payload Json
+  ingestedAt DateTime @default(now())
+  deviceTime DateTime?
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+}
+model Telemetry {
+  id String @id @default(cuid())
+  messageId String @unique
+  deviceId String
+  sampledAt DateTime?
+  ingestedAt DateTime @default(now())
+  temperatureC Float?
+  humidityPct Float?
+  relativeMoisturePct Float?
+  batteryV Float?
+  solarV Float?
+  valid Json
+  raw Json
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  @@index([deviceId, ingestedAt])
+}
+model DeviceEvent {
+  id String @id @default(cuid())
+  messageId String @unique
+  deviceId String
+  code String
+  payload Json
+  occurredAt DateTime?
+  ingestedAt DateTime @default(now())
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  @@index([deviceId, ingestedAt])
+}
+model DeviceSnapshot {
+  id String @id @default(cuid())
+  deviceId String
+  kind String
+  payload Json
+  receivedAt DateTime @default(now())
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  @@unique([deviceId, kind])
+}
+model Command {
+  id String @id @default(cuid())
+  requestId String @unique
+  deviceId String
+  command String
+  args Json
+  expectedRevision Int?
+  expiresAt DateTime
+  status CommandStatus @default(QUEUED)
+  response Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdById String?
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  @@index([deviceId, createdAt])
+}
+model RiskAssessment {
+  id String @id @default(cuid())
+  deviceId String
+  telemetryId String?
+  level RiskLevel
+  ruleVersion String
+  factors Json
+  explanation String
+  calculatedAt DateTime @default(now())
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  @@index([deviceId, calculatedAt])
+}
+model AlertRule {
+  id String @id @default(cuid())
+  organizationId String
+  name String
+  enabled Boolean @default(true)
+  thresholds Json
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+model AuditLog {
+  id String @id @default(cuid())
+  userId String?
+  action String
+  targetType String
+  targetId String
+  detail Json?
+  createdAt DateTime @default(now())
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+model NotificationPreference {
+  id String @id @default(cuid())
+  userId String
+  channel String
+  enabled Boolean @default(true)
+  destination String?
+  @@unique([userId, channel])
+}

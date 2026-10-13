@@ -14,7 +14,7 @@
 The tool waits for a restart, then sends the service token during the first 60 seconds. This operation formats the filesystem and is intended for blank factory units. Mounted storage containing records rejects initialization. An unmountable/corrupt filesystem requires a deliberate service decision before this operation because formatting destroys its contents.
 
 7. Restart, authenticate to the setup portal, replace the initial administrator password, test/save Wi-Fi, import the broker CA and test/save MQTT.
-8. Commission calibration and hardware preferences through revision-checked commands. Record the measurements, calibration revision, firmware hash and acceptance results.
+8. Commission calibration through the local Developer calibration page after administrator and developer authentication. Record the measurements, calibration revision, firmware hash and acceptance results.
 
 `factory.json` contains the setup password, 16-byte administrator salt, PBKDF2-HMAC-SHA256 verifier and SHA-256 service-token verifier. Generated secret headers and private directories are ignored. A firmware image compiled with this material is also a private artifact. The build does not package the owner record or service token.
 

@@ -56,7 +56,9 @@ def main():
         config_properties[kind]['properties']={'top_ohm':number(0,1e8),'bottom_ohm':number(0,1e8),'gain':number(.1,10),'offset':number(-10,10),'min_mv':number(150,2400),'max_mv':number(200,2450),'low_v':number(0,1000),'critical_v':number(0,1000)}
     config_properties['lcd']['properties'].update({'address':integer(32,63),'timeout_s':integer(0,3600),'page':integer(0,2)})
     patch_properties = {k:v for k,v in config_properties.items() if k not in ['revision','calibration_revision']}
-    write('configuration_patch.schema.json', META | obj(patch_properties, required=[]))
+    remote_patch_properties = {k:v for k,v in patch_properties.items()
+                               if k not in ['wifi','mqtt','environment','soil','battery','solar']}
+    write('configuration_patch.schema.json', META | obj(remote_patch_properties, required=[]))
 
     envelope = {'schema_version':{'const':'1.0'},'message_type':string(32),'message_id':IDENTIFIER,'device_id':IDENTIFIER,'boot_id':{'type':'string','pattern':'^[a-f0-9]{16}$'},'sequence':integer(1),'time':obj({'uptime_ms':integer(0,9007199254740991),'synchronized':BOOL,'unix_s':{'type':['integer','null'],'minimum':1700000000}})}
     def message(kind, fields, required=None):
@@ -88,7 +90,7 @@ def main():
         if action in ['reboot','factory_reset','restore_defaults','forget_network','purge_acknowledged']:
             return obj({'confirm_device_id':IDENTIFIER})
         if command in ['config.patch','config.validate']:
-            return obj({'patch':obj({k:v for k,v in patch_properties.items() if k not in ['wifi','mqtt']},required=[])})
+            return obj({'patch':obj(remote_patch_properties,required=[])})
         if action in ['configure','test_connection']:
             return obj({'settings':config_properties[group]})
         if action == 'set_calibration' or action == 'validate_calibration':
@@ -122,7 +124,7 @@ def main():
     lines=['# Remote command reference','',
            'All requests use schema `1.0`, an exact device ID, a unique 1–64 character alphanumeric/underscore/hyphen request ID, an argument object and a Unix expiry no more than 300 seconds ahead. The broker authenticates and authorizes the sender; retained commands are rejected.','',
            'Commands marked **Yes** require `expected_revision`. Destructive commands also require `confirm_device_id` equal to the target. Unknown arguments are rejected. Optional arguments are marked `?`; `{}` means no arguments. The checked-in command schema contains the types and numerical bounds.','',
-           'Read operations return snapshots or validation results. Configuration/calibration/preference setters return the committed revision. Acquisition and connection trials return `accepted` before a final response. Bounded LED/buzzer tests report that the operation started; they do not establish electrical functionality.','',
+           'Read operations return snapshots or validation results. Configuration and preference setters return the committed revision. Calibration is restricted to the local developer portal. Acquisition and connection trials return `accepted` before a final response. Bounded LED/buzzer tests report that the operation started; they do not establish electrical functionality.','',
            'Mutation receipts are written before execution, with final status/error persisted afterward. Repeating an ID returns the stored status without executing again. A `received` receipt after reset has `execution_indeterminate_after_restart`; query the actual state before using a new ID. Accepted operations can be interrupted by reset. Read-only requests can be safely re-executed. There are 32 active mutation receipts, each retained through expiry, and a one-second mutation rate limit. Full replay windows reject new mutations.','']
     last_group=None
     for row in manifest:
@@ -137,14 +139,14 @@ def main():
         if row==manifest[-1] or manifest[manifest.index(row)+1]['command'].split('.')[0]!=group:lines.append('')
     lines += ['## Execution details','',
               '- `read_now` acquires the complete sensor set and completes only after a record-storage attempt. Get the resulting data with `telemetry.get_last` or the corresponding sensor status command.',
-              '- Soil endpoint and voltage-reference capture use the latest valid ADC result, at most 120 seconds old. A busy acquisition rejects capture. Calibration rules are in [Calibration](CALIBRATION.md).',
+              '- Sensor status commands expose observed readings and quality only. Calibration is local-developer-portal-only; remote configuration exports do not contain calibration settings. See [Calibration](CALIBRATION.md).',
               '- `wifi.scan` returns the previous scan results and requests a new asynchronous scan. A subsequent call retrieves the completed results.',
               '- `wifi.configure` / `mqtt.configure` save only after their selected trial passes. `*.test_connection` restores previous settings after the trial.',
               '- `device.sync_time` requests SNTP and reports the current synchronization state; it does not claim a completed time adjustment.',
               '- `lcd.set_enabled` configures the optional profile even when absent. Other LCD mutations require detected hardware. Encoder enable is available through `config.patch`.',
               '- LED/buzzer tests require 20–3,000 ms. Buzzer tests reject disabled or muted output. Notices require 1,000–60,000 ms and at most 80 characters.',
               '- `storage.export_records` / `telemetry.get_history` use exclusive `after` and `limit: 1`; `more` and `next_cursor` describe pagination.',
-              '- Factory reset preserves records and the administrator verifier. Restore-defaults also preserves Wi-Fi/MQTT. See [Recovery](CONFIGURATION_RECOVERY.md).',
+              '- Factory reset preserves records, the administrator verifier and calibration. Restore-defaults also preserves Wi-Fi/MQTT and calibration. See [Recovery](CONFIGURATION_RECOVERY.md).',
               '- Firmware check/start-update commands are unsupported and not advertised; updates use physical serial upload. No command executes arbitrary code, file paths or GPIO access.','',
               '## Response and error contract','',
               'Every response carries the originating request ID, `status`, `error`, `result`, resulting configuration revision and normal message envelope. Status values are `received`, `accepted`, `applied`, `rejected`, `failed` and reserved `timed_out`; connection timeouts currently produce `failed` with `connection_trial_failed`. Responses lost during a connection change can be recovered by repeating the same unexpired ID after reconnect.','',
@@ -157,7 +159,7 @@ def main():
     write('configuration.json',safe,'examples')
     base={'schema_version':'1.0','message_type':'event','message_id':'CWS-TEST-0123456789abcdef-1','device_id':'CWS-TEST','boot_id':'0123456789abcdef','sequence':1,'time':{'uptime_ms':2500,'synchronized':False,'unix_s':None}}
     write('event.json',base | {'code':'boot'},'examples')
-    write('command.json',{'schema_version':'1.0','request_id':'integration-1','device_id':'CWS-TEST','command':'soil.set_calibration','args':{'dry':3000,'wet':1200},'expected_revision':2,'expires_at':1800000120},'examples')
+    write('command.json',{'schema_version':'1.0','request_id':'integration-1','device_id':'CWS-TEST','command':'soil.get_status','args':{},'expires_at':1800000120},'examples')
     write('command_response.json',base | {'message_type':'command_response','request_id':'integration-1','status':'applied','error':'','configuration_revision':3,'result':{'revision':3,'calibration_revision':1}},'examples')
     write('sync_ack.json',{'schema_version':'1.0','device_id':'CWS-TEST','message_id':base['message_id'],'durably_stored':True},'examples')
     caps={'commands':names,'command_authorization':'TLS broker identity and per-device ACL','mutations_require_expected_revision':True,'max_command_lifetime_s':300,'headless':True,'lcd_present':False,'encoder_enabled':False,'tls_required':True,'mqtt_qos':1,'durable_ack_enabled':False,'ota':False,'vwc':False,'battery_percentage':False,'mtls':False,'max_message_bytes':8192,'max_history_records_per_response':1}

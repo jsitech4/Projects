@@ -11,6 +11,7 @@ The server accepts only clients on the AP interface. Host is restricted to `192.
 | `/api/auth_result` | POST | Secret `job_id`; polls the job and sets/clears the session cookie on completion |
 | `/api/logout` | POST | Invalidates the session and pending auth job |
 | `/api/password` | POST | `current`, `next`, `confirm`; authenticated password-change job |
+| `/api/developer/calibration` | GET / POST | Privileged-session calibration data and validated calibration writes |
 | `/api/config` | GET | Sanitized saved settings |
 | `/api/status` | GET | Actual connection, storage, revision and trial state |
 | `/api/scan` | POST / GET | Start asynchronous scan / retrieve up to 20 results |
@@ -18,7 +19,7 @@ The server accepts only clients on the AP interface. Host is restricted to `192.
 | `/api/cancel` | POST | Cancel active connection trial and restore saved settings |
 | `/api/diagnostics` | GET | Observed association, TLS/MQTT and ingestion states |
 
-Except login/session/auth-result, routes require a session. Mutations additionally require `X-CSRF-Token`. Initial-password sessions can only replace the password or sign out. Auth-result uses its own unpredictable single-use job identifier and same-origin POST checks.
+Except login/session/auth-result, routes require a session. Mutations additionally require `X-CSRF-Token`. Initial-password administrator sessions can only replace the password or sign out. The calibration route requires a session created by the privileged fixed password at the normal sign-in screen. Auth-result uses its own unpredictable single-use job identifier and same-origin POST checks.
 
 The UI uses semantic forms, local assets and no remote dependencies. A server-derived countdown is refreshed every three seconds. At 320 px and larger tested widths, forms do not scroll horizontally. Saved passwords are never returned. Browser-side feedback distinguishes test-only restoration, saved settings and failed rollback.
 

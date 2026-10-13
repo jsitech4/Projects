@@ -90,7 +90,7 @@
         "creepage": "error",
         "diff_pair_gap_out_of_range": "error",
         "diff_pair_uncoupled_length_too_long": "error",
-        "drill_out_of_range": "ignore",
+        "drill_out_of_range": "error",
         "duplicate_footprints": "warning",
         "extra_footprint": "warning",
         "footprint": "error",
@@ -102,7 +102,7 @@
         "hole_to_hole": "warning",
         "holes_co_located": "warning",
         "invalid_outline": "error",
-        "isolated_copper": "warning",
+        "isolated_copper": "ignore",
         "item_on_disabled_layer": "error",
         "items_not_allowed": "error",
         "length_out_of_range": "error",
@@ -210,7 +210,8 @@
         }
       ],
       "track_widths": [
-        0.0
+        0.0,
+        1.3
       ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
@@ -242,10 +243,6 @@
         {
           "diameter": 0.0,
           "drill": 0.0
-        },
-        {
-          "diameter": 3.0,
-          "drill": 2.0
         }
       ],
       "zones_allow_external_fillets": false
@@ -506,7 +503,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "Predictive_Maintenance_System_for_Industrial_Motor.kicad_pro",
+    "filename": "Smart_Intrusion_Detection_And_Remote_Email_Alert_System.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -535,9 +532,9 @@
         "diff_pair_gap": 0.25,
         "diff_pair_width": 0.2,
         "name": "DIFF",
-        "pcb_color": "rgb(11, 26, 255)",
-        "priority": 4,
-        "schematic_color": "rgb(9, 27, 255)",
+        "pcb_color": "rgb(4, 8, 255)",
+        "priority": 0,
+        "schematic_color": "rgb(0, 34, 255)",
         "track_width": 0.3,
         "tuning_profile": "",
         "via_diameter": 0.6,
@@ -546,9 +543,9 @@
       {
         "clearance": 0.3,
         "name": "HPWR",
-        "pcb_color": "rgb(255, 0, 214)",
-        "priority": 3,
-        "schematic_color": "rgb(230, 0, 255)",
+        "pcb_color": "rgb(255, 0, 15)",
+        "priority": 2,
+        "schematic_color": "rgb(255, 17, 0)",
         "track_width": 1.0,
         "tuning_profile": "",
         "via_diameter": 1.0,
@@ -556,46 +553,13 @@
       },
       {
         "clearance": 0.3,
-        "name": "I2C",
-        "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "priority": 5,
-        "schematic_color": "rgb(255, 228, 0)",
-        "track_width": 0.3,
-        "tuning_profile": "",
-        "via_diameter": 0.6,
-        "via_drill": 0.3
-      },
-      {
-        "clearance": 0.6,
-        "name": "KOFF",
-        "pcb_color": "rgb(255, 15, 0)",
-        "priority": 1,
-        "schematic_color": "rgb(255, 6, 0)",
-        "track_width": 2.0,
-        "tuning_profile": "",
-        "via_diameter": 1.0,
-        "via_drill": 0.3
-      },
-      {
-        "clearance": 0.3,
         "name": "LPWR",
-        "pcb_color": "rgb(255, 199, 251)",
-        "priority": 2,
-        "schematic_color": "rgb(255, 190, 254)",
+        "pcb_color": "rgb(255, 0, 241)",
+        "priority": 1,
+        "schematic_color": "rgb(255, 0, 227)",
         "track_width": 0.8,
         "tuning_profile": "",
         "via_diameter": 1.0,
-        "via_drill": 0.3
-      },
-      {
-        "clearance": 0.3,
-        "name": "SPI",
-        "pcb_color": "rgb(255, 225, 0)",
-        "priority": 0,
-        "schematic_color": "rgb(28, 249, 255)",
-        "track_width": 0.3,
-        "tuning_profile": "",
-        "via_diameter": 0.6,
         "via_drill": 0.3
       }
     ],
@@ -607,7 +571,7 @@
       "+3.3V": [
         "LPWR"
       ],
-      "+5V": [
+      "+BATT": [
         "LPWR"
       ],
       "/+": [
@@ -616,74 +580,41 @@
       "/-": [
         "DIFF"
       ],
-      "/CS": [
-        "SPI"
-      ],
-      "/LIVE": [
-        "KOFF"
-      ],
-      "/MISO": [
-        "SPI"
-      ],
-      "/MOSI": [
-        "SPI"
-      ],
-      "/NEUTRAL": [
-        "KOFF"
-      ],
-      "/SCK": [
-        "SPI"
-      ],
       "/SCL": [
         "I2C"
       ],
       "/SDA": [
         "I2C"
       ],
-      "/VCC1": [
+      "5V": [
         "HPWR"
       ],
       "GND": [
         "HPWR"
       ],
-      "GNDA": [
-        "KOFF"
-      ],
-      "Net-(D12-K)": [
-        "LPWR"
-      ],
-      "Net-(D13-K)": [
-        "LPWR"
-      ],
       "Net-(D2-K)": [
-        "KOFF"
-      ],
-      "Net-(D3-K)": [
-        "KOFF"
-      ],
-      "Net-(D32-K)": [
-        "KOFF"
-      ],
-      "Net-(D7-K)": [
-        "HPWR"
-      ],
-      "Net-(D9-A)": [
         "LPWR"
       ],
-      "Net-(J11-Pin_1)": [
-        "KOFF"
-      ],
-      "Net-(J4-Pin_2)": [
-        "KOFF"
-      ],
-      "Net-(J9-Pin_1)": [
-        "HPWR"
-      ],
-      "Net-(J9-Pin_2)": [
-        "HPWR"
-      ],
-      "VCC2": [
+      "Net-(D4-A)": [
         "LPWR"
+      ],
+      "Net-(D5-K)": [
+        "HPWR"
+      ],
+      "Net-(D6-K)": [
+        "LPWR"
+      ],
+      "Net-(D8-A)": [
+        "LPWR"
+      ],
+      "Net-(J10-Pin_1)": [
+        "HPWR"
+      ],
+      "Net-(J10-Pin_4)": [
+        "HPWR"
+      ],
+      "VCC": [
+        "HPWR"
       ]
     },
     "netclass_patterns": []
@@ -823,9 +754,9 @@
     "subpart_id_separator": 0,
     "top_level_sheets": [
       {
-        "filename": "Predictive_Maintenance_System_for_Industrial_Motor.kicad_sch",
-        "name": "Predictive_Maintenance_System_for_Industrial_Motor",
-        "uuid": "900a473e-2e9b-475f-9b3f-84708db3e9c7"
+        "filename": "Smart_Intrusion_Detection_And_Remote_Email_Alert_System.kicad_sch",
+        "name": "Smart_Intrusion_Detection_And_Remote_Email_Alert_System",
+        "uuid": "34458b80-ab5e-4313-b302-81163d4eba04"
       }
     ],
     "used_designators": "",
@@ -833,8 +764,8 @@
   },
   "sheets": [
     [
-      "900a473e-2e9b-475f-9b3f-84708db3e9c7",
-      "Predictive_Maintenance_System_for_Industrial_Motor"
+      "34458b80-ab5e-4313-b302-81163d4eba04",
+      "Smart_Intrusion_Detection_And_Remote_Email_Alert_System"
     ]
   ],
   "text_variables": {},

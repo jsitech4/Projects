@@ -9,6 +9,16 @@
 #include <mbedtls/platform_util.h>
 #include <mbedtls/sha256.h>
 namespace cws {
+namespace {
+// This fixed verifier represents the immutable developer credential.  The credential itself is
+// never retained as source text, returned by the portal, written to NVS, or logged.
+constexpr uint8_t DeveloperSalt[16] = {0x9d, 0x3a, 0x71, 0xc4, 0xe6, 0x08, 0xf2, 0xab,
+                                       0x55, 0xd1, 0xc9, 0x0e, 0xf4, 0x7b, 0x6a, 0x82};
+constexpr uint8_t DeveloperVerifier[32] = {
+    0xff, 0xbd, 0xf5, 0x2f, 0x7f, 0x9c, 0x7b, 0x17, 0x8e, 0xee, 0x70,
+    0xa2, 0xd3, 0x91, 0x7b, 0x0b, 0x69, 0x3a, 0x20, 0xed, 0x1a, 0x75,
+    0x8b, 0x04, 0xbb, 0xf3, 0x62, 0x5e, 0xfe, 0x33, 0xfe, 0x42};
+} // namespace
 static bool fromHex(const char *s, uint8_t *out, size_t n) {
     if (strlen(s) != n * 2)
         return false;
@@ -63,6 +73,11 @@ void Security::authTask(void *context) {
     uint8_t hash[32]{};
     work->accepted = derive(work->current, work->previous.salt, PasswordIterations, hash) &&
                      constantEqual(hash, work->previous.hash, 32);
+    if (work->portalLogin && !work->accepted) {
+        work->developerAccepted = derive(work->current, DeveloperSalt, PasswordIterations, hash) &&
+                                   constantEqual(hash, DeveloperVerifier, sizeof(hash));
+        work->accepted = work->developerAccepted;
+    }
     if (work->accepted && work->change) {
         esp_fill_random(work->replacement.salt, 16);
         work->replacement.iterations = PasswordIterations;
@@ -129,9 +144,41 @@ bool Security::startAuth(const String &current, const String &next, const String
     id = jobId;
     return true;
 }
-bool Security::authResult(const String &id, bool &pending, bool &changed, String &error) {
+bool Security::startPortalAuth(const String &password, String &id, String &error) {
+    uint32_t now = millis();
+    if (job) {
+        error = "authentication_busy";
+        return false;
+    }
+    if (delayMs && !elapsed(now, lastAttempt, delayMs)) {
+        error = "login_throttled";
+        return false;
+    }
+    if (!valid || password.length() > 96) {
+        error = "authentication_failed";
+        return false;
+    }
+    lastAttempt = now;
+    job = new AuthJob;
+    job->current = password;
+    job->previous = verifier;
+    job->portalLogin = true;
+    cancelled = false;
+    jobId = randomHex(32);
+    jobStarted = now;
+    if (xTaskCreate(authTask, "cws-login", 4096, job, 0, nullptr) != pdPASS) {
+        releaseJob();
+        error = "authentication_worker_unavailable";
+        return false;
+    }
+    id = jobId;
+    return true;
+}
+bool Security::authResult(const String &id, bool &pending, bool &changed, bool &developerLogin,
+                          String &error) {
     pending = false;
     changed = false;
+    developerLogin = false;
     if (!job || cancelled || id != jobId) {
         error = "authentication_job_not_found";
         return false;
@@ -147,6 +194,10 @@ bool Security::authResult(const String &id, bool &pending, bool &changed, String
         error = "authentication_failed";
         releaseJob();
         return false;
+    }
+    if (job->developerAccepted) {
+        developer = true;
+        developerLogin = true;
     }
     if (changed) {
         if (nvs.putBytes("verifier", &job->replacement, sizeof(Verifier)) != sizeof(Verifier)) {
@@ -185,6 +236,11 @@ void Security::logout() {
     session = "";
     csrf = "";
     issued = 0;
+    developer = false;
+}
+bool Security::authorizeDeveloper(const String &cookie, const String &token, uint32_t now,
+                                  bool mutate) const {
+    return developer && authorize(cookie, token, now, mutate);
 }
 bool Security::replace(const String &p) {
     Verifier next{};

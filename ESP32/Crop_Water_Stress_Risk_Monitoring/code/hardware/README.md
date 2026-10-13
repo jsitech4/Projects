@@ -24,16 +24,16 @@ The [verification report](docs/VERIFICATION_REPORT.md) records the current build
 
 ## Fixed PCB connections
 
-| Component | GPIO |
-|---|---:|
-| AM2301A data | 32 |
-| Soil ADC1 | 34 |
-| Battery ADC1 | 35 |
-| Solar ADC1 | 39 |
-| LCD SDA / SCL | 21 / 22 |
+| Component                 |         GPIO |
+| ------------------------- | -----------: |
+| AM2301A data              |           32 |
+| Soil ADC1                 |           34 |
+| Battery ADC1              |           35 |
+| Solar ADC1                |           39 |
+| LCD SDA / SCL             |      21 / 22 |
 | Encoder CLK / DT / switch | 25 / 26 / 27 |
-| Status LED | 2 |
-| Buzzer | 4 |
+| Status LED                |            2 |
+| Buzzer                    |            4 |
 
 GPIO14, GPIO12, GPIO33 and GPIO16 remain outside this application's control. `lib/Board/Pins.h` contains compile-time checks. No pump, tank, motor or arbitrary GPIO command exists. See [Hardware](docs/HARDWARE.md) and [Pin mapping](docs/PIN_MAPPING.md).
 
@@ -70,7 +70,7 @@ Wi-Fi configuration supports scanning, manual SSID entry, DHCP and validated sta
 
 Default intervals are 60 seconds for acquisition and 300 seconds for upload and health reporting. Failed or uncalibrated readings are invalid and carry null engineering values. Soil output is a **relative moisture index**, not volumetric water content. VWC and battery percentage remain null.
 
-Divider resistance values are deliberately unset. Battery and solar calibration require the installed divider values, a measured linear ADC range, and independent multimeter references. AM2301A offsets, both soil calibration orientations and power thresholds persist in NVS. [Sensor acquisition](docs/SENSOR_ACQUISITION.md) and [calibration](docs/CALIBRATION.md) define the procedures and limits.
+Divider resistance values are deliberately unset. Battery and solar calibration require the installed divider values, a measured linear ADC range, and independent multimeter references. AM2301A offsets, both soil calibration orientations and power thresholds persist in NVS. Calibration controls are available only after an administrator session verifies the separate immutable developer credential; they are not exported to the normal administrator view or MQTT command interface. [Sensor acquisition](docs/SENSOR_ACQUISITION.md) and [calibration](docs/CALIBRATION.md) define the procedures and limits.
 
 LittleFS retains up to 256 telemetry/event records. Default retention protects existing unacknowledged records and drops new records when full, reporting the loss. An explicit rolling-retention policy can evict the oldest record. MQTT PUBACK alone never marks a record durably stored. The backend must opt into and send the application acknowledgement contract. [Offline storage](docs/OFFLINE_STORAGE.md).
 
@@ -82,15 +82,15 @@ The backend integration package includes [topics](docs/MQTT_TOPICS.md), [schemas
 
 `tools/mqtt_tool.py` provides TLS subscription, command publication, response inspection, an acknowledgement simulator, a file-based durable receiver and a live device integration runner. Its credentials come from environment variables; [examples/.env.example](examples/.env.example) contains names only.
 
-| Directory | Responsibility |
-|---|---|
-| `src`, `include` | Entry point, version, bounds and build-generated assets |
-| `lib/Core`, `lib/Board` | Shared validation/calculations and immutable PCB pins |
-| `lib/Sensors`, `lib/Actuators`, `lib/Display` | Acquisition, indicators and optional controls |
-| `lib/Configuration`, `lib/Security`, `lib/Storage` | NVS commits, authentication and LittleFS queue |
-| `lib/Communication`, `lib/LocalWebServer` | Async MQTT/Wi-Fi and bounded local HTTP |
-| `lib/System`, `lib/Diagnostics` | Scheduling, command dispatch, telemetry and faults |
-| `data/portal`, `schemas`, `tools`, `test`, `docs` | Offline UI, integration contracts, verification and operations |
+| Directory                                          | Responsibility                                                 |
+| -------------------------------------------------- | -------------------------------------------------------------- |
+| `src`, `include`                                   | Entry point, version, bounds and build-generated assets        |
+| `lib/Core`, `lib/Board`                            | Shared validation/calculations and immutable PCB pins          |
+| `lib/Sensors`, `lib/Actuators`, `lib/Display`      | Acquisition, indicators and optional controls                  |
+| `lib/Configuration`, `lib/Security`, `lib/Storage` | NVS commits, authentication and LittleFS queue                 |
+| `lib/Communication`, `lib/LocalWebServer`          | Async MQTT/Wi-Fi and bounded local HTTP                        |
+| `lib/System`, `lib/Diagnostics`                    | Scheduling, command dispatch, telemetry and faults             |
+| `data/portal`, `schemas`, `tools`, `test`, `docs`  | Offline UI, integration contracts, verification and operations |
 
 ## Security and release limits
 

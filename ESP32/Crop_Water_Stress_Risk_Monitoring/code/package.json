@@ -1,0 +1,7 @@
+{
+  "name": "crop-water-stress-local-tools",
+  "private": true,
+  "scripts": {
+    "simulation": "node scripts/run-simulation.mjs"
+  }
+}

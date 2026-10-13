@@ -22,35 +22,12 @@ const char *const CommandNames[] = {"device.get_info",
                                     "config.export",
                                     "environment.read_now",
                                     "environment.get_status",
-                                    "environment.get_config",
-                                    "environment.set_offsets",
-                                    "environment.reset_offsets",
-                                    "environment.enable",
-                                    "environment.disable",
                                     "soil.read_now",
                                     "soil.get_status",
-                                    "soil.get_calibration",
-                                    "soil.capture_dry",
-                                    "soil.capture_wet",
-                                    "soil.set_calibration",
-                                    "soil.validate_calibration",
-                                    "soil.reset_calibration",
-                                    "soil.enable",
-                                    "soil.disable",
                                     "battery.read_now",
                                     "battery.get_status",
-                                    "battery.get_calibration",
-                                    "battery.capture_reference",
-                                    "battery.set_calibration",
-                                    "battery.reset_calibration",
-                                    "battery.set_thresholds",
                                     "solar.read_now",
                                     "solar.get_status",
-                                    "solar.get_calibration",
-                                    "solar.capture_reference",
-                                    "solar.set_calibration",
-                                    "solar.reset_calibration",
-                                    "solar.set_thresholds",
                                     "lcd.get_status",
                                     "lcd.set_backlight",
                                     "lcd.set_timeout",
@@ -107,6 +84,16 @@ static bool readOnly(const String &c) {
     return c.indexOf(".get_") >= 0 || c == "config.get" || c == "config.export" ||
            c == "config.validate" || c == "soil.validate_calibration" ||
            c == "storage.export_records" || c == "diagnostics.self_test";
+}
+static bool developerOnlyRemote(const String &command) {
+    if (command == "config.restore_defaults")
+        return false;
+    if (command.startsWith("environment."))
+        return command != "environment.read_now" && command != "environment.get_status";
+    if (command.startsWith("soil.") || command.startsWith("battery.") ||
+        command.startsWith("solar."))
+        return !command.endsWith(".read_now") && !command.endsWith(".get_status");
+    return false;
 }
 bool Commands::begin() {
     persistence = nvs.begin("cws-commands", false);
@@ -201,6 +188,8 @@ void Commands::receive(const char *json) {
             int prior = read ? -1 : receipt(id);
             if (!known)
                 response["error"] = "unsupported_command";
+            else if (developerOnlyRemote(command))
+                response["error"] = "developer_local_portal_required";
             else if (prior >= 0) {
                 response["status"] = receipts[prior].status;
                 response["error"] = receipts[prior].error;
@@ -255,6 +244,8 @@ void Commands::capabilities(JsonObject o) const {
         String c = CommandNames[i];
         if (c.startsWith("lcd.") && !app.display.available() && c != "lcd.get_status" &&
             c != "lcd.set_enabled")
+            continue;
+        if (developerOnlyRemote(c))
             continue;
         commands.add(c);
     }
@@ -315,8 +306,10 @@ void Commands::execute(const String &command, JsonObjectConst args, JsonDocument
                 return;
             }
             defaults(candidate);
+            for (const char *group : {"environment", "soil", "battery", "solar"})
+                candidate[group] = app.config.data[group];
             String error;
-            if (!app.apply(candidate, true, error)) {
+            if (!app.apply(candidate, false, error)) {
                 fail(error.c_str());
                 return;
             }
@@ -352,6 +345,8 @@ void Commands::execute(const String &command, JsonObjectConst args, JsonDocument
                 return;
             DynamicJsonDocument d(10000);
             sanitized(app.config.data.as<JsonVariantConst>(), d);
+            for (const char *group : {"environment", "soil", "battery", "solar"})
+                d.remove(group);
             result.set(d.as<JsonVariant>());
             return;
         }
@@ -369,7 +364,9 @@ void Commands::execute(const String &command, JsonObjectConst args, JsonDocument
             defaults(candidate);
             candidate["wifi"] = app.config.data["wifi"];
             candidate["mqtt"] = app.config.data["mqtt"];
-            changed = calibration = true;
+            for (const char *group : {"environment", "soil", "battery", "solar"})
+                candidate[group] = app.config.data[group];
+            changed = true;
         } else {
             if (!argKeys({"patch"}) || !args["patch"].is<JsonObjectConst>()) {
                 fail("patch_object_required");
@@ -379,6 +376,11 @@ void Commands::execute(const String &command, JsonObjectConst args, JsonDocument
                 fail("use_connection_trial_commands");
                 return;
             }
+            for (const char *group : {"environment", "soil", "battery", "solar"})
+                if (args["patch"].containsKey(group)) {
+                    fail("developer_local_portal_required");
+                    return;
+                }
             std::string error;
             if (!patch(candidate, args["patch"], error)) {
                 fail(error.c_str());
@@ -389,9 +391,6 @@ void Commands::execute(const String &command, JsonObjectConst args, JsonDocument
                 return;
             }
             changed = true;
-            calibration =
-                args["patch"].containsKey("environment") || args["patch"].containsKey("soil") ||
-                args["patch"].containsKey("battery") || args["patch"].containsKey("solar");
         }
     } else if (group == "environment" || group == "soil" || group == "battery" ||
                group == "solar") {

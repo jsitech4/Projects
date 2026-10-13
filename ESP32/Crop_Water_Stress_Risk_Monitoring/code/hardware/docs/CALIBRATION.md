@@ -1,6 +1,8 @@
 # Calibration contract
 
-All calibration resides in the atomic NVS configuration snapshot. Mutating commands require `expected_revision`; successful calibration writes increment both configuration and calibration revision. Invalid settings cannot replace valid saved values. Procedures work headlessly through MQTT and do not require the local connectivity portal.
+All calibration resides in the atomic NVS configuration snapshot. Successful calibration writes increment both configuration and calibration revision. Invalid settings cannot replace valid saved values.
+
+Calibration is available only when the privileged fixed password is used at the local portal sign-in screen. That verifier is immutable and independent of the administrator password; changing the administrator password neither exposes nor replaces it. The calibration navigation entry and values are absent from an ordinary administrator session. Privileged access ends with logout, portal expiry, or restart. MQTT telemetry and commands can report sensor status, but cannot read or change calibration settings.
 
 | Group / field | Accepted values |
 |---|---|
@@ -14,11 +16,11 @@ All calibration resides in the atomic NVS configuration snapshot. Mutating comma
 | Power `max_mv` | 200–2,450 mV, greater than `min_mv` |
 | Power `critical_v`, `low_v` | 0–1,000 V; critical ≤ low; zero disables that threshold |
 
-For environment offsets, compare a valid sample against a reference instrument, then call `environment.set_offsets`. `reset_offsets` restores zero offsets and enabled acquisition.
+For environment offsets, compare a valid sample against a reference instrument, then enter the offsets in the Developer calibration page.
 
-For soil, acquire a reading with the probe in the recorded dry reference condition, then call `soil.capture_dry`. Repeat in the recorded wet reference condition with `soil.capture_wet`. A single endpoint can be saved while commissioning, but relative moisture remains invalid until both are valid. `soil.set_calibration` sets both numerical endpoints; `soil.validate_calibration` checks a pair without writing. The index is `100 × (filtered_adc − dry) / (wet − dry)`, clamped to 0–100. It is not VWC.
+For soil, acquire a fresh reading with the probe in the recorded dry reference condition and enter that ADC value. Repeat in the recorded wet reference condition. A single endpoint can be saved while commissioning, but relative moisture remains invalid until both are valid. The page accepts either orientation and requires an endpoint span of at least 100 ADC counts. The index is `100 × (filtered_adc − dry) / (wet − dry)`, clamped to 0–100. It is not VWC.
 
-For battery/solar, enter the physically measured divider values and validated linear input span with `*.set_calibration`. Obtain a fresh reading, measure the source with a multimeter, then call `*.capture_reference` with `reference_v`. It computes:
+For battery/solar, enter the physically measured divider values, validated linear ADC span, gain, offset and warning thresholds in the Developer calibration page. Obtain a fresh reading and measure the source with a multimeter before establishing the gain. The calculation is:
 
 ```text
 base_voltage = adc_mv / 1000 × (top_ohm + bottom_ohm) / bottom_ohm
@@ -26,6 +28,6 @@ gain = (reference_v − offset) / base_voltage
 voltage = base_voltage × gain + offset
 ```
 
-Capture rejects clipping, missing divider values, stale/busy acquisition and gain outside the accepted range. A single reference adjusts gain only; the full span must already have been electrically validated. Zener clipping cannot be corrected by gain. Battery and solar profiles remain independent.
+The page rejects incomplete divider values, an invalid ADC span, gain outside the accepted range, and invalid threshold ordering. A single reference adjusts gain only; the full span must already have been electrically validated. Zener clipping cannot be corrected by gain. Battery and solar profiles remain independent.
 
-`*.reset_calibration` restores the corresponding uncommissioned default profile, including its default thresholds. `config.restore_defaults` also resets calibration. Calibrations are included in sanitized configuration exports and telemetry revisions; credentials are not.
+Calibration resets and remote calibration commands are disabled. Configuration resets preserve the existing calibration snapshot. Telemetry reports calibration revisions and measurement quality, but calibration values are not included in remote configuration exports.

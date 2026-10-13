@@ -10,6 +10,8 @@ Failed authentication incurs exponential throttling up to 60 seconds. One authen
 
 Password replacement invalidates prior sessions and preserves connectivity, calibration and records. Power cycling does not reset authentication. Recovery requires physical serial access plus the separate per-device service token:
 
+The privileged calibration password is evaluated by the ordinary sign-in field. Its immutable verifier is compiled into the firmware image and is not kept as a plaintext source value, NVS value, portal response or log entry. It is unaffected by administrator password replacement. A privileged sign-in enables calibration only for the current local session; logout, portal expiry and restart remove that access.
+
 ```powershell
 python tools/commission.py service --port <identified-port> --record provisioning/private/<unit>/service.json --operation recover_admin
 ```

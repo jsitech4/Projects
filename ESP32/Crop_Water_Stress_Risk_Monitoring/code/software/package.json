@@ -1,0 +1,18 @@
+{
+  "name": "crop-water-stress-platform",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev -w @cws/api",
+    "dev:web": "npm run dev -w @cws/web",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:generate": "npm run db:generate -w @cws/api",
+    "db:migrate": "npm run db:migrate -w @cws/api",
+    "simulate": "tsx tools/simulate-device.ts"
+  },
+  "devDependencies": { "tsx": "^4.19.2", "typescript": "^5.7.2" }
+}

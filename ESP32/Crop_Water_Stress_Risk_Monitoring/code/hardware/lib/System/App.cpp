@@ -453,20 +453,21 @@ HttpResponse App::http(const HttpRequest &r) {
         out["authenticated"] = authenticated;
         if (authenticated) {
             out["must_change_password"] = security.mustChange();
+            out["developer_mode"] = security.developerUnlocked();
             out["csrf"] = security.csrfToken();
         }
     } else if (r.path == "/api/login" && post) {
         String e, job;
-        if (security.startAuth(body["password"] | "", "", "", false, job, e)) {
+        if (security.startPortalAuth(body["password"] | "", job, e)) {
             response.status = 202;
             out["job_id"] = job;
             out["pending"] = true;
         } else
             error(e == "login_throttled" ? 429 : 401, e);
     } else if (r.path == "/api/auth_result" && post) {
-        bool pending = false, changed = false;
+        bool pending = false, changed = false, developerLogin = false;
         String e;
-        if (!security.authResult(body["job_id"] | "", pending, changed, e))
+        if (!security.authResult(body["job_id"] | "", pending, changed, developerLogin, e))
             error(401, e);
         else if (pending) {
             response.status = 202;
@@ -478,8 +479,9 @@ HttpResponse App::http(const HttpRequest &r) {
         } else {
             response.cookie = security.sessionCookie();
             out["must_change_password"] = security.mustChange();
+            out["developer_mode"] = developerLogin;
             out["csrf"] = security.csrfToken();
-            event("administrator_login");
+            event(developerLogin ? "privileged_login" : "administrator_login");
         }
     } else if (!security.authorize(r.cookie, r.csrf, millis(), post))
         error(401, "authentication_required");
@@ -497,6 +499,54 @@ HttpResponse App::http(const HttpRequest &r) {
             out["pending"] = true;
         } else
             error(400, e);
+    } else if (r.path == "/api/developer/calibration" &&
+               security.mustChange())
+        error(403, "password_replacement_required");
+    else if (r.path == "/api/developer/calibration" &&
+             !security.authorizeDeveloper(r.cookie, r.csrf, millis(), post))
+        error(401, "developer_authentication_required");
+    else if (r.path == "/api/developer/calibration" && !post) {
+        out["revision"] = config.revision();
+        out["calibration_revision"] = config.data["calibration_revision"];
+        for (const char *group : {"environment", "soil", "battery", "solar"}) {
+            out["settings"][group] = config.data[group];
+            out["measurements"][group] = readings[group];
+        }
+    } else if (r.path == "/api/developer/calibration" && post) {
+        if (!body["expected_revision"].is<uint32_t>() ||
+            body["expected_revision"].as<uint32_t>() != config.revision())
+            error(409, "revision_conflict");
+        else if (!body["settings"].is<JsonObjectConst>())
+            error(400, "developer_settings_required");
+        else {
+            bool permitted = true;
+            for (JsonPairConst entry : body["settings"].as<JsonObjectConst>()) {
+                String group = entry.key().c_str();
+                if ((group != "environment" && group != "soil" && group != "battery" &&
+                     group != "solar") || !entry.value().is<JsonObjectConst>()) {
+                    permitted = false;
+                    break;
+                }
+            }
+            if (!permitted || !body["settings"].size())
+                error(400, "developer_settings_invalid");
+            else {
+                DynamicJsonDocument candidate(16384);
+                candidate.set(config.data);
+                std::string e;
+                String detail;
+                if (!patch(candidate, body["settings"].as<JsonObjectConst>(), e))
+                    error(400, e.c_str());
+                else if (!apply(candidate, true, detail))
+                    error(409, detail);
+                else {
+                    out["ok"] = true;
+                    out["revision"] = config.revision();
+                    out["calibration_revision"] = config.data["calibration_revision"];
+                    event("developer_calibration_saved");
+                }
+            }
+        }
     } else if (security.mustChange())
         error(403, "password_replacement_required");
     else if (r.path == "/api/status" && !post) {
@@ -504,6 +554,11 @@ HttpResponse App::http(const HttpRequest &r) {
         out["remaining_s"] = portal.remaining(millis());
     } else if (r.path == "/api/config" && !post) {
         sanitized(config.data.as<JsonVariantConst>(), out);
+        // Calibration is deliberately available only after the separate developer unlock.
+        out.remove("environment");
+        out.remove("soil");
+        out.remove("battery");
+        out.remove("solar");
     } else if (r.path == "/api/scan") {
         if (post)
             network.scan();

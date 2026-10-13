@@ -2,11 +2,7 @@
   "schema_version": "1.0",
   "request_id": "integration-1",
   "device_id": "CWS-TEST",
-  "command": "soil.set_calibration",
-  "args": {
-    "dry": 3000,
-    "wet": 1200
-  },
-  "expected_revision": 2,
+  "command": "soil.get_status",
+  "args": {},
   "expires_at": 1800000120
 }

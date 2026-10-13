@@ -1,0 +1,5 @@
+{$DOMAIN} {
+  encode zstd gzip
+  reverse_proxy /api/* {$API_UPSTREAM}
+  reverse_proxy {$WEB_UPSTREAM}
+}
