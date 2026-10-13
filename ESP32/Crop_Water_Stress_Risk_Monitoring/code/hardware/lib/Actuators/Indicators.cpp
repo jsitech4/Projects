@@ -28,10 +28,23 @@ void Indicators::loop(uint32_t now, JsonVariantConst c, const char *op) {
     state = op;
     if (muteDuration && elapsed(now, muteStart, muteDuration))
         muteDuration = 0;
+    if (beepDuration && elapsed(now, beepStart, beepDuration))
+        beepDuration = 0;
+    if (testDuration && elapsed(now, testStart, testDuration))
+        testDuration = 0;
     auto b = c["buzzer"];
+    bool enabled = b["enabled"].as<bool>(), passive = b["passive"].as<bool>(),
+         activeHigh = b["active_high"].as<bool>();
+    if (!enabled)
+        beepDuration = 0;
     bool on = b["enabled"].as<bool>() && !muteDuration && beepDuration &&
               !elapsed(now, beepStart, beepDuration);
-    if (on != sounding) {
+    if (on != sounding || !buzzerConfigured || enabled != buzzerEnabled ||
+        passive != buzzerPassive || activeHigh != buzzerActiveHigh) {
+        buzzerConfigured = true;
+        buzzerEnabled = enabled;
+        buzzerPassive = passive;
+        buzzerActiveHigh = activeHigh;
         sounding = on;
         if (b["enabled"].as<bool>()) {
             if (b["passive"].as<bool>()) {

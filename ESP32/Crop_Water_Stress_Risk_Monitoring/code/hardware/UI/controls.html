@@ -1,0 +1,96 @@
+<aside id="preview-tools" aria-label="Hardware-free preview controls" hidden>
+  <div class="preview-inner">
+    <strong>UI preview · simulated device</strong>
+    <p>The page below uses the production portal interface. All device values and connection results here are simulated.
+      Use dummy credentials only. Nothing is sent to a device or server.</p>
+    <details open>
+      <summary>Preview controls</summary>
+      <p>Sign in as <b>admin</b> with <code>Preview-admin!42</code>. Changes last until you reload this page.</p>
+      <div class="preview-options">
+        <div><label for="preview-scenario">Starting scenario</label><select id="preview-scenario">
+            <option value="configured">Configured device</option>
+            <option value="first-time">First commissioning</option>
+            <option value="offline">Router unavailable</option>
+          </select></div>
+        <div><label for="preview-outcome">Connection trial result</label><select id="preview-outcome">
+            <option value="success">Success</option>
+            <option value="failure">Failure and rollback</option>
+          </select></div>
+      </div>
+      <div class="preview-actions">
+        <button type="button" id="preview-fill" class="secondary">Fill demo password</button>
+        <button type="button" id="preview-expire" class="secondary">Expire setup window</button>
+        <button type="button" id="preview-reset" class="secondary">Reset preview</button>
+      </div>
+      <small>Changing the starting scenario or resetting clears edits and restores the demo password. The five-minute
+        timer runs normally. Resize your browser to check the mobile layout.</small>
+    </details>
+  </div>
+</aside>
+<style>
+  #preview-tools {
+    background: #fff8e9;
+    border-bottom: 1px solid #d8c49b;
+    color: #493a1e
+  }
+
+  #preview-tools .preview-inner {
+    max-width: 1040px;
+    margin: auto;
+    padding: 16px 20px
+  }
+
+  #preview-tools p {
+    font-size: 13px;
+    margin: 6px 0 10px;
+    color: #594c34
+  }
+
+  #preview-tools summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 0
+  }
+
+  #preview-tools code {
+    font-size: 13px;
+    overflow-wrap: anywhere
+  }
+
+  #preview-tools .preview-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px
+  }
+
+  #preview-tools label {
+    margin-top: 6px
+  }
+
+  #preview-tools .preview-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 8px
+  }
+
+  #preview-tools small {
+    color: #594c34
+  }
+
+  @media(max-width:600px) {
+    #preview-tools .preview-options {
+      grid-template-columns: 1fr;
+      gap: 8px
+    }
+
+    #preview-tools .preview-inner {
+      padding: 14px
+    }
+
+    #preview-tools .preview-actions button {
+      flex: 1 1 140px
+    }
+  }
+</style>

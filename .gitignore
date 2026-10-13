@@ -31,6 +31,12 @@ credential-backups/
 *.p12
 *.pfx
 *.o
+*.a
+*.d
+*.gcda
+*.gcno
+.ruff_cache/
+.mypy_cache/
 *.elf
 .vscode/settings.json
 .vscode/.browse.c_cpp.db*

@@ -1,14 +1,41 @@
 #pragma once
 // Native test adapter for production persistence modules; never included by firmware builds.
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <string>
 #include <vector>
 #define PROGMEM
+#define INPUT 0
+#define OUTPUT 1
+#define INPUT_PULLUP 2
+#define OUTPUT_OPEN_DRAIN 3
+#define LOW 0
+#define HIGH 1
 namespace host {
 inline uint32_t clock = 1000;
+inline std::array<int, 40> modes{}, levels{};
+inline std::array<int, 16> duty{};
+inline std::array<int, 40> attached{};
+} // namespace host
+inline void pinMode(int pin, int mode) {
+    host::modes.at(pin) = mode;
+}
+inline void digitalWrite(int pin, int level) {
+    host::levels.at(pin) = level;
+}
+inline void ledcSetup(int, int, int) {}
+inline void ledcAttachPin(int pin, int channel) {
+    host::attached.at(pin) = channel;
+}
+inline void ledcDetachPin(int pin) {
+    host::attached.at(pin) = -1;
+}
+inline void ledcWrite(int channel, int value) {
+    host::duty.at(channel) = value;
 }
 inline uint32_t millis() {
     return host::clock;

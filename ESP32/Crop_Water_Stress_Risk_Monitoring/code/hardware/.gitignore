@@ -27,6 +27,12 @@ certs/private/
 *.p12
 *.pfx
 *.o
+*.a
+*.d
+*.gcda
+*.gcno
+.ruff_cache/
+.mypy_cache/
 *.elf
 *.bin
 *.map

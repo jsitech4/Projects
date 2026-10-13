@@ -87,6 +87,12 @@ def test_private_commissioning_has_unique_credentials(tmp_path):
     with pytest.raises(FileExistsError):create_records(tmp_path/'first',password)
 
 
+def test_commissioning_space_is_not_firmware_punctuation(tmp_path):
+    with pytest.raises(ValueError):
+        create_records(tmp_path/'rejected', 'Password12345 ')
+    assert not (tmp_path/'rejected').exists()
+
+
 def test_build_artifact_and_partition_limits():
     binary=ROOT/'.pio/build/esp32_wroom_32u/firmware.bin'
     if not binary.exists():pytest.skip('Firmware build has not completed')

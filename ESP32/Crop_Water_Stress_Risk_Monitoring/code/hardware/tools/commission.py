@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import secrets
+import string
 import time
 
 ITERATIONS = 60000
@@ -13,7 +14,7 @@ ITERATIONS = 60000
 def create_records(directory: Path, password: str):
     if not (12 <= len(password) <= 96 and password.isascii() and all(32 <= ord(c) <= 126 for c in password)
             and any(c.isupper() for c in password) and any(c.islower() for c in password)
-            and any(c.isdigit() for c in password) and any(not c.isalnum() for c in password)):
+            and any(c.isdigit() for c in password) and any(c in string.punctuation for c in password)):
         raise ValueError('Administrator password must match the firmware strength policy')
     directory.mkdir(parents=True, exist_ok=True)
     if any((directory / name).exists() for name in ('factory.json', 'owner.json', 'service.json')):

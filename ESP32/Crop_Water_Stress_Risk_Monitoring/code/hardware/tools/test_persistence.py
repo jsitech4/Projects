@@ -20,3 +20,11 @@ command += [str(ROOT/p) for p in ['test/host/portal_main.cpp','lib/Core/Core.cpp
 command += ['-o',str(portal)]
 subprocess.run(command,check=True,cwd=ROOT)
 subprocess.run([str(portal)],check=True,cwd=ROOT)
+indicators=output/('indicators.exe' if os.name=='nt' else 'indicators')
+command=['g++','-std=c++17','-Wall','-Wextra']
+for path in ['test/host','include','lib/Core','lib/Board','lib/Actuators','.pio/libdeps/native/ArduinoJson/src']:
+    command+=['-I',str(ROOT/path)]
+command += [str(ROOT/p) for p in ['test/host/indicators_main.cpp','lib/Core/Core.cpp','lib/Actuators/Indicators.cpp']]
+command += ['-o',str(indicators)]
+subprocess.run(command,check=True,cwd=ROOT)
+subprocess.run([str(indicators)],check=True,cwd=ROOT)

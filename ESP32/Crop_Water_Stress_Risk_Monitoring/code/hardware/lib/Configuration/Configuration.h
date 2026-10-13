@@ -7,6 +7,8 @@ namespace cws {
 class Configuration {
     Preferences nvs;
     uint8_t active = 0;
+    bool repairPointer = false;
+    bool restorePointer();
     bool loadSlot(uint8_t slot, uint32_t revision, JsonDocument &to);
 
   public:

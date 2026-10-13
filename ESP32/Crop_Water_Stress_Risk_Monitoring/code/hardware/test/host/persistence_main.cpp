@@ -56,6 +56,70 @@ static void configuration_rejects_invalid_without_write() {
     assert(!config.commit(next));
     assert(Preferences::values.empty());
 }
+static void recovered_slot_failed_commit_stays_uncommitted() {
+    configuration_corruption_fallback();
+    Configuration recovered;
+    assert(recovered.begin());
+    DynamicJsonDocument next(16384);
+    next.set(recovered.data);
+    next["name"] = "must-not-be-promoted";
+    Preferences::failKey = "cws-config/active";
+    assert(!recovered.commit(next));
+    Configuration reboot;
+    assert(reboot.begin());
+    assert(reboot.data["name"] == "known-good");
+    assert(reboot.revision() == 1);
+}
+static void fallback_pointer_failure_blocks_slot_reuse() {
+    reset();
+    Configuration initial;
+    assert(initial.begin());
+    DynamicJsonDocument next(16384);
+    next.set(initial.data);
+    next["name"] = "known-good";
+    assert(initial.commit(next));
+    next["name"] = "latest";
+    assert(initial.commit(next));
+    Preferences::values["cws-config/slot0"].back() ^= 1;
+    auto corrupt = Preferences::values["cws-config/slot0"];
+    Preferences::failKey = "cws-config/active";
+    Configuration recovered;
+    assert(!recovered.begin());
+    assert(!recovered.healthy);
+    assert(recovered.data["name"] == "known-good");
+    next.set(recovered.data);
+    next["name"] = "candidate";
+    Preferences::failKey = "cws-config/active";
+    assert(!recovered.commit(next));
+    assert(Preferences::values["cws-config/slot0"] == corrupt);
+    assert(recovered.commit(next));
+    Configuration reboot;
+    assert(reboot.begin());
+    assert(reboot.data["name"] == "candidate");
+}
+static void defaults_recovery_failed_commit_stays_uncommitted() {
+    reset();
+    Configuration initial;
+    assert(initial.begin());
+    DynamicJsonDocument next(16384);
+    next.set(initial.data);
+    next["name"] = "corrupted";
+    assert(initial.commit(next));
+    Preferences::values["cws-config/slot1"].back() ^= 1;
+    Configuration recovered;
+    assert(!recovered.begin());
+    assert(recovered.revision() == 0);
+    next.set(recovered.data);
+    next["name"] = "must-not-be-promoted";
+    // Fail the candidate write after the recovery pointer has selected defaults.
+    Preferences::failKey = "cws-config/slot1";
+    assert(!recovered.commit(next));
+    Configuration reboot;
+    assert(reboot.begin());
+    assert(reboot.revision() == 0);
+    assert(reboot.data["name"] == "Crop monitor");
+    assert(reboot.commit(next));
+}
 static void queue_survives_restart_and_ack() {
     reset();
     Storage s;
@@ -155,6 +219,9 @@ int main() {
     configuration_power_loss();
     configuration_corruption_fallback();
     configuration_rejects_invalid_without_write();
+    recovered_slot_failed_commit_stays_uncommitted();
+    fallback_pointer_failure_blocks_slot_reuse();
+    defaults_recovery_failed_commit_stays_uncommitted();
     queue_survives_restart_and_ack();
     queue_interrupted_write();
     queue_interrupted_rename();
@@ -162,5 +229,5 @@ int main() {
     queue_retention_protects_pending();
     cursor_not_reused_after_purge();
     ack_rename_failure_does_not_deliver();
-    std::cout << "10 production persistence fault-injection tests passed\n";
+    std::cout << "13 production persistence fault-injection tests passed\n";
 }

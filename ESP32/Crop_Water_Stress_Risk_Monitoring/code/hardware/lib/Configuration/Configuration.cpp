@@ -6,6 +6,15 @@ struct CommitPointer {
     uint32_t revision, previous;
     uint8_t slot;
 };
+bool Configuration::restorePointer() {
+    CommitPointer restored{};
+    restored.revision = revision();
+    restored.slot = active;
+    if (nvs.putBytes("active", &restored, sizeof(restored)) != sizeof(restored))
+        return false;
+    repairPointer = false;
+    return true;
+}
 bool Configuration::loadSlot(uint8_t slot, uint32_t revision, JsonDocument &to) {
     String key = String("slot") + slot;
     size_t n = nvs.getBytesLength(key.c_str());
@@ -25,6 +34,9 @@ bool Configuration::loadSlot(uint8_t slot, uint32_t revision, JsonDocument &to) 
     return validate(to.as<JsonVariantConst>(), error);
 }
 bool Configuration::begin() {
+    healthy = false;
+    repairPointer = false;
+    active = 0;
     defaults(data);
     if (!nvs.begin("cws-config", false))
         return false;
@@ -33,8 +45,15 @@ bool Configuration::begin() {
         return true;
     }
     CommitPointer p{};
-    if (nvs.getBytes("active", &p, sizeof(p)) != sizeof(p) || p.slot > 1)
+    if (nvs.getBytes("active", &p, sizeof(p)) != sizeof(p) || p.slot > 1) {
+        repairPointer = true;
         return false;
+    }
+    // Revision zero explicitly selects defaults after recovery from two corrupt slots.
+    if (!p.revision && !p.previous && !p.slot) {
+        healthy = true;
+        return true;
+    }
     active = p.slot;
     if (loadSlot(active, p.revision, data)) {
         healthy = true;
@@ -42,10 +61,14 @@ bool Configuration::begin() {
     }
     if (p.previous && loadSlot(1 - active, p.previous, data)) {
         active = 1 - active;
-        healthy = true;
-        return true;
+        // Retire the corrupt revision before its slot can be reused by a candidate.
+        repairPointer = true;
+        healthy = restorePointer();
+        return healthy;
     }
     defaults(data);
+    active = 0;
+    repairPointer = true;
     return false;
 }
 bool Configuration::validateCertificate(JsonVariantConst c, String &error) {
@@ -66,6 +89,8 @@ bool Configuration::commit(JsonDocument &candidate, bool cal) {
     String certError;
     if (!validate(candidate.as<JsonVariantConst>(), error) ||
         !validateCertificate(candidate.as<JsonVariantConst>(), certError))
+        return false;
+    if (repairPointer && !restorePointer())
         return false;
     uint32_t old = revision();
     if (old == UINT32_MAX)

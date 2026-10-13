@@ -14,10 +14,13 @@ pio test -e native
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r tools/requirements.txt
 .\.venv\Scripts\python.exe tools/test_persistence.py
+$env:CWS_TEST_BROWSER = 'chrome'
 .\.venv\Scripts\python.exe -m pytest test/integration -q
 ```
 
 Native tests require a C++17 `g++` on PATH. Browser tests use Microsoft Edge by default; `CWS_TEST_BROWSER=chrome` selects installed Chrome. The host adapters exercise production storage/configuration/HTTP code; they do not emulate the ESP32's electrical behavior. Results and outstanding checks are recorded in [Testing](docs/TESTING.md).
+
+The [verification report](docs/VERIFICATION_REPORT.md) records the current build, resource use, protocol/browser checks, persistence fault injection and indicator regressions. Configuration recovery repairs the NVS commit pointer before reusing a corrupt slot. Buzzer and LED test timers retire at expiry, including across the 32-bit uptime rollover.
 
 ## Fixed PCB connections
 
@@ -52,6 +55,8 @@ PlatformIO selects the upload port; specify `--upload-port <port>` only after id
 Initialize blank measurement storage using the authorized procedure in [Factory commissioning](docs/FACTORY_COMMISSIONING.md). Normal firmware uploads preserve the filesystem. **Do not use `uploadfs` on a commissioned device**: it replaces measurement storage. Portal assets are embedded in the application, so a separate asset upload is unnecessary.
 
 ## Local configuration
+
+For a hardware-free UI review, open [UI/test.html](UI/test.html) directly in a browser. Sign in with the public preview password `Preview-admin!42`. The page uses the production portal assets with simulated device responses; the default client view shows only the admin interface. Adding `?review=1` reveals the engineering review controls. [Preview instructions](UI/README.md) cover scenarios, reset behavior and rebuilding after interface edits.
 
 After every restart of a commissioned unit, join `CWS-SETUP-<device suffix>` using its setup-network password and open **http://192.168.4.1**. Sign in as `admin` using the separate administrator password. The initial password must be replaced before connectivity settings are available.
 

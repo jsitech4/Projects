@@ -6,6 +6,8 @@ class Indicators {
     uint32_t beepStart = 0, beepDuration = 0, muteStart = 0, muteDuration = 0, testStart = 0,
              testDuration = 0;
     bool sounding = false, ledOn = false;
+    bool buzzerConfigured = false, buzzerEnabled = false, buzzerPassive = false,
+         buzzerActiveHigh = true;
     String state = "startup";
 
   public:
