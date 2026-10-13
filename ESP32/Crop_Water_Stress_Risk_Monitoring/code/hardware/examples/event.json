@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "message_type": "event",
+  "message_id": "CWS-TEST-0123456789abcdef-1",
+  "device_id": "CWS-TEST",
+  "boot_id": "0123456789abcdef",
+  "sequence": 1,
+  "time": {
+    "uptime_ms": 2500,
+    "synchronized": false,
+    "unix_s": null
+  },
+  "code": "boot"
+}

@@ -1,0 +1,3200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1,
+      "maxLength": 79
+    },
+    "command": {
+      "enum": [
+        "device.get_info",
+        "device.get_status",
+        "device.get_health",
+        "device.get_capabilities",
+        "device.reboot",
+        "device.factory_reset",
+        "device.clear_recoverable_faults",
+        "device.get_diagnostics",
+        "device.sync_time",
+        "config.get",
+        "config.validate",
+        "config.patch",
+        "config.restore_defaults",
+        "config.get_revision",
+        "config.export",
+        "environment.read_now",
+        "environment.get_status",
+        "environment.get_config",
+        "environment.set_offsets",
+        "environment.reset_offsets",
+        "environment.enable",
+        "environment.disable",
+        "soil.read_now",
+        "soil.get_status",
+        "soil.get_calibration",
+        "soil.capture_dry",
+        "soil.capture_wet",
+        "soil.set_calibration",
+        "soil.validate_calibration",
+        "soil.reset_calibration",
+        "soil.enable",
+        "soil.disable",
+        "battery.read_now",
+        "battery.get_status",
+        "battery.get_calibration",
+        "battery.capture_reference",
+        "battery.set_calibration",
+        "battery.reset_calibration",
+        "battery.set_thresholds",
+        "solar.read_now",
+        "solar.get_status",
+        "solar.get_calibration",
+        "solar.capture_reference",
+        "solar.set_calibration",
+        "solar.reset_calibration",
+        "solar.set_thresholds",
+        "lcd.get_status",
+        "lcd.set_backlight",
+        "lcd.set_timeout",
+        "lcd.set_page",
+        "lcd.set_enabled",
+        "lcd.show_notice",
+        "led.get_status",
+        "led.set_enabled",
+        "led.set_preferences",
+        "led.test",
+        "led.reset_preferences",
+        "buzzer.get_status",
+        "buzzer.set_enabled",
+        "buzzer.set_alert_preferences",
+        "buzzer.mute",
+        "buzzer.unmute",
+        "buzzer.test",
+        "buzzer.stop",
+        "wifi.get_status",
+        "wifi.scan",
+        "wifi.configure",
+        "wifi.test_connection",
+        "wifi.reconnect",
+        "wifi.disconnect",
+        "wifi.forget_network",
+        "mqtt.get_status",
+        "mqtt.configure",
+        "mqtt.test_connection",
+        "mqtt.reconnect",
+        "mqtt.get_config",
+        "telemetry.read_now",
+        "telemetry.get_last",
+        "telemetry.get_history",
+        "telemetry.publish_now",
+        "telemetry.set_intervals",
+        "telemetry.get_delivery_status",
+        "telemetry.retry_pending",
+        "storage.get_status",
+        "storage.get_statistics",
+        "storage.get_pending_count",
+        "storage.export_records",
+        "storage.retry_sync",
+        "storage.set_retention",
+        "storage.purge_acknowledged",
+        "diagnostics.get_faults",
+        "diagnostics.get_logs",
+        "diagnostics.self_test",
+        "diagnostics.get_memory",
+        "diagnostics.get_reset_reason",
+        "firmware.get_version",
+        "firmware.get_update_status"
+      ]
+    },
+    "args": {
+      "type": "object"
+    },
+    "expected_revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "expires_at": {
+      "type": "integer",
+      "minimum": 1700000000,
+      "maximum": 9007199254740991
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "device_id",
+    "command",
+    "args",
+    "expires_at"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "device.get_info"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "device.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "device.get_health"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "device.get_capabilities"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "device.reboot"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "confirm_device_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "minLength": 1,
+                "maxLength": 79
+              }
+            },
+            "required": [
+              "confirm_device_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "device.factory_reset"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "confirm_device_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "minLength": 1,
+                "maxLength": 79
+              }
+            },
+            "required": [
+              "confirm_device_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "device.clear_recoverable_faults"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "device.get_diagnostics"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "device.sync_time"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "config.get"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "config.validate"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "patch": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "site_id": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "plot_id": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "sample_s": {
+                    "type": "integer",
+                    "minimum": 5,
+                    "maximum": 86400
+                  },
+                  "upload_s": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 86400
+                  },
+                  "health_s": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 86400
+                  },
+                  "environment": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "temperature_offset": {
+                        "type": "number",
+                        "minimum": -10,
+                        "maximum": 10
+                      },
+                      "humidity_offset": {
+                        "type": "number",
+                        "minimum": -20,
+                        "maximum": 20
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "soil": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "dry": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "maximum": 4095
+                      },
+                      "wet": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "maximum": 4095
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "battery": {
+                    "type": "object",
+                    "properties": {
+                      "top_ohm": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100000000.0
+                      },
+                      "bottom_ohm": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100000000.0
+                      },
+                      "gain": {
+                        "type": "number",
+                        "minimum": 0.1,
+                        "maximum": 10
+                      },
+                      "offset": {
+                        "type": "number",
+                        "minimum": -10,
+                        "maximum": 10
+                      },
+                      "min_mv": {
+                        "type": "number",
+                        "minimum": 150,
+                        "maximum": 2400
+                      },
+                      "max_mv": {
+                        "type": "number",
+                        "minimum": 200,
+                        "maximum": 2450
+                      },
+                      "low_v": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      "critical_v": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "solar": {
+                    "type": "object",
+                    "properties": {
+                      "top_ohm": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100000000.0
+                      },
+                      "bottom_ohm": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100000000.0
+                      },
+                      "gain": {
+                        "type": "number",
+                        "minimum": 0.1,
+                        "maximum": 10
+                      },
+                      "offset": {
+                        "type": "number",
+                        "minimum": -10,
+                        "maximum": 10
+                      },
+                      "min_mv": {
+                        "type": "number",
+                        "minimum": 150,
+                        "maximum": 2400
+                      },
+                      "max_mv": {
+                        "type": "number",
+                        "minimum": 200,
+                        "maximum": 2450
+                      },
+                      "low_v": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      "critical_v": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "lcd": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "address": {
+                        "type": "integer",
+                        "minimum": 32,
+                        "maximum": 63
+                      },
+                      "backlight": {
+                        "type": "boolean"
+                      },
+                      "timeout_s": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 3600
+                      },
+                      "page": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "encoder": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "led": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "active_high": {
+                        "type": "boolean"
+                      },
+                      "breathing": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "buzzer": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "passive": {
+                        "type": "boolean"
+                      },
+                      "active_high": {
+                        "type": "boolean"
+                      },
+                      "alerts": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "storage": {
+                    "type": "object",
+                    "properties": {
+                      "retain": {
+                        "type": "integer",
+                        "minimum": 8,
+                        "maximum": 256
+                      },
+                      "drop_oldest": {
+                        "type": "boolean"
+                      },
+                      "durable_ack": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "patch"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "config.patch"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "patch": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "site_id": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "plot_id": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "sample_s": {
+                    "type": "integer",
+                    "minimum": 5,
+                    "maximum": 86400
+                  },
+                  "upload_s": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 86400
+                  },
+                  "health_s": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 86400
+                  },
+                  "environment": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "temperature_offset": {
+                        "type": "number",
+                        "minimum": -10,
+                        "maximum": 10
+                      },
+                      "humidity_offset": {
+                        "type": "number",
+                        "minimum": -20,
+                        "maximum": 20
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "soil": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "dry": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "maximum": 4095
+                      },
+                      "wet": {
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "maximum": 4095
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "battery": {
+                    "type": "object",
+                    "properties": {
+                      "top_ohm": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100000000.0
+                      },
+                      "bottom_ohm": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100000000.0
+                      },
+                      "gain": {
+                        "type": "number",
+                        "minimum": 0.1,
+                        "maximum": 10
+                      },
+                      "offset": {
+                        "type": "number",
+                        "minimum": -10,
+                        "maximum": 10
+                      },
+                      "min_mv": {
+                        "type": "number",
+                        "minimum": 150,
+                        "maximum": 2400
+                      },
+                      "max_mv": {
+                        "type": "number",
+                        "minimum": 200,
+                        "maximum": 2450
+                      },
+                      "low_v": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      "critical_v": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "solar": {
+                    "type": "object",
+                    "properties": {
+                      "top_ohm": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100000000.0
+                      },
+                      "bottom_ohm": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100000000.0
+                      },
+                      "gain": {
+                        "type": "number",
+                        "minimum": 0.1,
+                        "maximum": 10
+                      },
+                      "offset": {
+                        "type": "number",
+                        "minimum": -10,
+                        "maximum": 10
+                      },
+                      "min_mv": {
+                        "type": "number",
+                        "minimum": 150,
+                        "maximum": 2400
+                      },
+                      "max_mv": {
+                        "type": "number",
+                        "minimum": 200,
+                        "maximum": 2450
+                      },
+                      "low_v": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      "critical_v": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "lcd": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "address": {
+                        "type": "integer",
+                        "minimum": 32,
+                        "maximum": 63
+                      },
+                      "backlight": {
+                        "type": "boolean"
+                      },
+                      "timeout_s": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 3600
+                      },
+                      "page": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "encoder": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "led": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "active_high": {
+                        "type": "boolean"
+                      },
+                      "breathing": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "buzzer": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "passive": {
+                        "type": "boolean"
+                      },
+                      "active_high": {
+                        "type": "boolean"
+                      },
+                      "alerts": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "storage": {
+                    "type": "object",
+                    "properties": {
+                      "retain": {
+                        "type": "integer",
+                        "minimum": 8,
+                        "maximum": 256
+                      },
+                      "drop_oldest": {
+                        "type": "boolean"
+                      },
+                      "durable_ack": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "patch"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "config.restore_defaults"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "confirm_device_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "minLength": 1,
+                "maxLength": 79
+              }
+            },
+            "required": [
+              "confirm_device_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "config.get_revision"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "config.export"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "environment.read_now"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "environment.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "environment.get_config"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "environment.set_offsets"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "temperature_offset": {
+                "type": "number",
+                "minimum": -10,
+                "maximum": 10
+              },
+              "humidity_offset": {
+                "type": "number",
+                "minimum": -20,
+                "maximum": 20
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "environment.reset_offsets"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "environment.enable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "environment.disable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "soil.read_now"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "soil.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "soil.get_calibration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "soil.capture_dry"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "soil.capture_wet"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "soil.set_calibration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "dry": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "wet": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 4095
+              }
+            },
+            "required": [
+              "dry",
+              "wet"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "soil.validate_calibration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "dry": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "wet": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 4095
+              }
+            },
+            "required": [
+              "dry",
+              "wet"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "soil.reset_calibration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "soil.enable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "soil.disable"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "battery.read_now"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "battery.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "battery.get_calibration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "battery.capture_reference"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "reference_v": {
+                "type": "number",
+                "minimum": 0.001,
+                "maximum": 1000
+              }
+            },
+            "required": [
+              "reference_v"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "battery.set_calibration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "top_ohm": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100000000.0
+              },
+              "bottom_ohm": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100000000.0
+              },
+              "gain": {
+                "type": "number",
+                "minimum": 0.1,
+                "maximum": 10
+              },
+              "offset": {
+                "type": "number",
+                "minimum": -10,
+                "maximum": 10
+              },
+              "min_mv": {
+                "type": "number",
+                "minimum": 150,
+                "maximum": 2400
+              },
+              "max_mv": {
+                "type": "number",
+                "minimum": 200,
+                "maximum": 2450
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "battery.reset_calibration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "battery.set_thresholds"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "low_v": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "critical_v": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "solar.read_now"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "solar.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "solar.get_calibration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "solar.capture_reference"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "reference_v": {
+                "type": "number",
+                "minimum": 0.001,
+                "maximum": 1000
+              }
+            },
+            "required": [
+              "reference_v"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "solar.set_calibration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "top_ohm": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100000000.0
+              },
+              "bottom_ohm": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100000000.0
+              },
+              "gain": {
+                "type": "number",
+                "minimum": 0.1,
+                "maximum": 10
+              },
+              "offset": {
+                "type": "number",
+                "minimum": -10,
+                "maximum": 10
+              },
+              "min_mv": {
+                "type": "number",
+                "minimum": 150,
+                "maximum": 2400
+              },
+              "max_mv": {
+                "type": "number",
+                "minimum": 200,
+                "maximum": 2450
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "solar.reset_calibration"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "solar.set_thresholds"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "low_v": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "critical_v": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "lcd.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "lcd.set_backlight"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "backlight": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "backlight"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "lcd.set_timeout"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "timeout_s": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 3600
+              }
+            },
+            "required": [
+              "timeout_s"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "lcd.set_page"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2
+              }
+            },
+            "required": [
+              "page"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "lcd.set_enabled"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "lcd.show_notice"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 60000
+              }
+            },
+            "required": [
+              "text",
+              "duration_ms"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "led.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "led.set_enabled"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "led.set_preferences"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "active_high": {
+                "type": "boolean"
+              },
+              "breathing": {
+                "type": "boolean"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "led.test"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 20,
+                "maximum": 3000
+              }
+            },
+            "required": [
+              "duration_ms"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "led.reset_preferences"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "buzzer.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "buzzer.set_enabled"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "buzzer.set_alert_preferences"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "passive": {
+                "type": "boolean"
+              },
+              "active_high": {
+                "type": "boolean"
+              },
+              "alerts": {
+                "type": "boolean"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "buzzer.mute"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "duration_s": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 86400
+              }
+            },
+            "required": [
+              "duration_s"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "buzzer.unmute"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "buzzer.test"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 20,
+                "maximum": 3000
+              }
+            },
+            "required": [
+              "duration_ms"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "buzzer.stop"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "wifi.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "wifi.scan"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "wifi.configure"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "settings": {
+                "type": "object",
+                "properties": {
+                  "ssid": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "password": {
+                    "type": "string",
+                    "maxLength": 63
+                  },
+                  "dhcp": {
+                    "type": "boolean"
+                  },
+                  "ip": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "gateway": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "subnet": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "dns": {
+                    "type": "string",
+                    "maxLength": 128
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "settings"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "wifi.test_connection"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "settings": {
+                "type": "object",
+                "properties": {
+                  "ssid": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "password": {
+                    "type": "string",
+                    "maxLength": 63
+                  },
+                  "dhcp": {
+                    "type": "boolean"
+                  },
+                  "ip": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "gateway": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "subnet": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "dns": {
+                    "type": "string",
+                    "maxLength": 128
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "settings"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "wifi.reconnect"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "wifi.disconnect"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "wifi.forget_network"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "confirm_device_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "minLength": 1,
+                "maxLength": 79
+              }
+            },
+            "required": [
+              "confirm_device_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "mqtt.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "mqtt.configure"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "settings": {
+                "type": "object",
+                "properties": {
+                  "host": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "port": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65535
+                  },
+                  "username": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "password": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "ca": {
+                    "type": "string",
+                    "maxLength": 6000
+                  },
+                  "prefix": {
+                    "const": "cws/v1/devices"
+                  },
+                  "timeout_s": {
+                    "type": "integer",
+                    "minimum": 5,
+                    "maximum": 30
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "settings"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "mqtt.test_connection"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "settings": {
+                "type": "object",
+                "properties": {
+                  "host": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "port": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 65535
+                  },
+                  "username": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "password": {
+                    "type": "string",
+                    "maxLength": 128
+                  },
+                  "ca": {
+                    "type": "string",
+                    "maxLength": 6000
+                  },
+                  "prefix": {
+                    "const": "cws/v1/devices"
+                  },
+                  "timeout_s": {
+                    "type": "integer",
+                    "minimum": 5,
+                    "maximum": 30
+                  }
+                },
+                "required": [],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "settings"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "mqtt.reconnect"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "mqtt.get_config"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "telemetry.read_now"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "telemetry.get_last"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "telemetry.get_history"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "after": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              },
+              "limit": {
+                "const": 1
+              }
+            },
+            "required": [
+              "after"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "telemetry.publish_now"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "telemetry.set_intervals"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "sample_s": {
+                "type": "integer",
+                "minimum": 5,
+                "maximum": 86400
+              },
+              "upload_s": {
+                "type": "integer",
+                "minimum": 10,
+                "maximum": 86400
+              },
+              "health_s": {
+                "type": "integer",
+                "minimum": 10,
+                "maximum": 86400
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "telemetry.get_delivery_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "telemetry.retry_pending"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "storage.get_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "storage.get_statistics"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "storage.get_pending_count"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "storage.export_records"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "after": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              },
+              "limit": {
+                "const": 1
+              }
+            },
+            "required": [
+              "after"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "storage.retry_sync"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "storage.set_retention"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "retain": {
+                "type": "integer",
+                "minimum": 8,
+                "maximum": 256
+              },
+              "drop_oldest": {
+                "type": "boolean"
+              },
+              "durable_ack": {
+                "type": "boolean"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "storage.purge_acknowledged"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {
+              "confirm_device_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "minLength": 1,
+                "maxLength": 79
+              }
+            },
+            "required": [
+              "confirm_device_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "diagnostics.get_faults"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "diagnostics.get_logs"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "diagnostics.self_test"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "diagnostics.get_memory"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "diagnostics.get_reset_reason"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "firmware.get_version"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "firmware.get_update_status"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  ]
+}

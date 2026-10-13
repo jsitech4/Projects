@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1,
+      "maxLength": 79
+    },
+    "message_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1,
+      "maxLength": 79
+    },
+    "durably_stored": {
+      "const": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "device_id",
+    "message_id",
+    "durably_stored"
+  ],
+  "additionalProperties": false
+}

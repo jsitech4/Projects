@@ -1,0 +1,6 @@
+jsonschema==4.23.0
+paho-mqtt==2.1.0
+pyserial==3.5
+pytest==8.3.5
+playwright==1.49.1
+clang-format==19.1.7

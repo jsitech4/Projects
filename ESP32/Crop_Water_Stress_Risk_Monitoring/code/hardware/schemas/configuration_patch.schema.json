@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 48
+    },
+    "site_id": {
+      "type": "string",
+      "maxLength": 48
+    },
+    "plot_id": {
+      "type": "string",
+      "maxLength": 48
+    },
+    "sample_s": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 86400
+    },
+    "upload_s": {
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 86400
+    },
+    "health_s": {
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 86400
+    },
+    "wifi": {
+      "type": "object",
+      "properties": {
+        "ssid": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "password": {
+          "type": "string",
+          "maxLength": 63
+        },
+        "dhcp": {
+          "type": "boolean"
+        },
+        "ip": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "gateway": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "subnet": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "dns": {
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "mqtt": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "username": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "password": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "ca": {
+          "type": "string",
+          "maxLength": 6000
+        },
+        "prefix": {
+          "const": "cws/v1/devices"
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 30
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "temperature_offset": {
+          "type": "number",
+          "minimum": -10,
+          "maximum": 10
+        },
+        "humidity_offset": {
+          "type": "number",
+          "minimum": -20,
+          "maximum": 20
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "soil": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "dry": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4095
+        },
+        "wet": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4095
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "battery": {
+      "type": "object",
+      "properties": {
+        "top_ohm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000.0
+        },
+        "bottom_ohm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000.0
+        },
+        "gain": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 10
+        },
+        "offset": {
+          "type": "number",
+          "minimum": -10,
+          "maximum": 10
+        },
+        "min_mv": {
+          "type": "number",
+          "minimum": 150,
+          "maximum": 2400
+        },
+        "max_mv": {
+          "type": "number",
+          "minimum": 200,
+          "maximum": 2450
+        },
+        "low_v": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "critical_v": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "solar": {
+      "type": "object",
+      "properties": {
+        "top_ohm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000.0
+        },
+        "bottom_ohm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000.0
+        },
+        "gain": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 10
+        },
+        "offset": {
+          "type": "number",
+          "minimum": -10,
+          "maximum": 10
+        },
+        "min_mv": {
+          "type": "number",
+          "minimum": 150,
+          "maximum": 2400
+        },
+        "max_mv": {
+          "type": "number",
+          "minimum": 200,
+          "maximum": 2450
+        },
+        "low_v": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "critical_v": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "lcd": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "address": {
+          "type": "integer",
+          "minimum": 32,
+          "maximum": 63
+        },
+        "backlight": {
+          "type": "boolean"
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "encoder": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "led": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "active_high": {
+          "type": "boolean"
+        },
+        "breathing": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "buzzer": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "passive": {
+          "type": "boolean"
+        },
+        "active_high": {
+          "type": "boolean"
+        },
+        "alerts": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "storage": {
+      "type": "object",
+      "properties": {
+        "retain": {
+          "type": "integer",
+          "minimum": 8,
+          "maximum": 256
+        },
+        "drop_oldest": {
+          "type": "boolean"
+        },
+        "durable_ack": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "required": [],
+  "additionalProperties": false
+}

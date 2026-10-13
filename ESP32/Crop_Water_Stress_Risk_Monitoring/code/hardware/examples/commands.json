@@ -1,0 +1,2006 @@
+[
+  {
+    "command": "device.get_info",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "device.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "device.get_health",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "device.get_capabilities",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "device.reboot",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "confirm_device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 79
+        }
+      },
+      "required": [
+        "confirm_device_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "device.factory_reset",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "confirm_device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 79
+        }
+      },
+      "required": [
+        "confirm_device_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "device.clear_recoverable_faults",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "device.get_diagnostics",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "device.sync_time",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "config.get",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "config.validate",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {
+        "patch": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 48
+            },
+            "site_id": {
+              "type": "string",
+              "maxLength": 48
+            },
+            "plot_id": {
+              "type": "string",
+              "maxLength": 48
+            },
+            "sample_s": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 86400
+            },
+            "upload_s": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 86400
+            },
+            "health_s": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 86400
+            },
+            "environment": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "temperature_offset": {
+                  "type": "number",
+                  "minimum": -10,
+                  "maximum": 10
+                },
+                "humidity_offset": {
+                  "type": "number",
+                  "minimum": -20,
+                  "maximum": 20
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "soil": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "dry": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 4095
+                },
+                "wet": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 4095
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "battery": {
+              "type": "object",
+              "properties": {
+                "top_ohm": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100000000.0
+                },
+                "bottom_ohm": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100000000.0
+                },
+                "gain": {
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 10
+                },
+                "offset": {
+                  "type": "number",
+                  "minimum": -10,
+                  "maximum": 10
+                },
+                "min_mv": {
+                  "type": "number",
+                  "minimum": 150,
+                  "maximum": 2400
+                },
+                "max_mv": {
+                  "type": "number",
+                  "minimum": 200,
+                  "maximum": 2450
+                },
+                "low_v": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "critical_v": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "solar": {
+              "type": "object",
+              "properties": {
+                "top_ohm": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100000000.0
+                },
+                "bottom_ohm": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100000000.0
+                },
+                "gain": {
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 10
+                },
+                "offset": {
+                  "type": "number",
+                  "minimum": -10,
+                  "maximum": 10
+                },
+                "min_mv": {
+                  "type": "number",
+                  "minimum": 150,
+                  "maximum": 2400
+                },
+                "max_mv": {
+                  "type": "number",
+                  "minimum": 200,
+                  "maximum": 2450
+                },
+                "low_v": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "critical_v": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "lcd": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "address": {
+                  "type": "integer",
+                  "minimum": 32,
+                  "maximum": 63
+                },
+                "backlight": {
+                  "type": "boolean"
+                },
+                "timeout_s": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 2
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "encoder": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "led": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "active_high": {
+                  "type": "boolean"
+                },
+                "breathing": {
+                  "type": "boolean"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "buzzer": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "passive": {
+                  "type": "boolean"
+                },
+                "active_high": {
+                  "type": "boolean"
+                },
+                "alerts": {
+                  "type": "boolean"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "storage": {
+              "type": "object",
+              "properties": {
+                "retain": {
+                  "type": "integer",
+                  "minimum": 8,
+                  "maximum": 256
+                },
+                "drop_oldest": {
+                  "type": "boolean"
+                },
+                "durable_ack": {
+                  "type": "boolean"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "patch"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "config.patch",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "patch": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "maxLength": 48
+            },
+            "site_id": {
+              "type": "string",
+              "maxLength": 48
+            },
+            "plot_id": {
+              "type": "string",
+              "maxLength": 48
+            },
+            "sample_s": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 86400
+            },
+            "upload_s": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 86400
+            },
+            "health_s": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 86400
+            },
+            "environment": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "temperature_offset": {
+                  "type": "number",
+                  "minimum": -10,
+                  "maximum": 10
+                },
+                "humidity_offset": {
+                  "type": "number",
+                  "minimum": -20,
+                  "maximum": 20
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "soil": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "dry": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 4095
+                },
+                "wet": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 4095
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "battery": {
+              "type": "object",
+              "properties": {
+                "top_ohm": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100000000.0
+                },
+                "bottom_ohm": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100000000.0
+                },
+                "gain": {
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 10
+                },
+                "offset": {
+                  "type": "number",
+                  "minimum": -10,
+                  "maximum": 10
+                },
+                "min_mv": {
+                  "type": "number",
+                  "minimum": 150,
+                  "maximum": 2400
+                },
+                "max_mv": {
+                  "type": "number",
+                  "minimum": 200,
+                  "maximum": 2450
+                },
+                "low_v": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "critical_v": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "solar": {
+              "type": "object",
+              "properties": {
+                "top_ohm": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100000000.0
+                },
+                "bottom_ohm": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100000000.0
+                },
+                "gain": {
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 10
+                },
+                "offset": {
+                  "type": "number",
+                  "minimum": -10,
+                  "maximum": 10
+                },
+                "min_mv": {
+                  "type": "number",
+                  "minimum": 150,
+                  "maximum": 2400
+                },
+                "max_mv": {
+                  "type": "number",
+                  "minimum": 200,
+                  "maximum": 2450
+                },
+                "low_v": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "critical_v": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "lcd": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "address": {
+                  "type": "integer",
+                  "minimum": 32,
+                  "maximum": 63
+                },
+                "backlight": {
+                  "type": "boolean"
+                },
+                "timeout_s": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3600
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 2
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "encoder": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "led": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "active_high": {
+                  "type": "boolean"
+                },
+                "breathing": {
+                  "type": "boolean"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "buzzer": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "passive": {
+                  "type": "boolean"
+                },
+                "active_high": {
+                  "type": "boolean"
+                },
+                "alerts": {
+                  "type": "boolean"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "storage": {
+              "type": "object",
+              "properties": {
+                "retain": {
+                  "type": "integer",
+                  "minimum": 8,
+                  "maximum": 256
+                },
+                "drop_oldest": {
+                  "type": "boolean"
+                },
+                "durable_ack": {
+                  "type": "boolean"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "patch"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "config.restore_defaults",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "confirm_device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 79
+        }
+      },
+      "required": [
+        "confirm_device_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "config.get_revision",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "config.export",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "environment.read_now",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "environment.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "environment.get_config",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "environment.set_offsets",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "temperature_offset": {
+          "type": "number",
+          "minimum": -10,
+          "maximum": 10
+        },
+        "humidity_offset": {
+          "type": "number",
+          "minimum": -20,
+          "maximum": 20
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "environment.reset_offsets",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "environment.enable",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "environment.disable",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "soil.read_now",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "soil.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "soil.get_calibration",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "soil.capture_dry",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "soil.capture_wet",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "soil.set_calibration",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "dry": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4095
+        },
+        "wet": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4095
+        }
+      },
+      "required": [
+        "dry",
+        "wet"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "soil.validate_calibration",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {
+        "dry": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4095
+        },
+        "wet": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4095
+        }
+      },
+      "required": [
+        "dry",
+        "wet"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "soil.reset_calibration",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "soil.enable",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "soil.disable",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "battery.read_now",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "battery.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "battery.get_calibration",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "battery.capture_reference",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "reference_v": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 1000
+        }
+      },
+      "required": [
+        "reference_v"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "battery.set_calibration",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "top_ohm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000.0
+        },
+        "bottom_ohm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000.0
+        },
+        "gain": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 10
+        },
+        "offset": {
+          "type": "number",
+          "minimum": -10,
+          "maximum": 10
+        },
+        "min_mv": {
+          "type": "number",
+          "minimum": 150,
+          "maximum": 2400
+        },
+        "max_mv": {
+          "type": "number",
+          "minimum": 200,
+          "maximum": 2450
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "battery.reset_calibration",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "battery.set_thresholds",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "low_v": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "critical_v": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "solar.read_now",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "solar.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "solar.get_calibration",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "solar.capture_reference",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "reference_v": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 1000
+        }
+      },
+      "required": [
+        "reference_v"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "solar.set_calibration",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "top_ohm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000.0
+        },
+        "bottom_ohm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100000000.0
+        },
+        "gain": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 10
+        },
+        "offset": {
+          "type": "number",
+          "minimum": -10,
+          "maximum": 10
+        },
+        "min_mv": {
+          "type": "number",
+          "minimum": 150,
+          "maximum": 2400
+        },
+        "max_mv": {
+          "type": "number",
+          "minimum": 200,
+          "maximum": 2450
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "solar.reset_calibration",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "solar.set_thresholds",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "low_v": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "critical_v": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "lcd.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "lcd.set_backlight",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "backlight": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "backlight"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "lcd.set_timeout",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600
+        }
+      },
+      "required": [
+        "timeout_s"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "lcd.set_page",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "lcd.set_enabled",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "lcd.show_notice",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 60000
+        }
+      },
+      "required": [
+        "text",
+        "duration_ms"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "led.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "led.set_enabled",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "led.set_preferences",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "active_high": {
+          "type": "boolean"
+        },
+        "breathing": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "led.test",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 20,
+          "maximum": 3000
+        }
+      },
+      "required": [
+        "duration_ms"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "led.reset_preferences",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "buzzer.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "buzzer.set_enabled",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "buzzer.set_alert_preferences",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "passive": {
+          "type": "boolean"
+        },
+        "active_high": {
+          "type": "boolean"
+        },
+        "alerts": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "buzzer.mute",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "duration_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        }
+      },
+      "required": [
+        "duration_s"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "buzzer.unmute",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "buzzer.test",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 20,
+          "maximum": 3000
+        }
+      },
+      "required": [
+        "duration_ms"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "buzzer.stop",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "wifi.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "wifi.scan",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "wifi.configure",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "settings": {
+          "type": "object",
+          "properties": {
+            "ssid": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "password": {
+              "type": "string",
+              "maxLength": 63
+            },
+            "dhcp": {
+              "type": "boolean"
+            },
+            "ip": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "gateway": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "subnet": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "dns": {
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "settings"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "wifi.test_connection",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "settings": {
+          "type": "object",
+          "properties": {
+            "ssid": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "password": {
+              "type": "string",
+              "maxLength": 63
+            },
+            "dhcp": {
+              "type": "boolean"
+            },
+            "ip": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "gateway": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "subnet": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "dns": {
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "settings"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "wifi.reconnect",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "wifi.disconnect",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "wifi.forget_network",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "confirm_device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 79
+        }
+      },
+      "required": [
+        "confirm_device_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "mqtt.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "mqtt.configure",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "settings": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "username": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "password": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "ca": {
+              "type": "string",
+              "maxLength": 6000
+            },
+            "prefix": {
+              "const": "cws/v1/devices"
+            },
+            "timeout_s": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 30
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "settings"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "mqtt.test_connection",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "settings": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "username": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "password": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "ca": {
+              "type": "string",
+              "maxLength": 6000
+            },
+            "prefix": {
+              "const": "cws/v1/devices"
+            },
+            "timeout_s": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 30
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "settings"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "mqtt.reconnect",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "mqtt.get_config",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "telemetry.read_now",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "telemetry.get_last",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "telemetry.get_history",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {
+        "after": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "limit": {
+          "const": 1
+        }
+      },
+      "required": [
+        "after"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "telemetry.publish_now",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "telemetry.set_intervals",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "sample_s": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 86400
+        },
+        "upload_s": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 86400
+        },
+        "health_s": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 86400
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "telemetry.get_delivery_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "telemetry.retry_pending",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "storage.get_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "storage.get_statistics",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "storage.get_pending_count",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "storage.export_records",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {
+        "after": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "limit": {
+          "const": 1
+        }
+      },
+      "required": [
+        "after"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "storage.retry_sync",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "storage.set_retention",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "retain": {
+          "type": "integer",
+          "minimum": 8,
+          "maximum": 256
+        },
+        "drop_oldest": {
+          "type": "boolean"
+        },
+        "durable_ack": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "storage.purge_acknowledged",
+    "mutating": true,
+    "args": {
+      "type": "object",
+      "properties": {
+        "confirm_device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 79
+        }
+      },
+      "required": [
+        "confirm_device_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "diagnostics.get_faults",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "diagnostics.get_logs",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "diagnostics.self_test",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "diagnostics.get_memory",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "diagnostics.get_reset_reason",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "firmware.get_version",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "command": "firmware.get_update_status",
+    "mutating": false,
+    "args": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+]

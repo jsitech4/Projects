@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0",
+  "device_id": "CWS-TEST",
+  "message_id": "CWS-TEST-0123456789abcdef-1",
+  "durably_stored": true
+}

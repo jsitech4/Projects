@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "message_type": {
+      "const": "event"
+    },
+    "message_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1,
+      "maxLength": 79
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "minLength": 1,
+      "maxLength": 79
+    },
+    "boot_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{16}$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    },
+    "time": {
+      "type": "object",
+      "properties": {
+        "uptime_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "synchronized": {
+          "type": "boolean"
+        },
+        "unix_s": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1700000000
+        }
+      },
+      "required": [
+        "uptime_ms",
+        "synchronized",
+        "unix_s"
+      ],
+      "additionalProperties": false
+    },
+    "code": {
+      "type": "string",
+      "maxLength": 64
+    }
+  },
+  "required": [
+    "schema_version",
+    "message_type",
+    "message_id",
+    "device_id",
+    "boot_id",
+    "sequence",
+    "time",
+    "code"
+  ],
+  "additionalProperties": false
+}
