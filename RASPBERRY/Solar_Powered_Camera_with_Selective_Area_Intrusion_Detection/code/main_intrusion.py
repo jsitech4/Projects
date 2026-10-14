@@ -17,6 +17,26 @@ from email import encoders
 ZONE_FILE = "zone.json"
 EVENTS_ROOT = "events"
 
+
+def load_local_env(path=".env"):
+    """Load simple KEY=VALUE pairs from a local, ignored .env file.
+
+    Existing process environment values take precedence so deployments can use
+    their normal secret manager instead of a file.
+    """
+    if not os.path.exists(path):
+        return
+    with open(path, "r", encoding="utf-8") as env_file:
+        for raw_line in env_file:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+load_local_env()
+
 PIR_PIN = 17
 BUZZER_INDOOR = 18
 BUZZER_OUTDOOR = 23
@@ -27,9 +47,11 @@ CROSSING_REARM_DELAY = 3
 SNAPSHOT_INTERVAL = 1
 MAX_EMAIL_ATTACHMENT_BYTES = 24 * 1024 * 1024
 
-EMAIL_FROM = "opatricia.0268@gmail.com"
-EMAIL_TO = "opatricia.0268@gmail.com"
-EMAIL_PASSWORD = "ddiuqmzuaosalmks"
+EMAIL_FROM = os.getenv("EMAIL_FROM", "")
+EMAIL_TO = os.getenv("EMAIL_TO", "")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
 
 os.makedirs(EVENTS_ROOT, exist_ok=True)
 app = Flask(__name__)
@@ -90,6 +112,8 @@ def attach_file(msg, filepath):
 
 def send_event_email(image_paths, video_path, event_id):
     try:
+        if not all((EMAIL_FROM, EMAIL_TO, EMAIL_PASSWORD)):
+            raise RuntimeError("Email is not configured; set EMAIL_FROM, EMAIL_TO, and EMAIL_PASSWORD in .env")
         msg = MIMEMultipart()
         body_lines = [f"Intruder detected. Event ID: {event_id}"]
 
@@ -110,7 +134,7 @@ def send_event_email(image_paths, video_path, event_id):
 
         msg.attach(MIMEText("\n".join(body_lines), "plain"))
 
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=20)
+        server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=20)
         server.login(EMAIL_FROM, EMAIL_PASSWORD)
         server.sendmail(EMAIL_FROM, [EMAIL_TO], msg.as_string())
         server.quit()

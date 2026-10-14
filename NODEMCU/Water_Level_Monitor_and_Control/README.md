@@ -347,6 +347,10 @@ Possible causes:
 
 ---
 
+## Security and local configuration
+
+Never commit populated `.env` files, Wi-Fi credentials, passwords, API keys, SMTP credentials, broker tokens, private certificates, or production connection strings. Keep them in an ignored local configuration file or approved secret store, and commit only a redacted `.env.example` when configuration is needed. Replace development access-point credentials before deployment and limit local administration to trusted networks.
+
 # Author
 
 Egbe Raymond
@@ -357,6 +361,6 @@ Full Stack Developer
 
 ---
 
-# License
+## License
 
-This project is intended for educational, development, and prototype automation system use.
+Released under the [MIT License](LICENSE).

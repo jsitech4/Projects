@@ -310,7 +310,17 @@ The sender Gmail account must use:
 - 2-Step Verification
 - App Password
 
-The normal Gmail password should not be used directly in the code.
+The normal Gmail password must not be used. Before running the system, copy `code/.env.example` to `code/.env` and set the local values:
+
+```dotenv
+EMAIL_FROM=sender@example.com
+EMAIL_TO=recipient@example.com
+EMAIL_PASSWORD=provider-app-password
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+```
+
+`main_intrusion.py` reads this file at startup. The populated `.env` is ignored by Git; do not place credentials in Python source, a README, screenshots, or version control. Environment variables supplied by a service manager take precedence over `.env` values.
 
 ---
 
@@ -357,8 +367,12 @@ sudo apt install python3-opencv python3-flask python3-gpiozero python3-numpy pyt
 ## Step 1 — Enter the Project Folder
 
 ```bash
-cd ~/Documents/Intruder_Alarm_System
+cd code
+cp .env.example .env
+chmod 600 .env
 ```
+
+Edit `.env` with the sender, recipient, and provider-specific app password before continuing.
 
 ## Step 2 — Draw the Zone
 
@@ -495,6 +509,10 @@ events/event_x/videos/
 
 ---
 
+## Security and local configuration
+
+Never commit populated `.env` files, Wi-Fi credentials, passwords, API keys, SMTP credentials, broker tokens, private certificates, or production connection strings. Keep them in an ignored local configuration file or approved secret store, and commit only a redacted `.env.example` when configuration is needed. Replace development access-point credentials before deployment and limit local administration to trusted networks.
+
 # Author
 
 Egbe Raymond
@@ -505,6 +523,6 @@ Full Stack Developer
 
 ---
 
-# License
+## License
 
-This project is intended for educational, development, and prototype security system use.
+Released under the [MIT License](LICENSE).
