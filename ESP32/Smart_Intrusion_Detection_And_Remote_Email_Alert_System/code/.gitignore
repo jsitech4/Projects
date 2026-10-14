@@ -4,3 +4,20 @@
 *.log
 secrets*.h
 credentials*.h
+
+# Never commit generated firmware, test artifacts, or local coverage reports.
+*.bin
+*.elf
+*.map
+*.obj
+*.exe
+coverage/
+test-results/
+
+# Credentials belong in device NVS or untracked local files, never Git.
+.env
+.env.*
+!.env.example
+secrets*/
+credentials*/
+*.key

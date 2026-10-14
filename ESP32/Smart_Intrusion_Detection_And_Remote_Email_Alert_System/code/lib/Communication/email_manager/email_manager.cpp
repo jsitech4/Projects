@@ -2,11 +2,13 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include "Storage/config/config.h"
+#include "Communication/wifi_manager/wifi_manager.h"
 namespace
 {
   struct N
   {
     uint32_t id, cycle;
+    time_t eventEpoch;
     bool test;
     uint8_t tries;
   };
@@ -62,6 +64,28 @@ bP6MvPJwNQzcmRk13NfIRmPVNnGuV/u3gm3c
     }
     return o;
   }
+  String smtpBody(const String &body)
+  {
+    String out;
+    bool lineStart = true;
+    for (size_t i = 0; i < body.length(); ++i)
+    {
+      char ch = body[i];
+      if (ch == '\r') continue;
+      if (ch == '\n') { out += "\r\n"; lineStart = true; continue; }
+      if (lineStart && ch == '.') out += '.'; // SMTP dot-stuffing
+      out += ch;
+      lineStart = false;
+    }
+    return out;
+  }
+  String incidentDetails(const DeviceConfig &config, const N &notification)
+  {
+    String details = "\n\nLocation: " + config.location;
+    if (!notification.test) details += "\nEvent ID: " + String(notification.id);
+    details += "\nTime: " + wifi_manager::formatTime(notification.eventEpoch);
+    return details;
+  }
   bool reply(WiFiClientSecure &c, int wanted = 2)
   {
     uint32_t until = millis() + 12000;
@@ -74,7 +98,7 @@ bP6MvPJwNQzcmRk13NfIRmPVNnGuV/u3gm3c
         r += x;
         if (x == '\n')
         {
-          if (r[0] - '0' == wanted)
+          if (r.length() >= 3 && r[0] - '0' == wanted)
             return true;
           if (r.length() < 4 || r[3] != '-')
           {
@@ -91,8 +115,10 @@ bP6MvPJwNQzcmRk13NfIRmPVNnGuV/u3gm3c
   }
   bool send(N n)
   {
-    DeviceConfig &x = config::get();
-    if (WiFi.status() != WL_CONNECTED || !x.senderEmail.length() || !x.senderPassword.length() || !x.recipientEmail.length())
+    // Keep this delivery internally consistent if an administrator saves new
+    // settings while the SMTP task is in progress.
+    DeviceConfig x = config::get();
+    if (WiFi.status() != WL_CONNECTED || !x.senderEmail.length() || !x.senderPassword.length() || !x.recipientEmails.length())
     {
       last = "waiting for Wi-Fi or Gmail setup";
       return false;
@@ -106,14 +132,33 @@ bP6MvPJwNQzcmRk13NfIRmPVNnGuV/u3gm3c
     }
     auto cmd = [&](String z, int code = 2)
     {c.print(z+"\r\n");return reply(c,code); };
-    if (!cmd("EHLO esp32") || !cmd("AUTH LOGIN", 3) || !cmd(enc(x.senderEmail), 3) || !cmd(enc(x.senderPassword)) || !cmd("MAIL FROM:<" + x.senderEmail + ">") || !cmd("RCPT TO:<" + x.recipientEmail + ">") || !cmd("DATA", 3))
+    if (!cmd("EHLO esp32") || !cmd("AUTH LOGIN", 3) || !cmd(enc(x.senderEmail), 3) || !cmd(enc(x.senderPassword)) || !cmd("MAIL FROM:<" + x.senderEmail + ">"))
       return false;
+    // Recipients are configured as a canonical comma-separated list.  One
+    // SMTP envelope preserves a single event/retry lifecycle, while the
+    // undisclosed To header avoids exposing the recipient list to everyone.
+    int from = 0;
+    uint8_t recipientCount = 0;
+    while (from <= (int)x.recipientEmails.length()) {
+      int comma = x.recipientEmails.indexOf(',', from);
+      String recipient = x.recipientEmails.substring(from, comma < 0 ? x.recipientEmails.length() : comma);
+      recipient.trim();
+      if (recipient.length()) {
+        if (!cmd("RCPT TO:<" + recipient + ">")) return false;
+        ++recipientCount;
+      }
+      if (comma < 0) break;
+      from = comma + 1;
+    }
+    if (!recipientCount || !cmd("DATA", 3)) return false;
     String body = n.test ? "This is a test email from " + x.deviceName : x.bodyTemplate;
-    body.replace("{event_id}", String(n.id));
-    body.replace("{alarm_cycle}", String(n.cycle));
-    String subject = n.test ? "Intrusion detector test" : x.subjectTemplate;
-    subject.replace("{device_name}", x.deviceName);
-    bool ok = cmd("From: <" + x.senderEmail + ">\r\nTo: <" + x.recipientEmail + ">\r\nSubject: " + subject + "\r\n\r\n" + body + "\r\n.");
+    body += incidentDetails(x, n);
+    body = smtpBody(body);
+    String subject = n.test ? "Intrusion detector test - " + x.deviceName : "SECURITY ALERT - " + x.deviceName;
+    subject.replace("\r", " "); subject.replace("\n", " ");
+    String senderName = x.senderName;
+    senderName.replace("\r", " "); senderName.replace("\n", " "); senderName.replace("\"", "'");
+    bool ok = cmd("From: \"" + senderName + "\" <" + x.senderEmail + ">\r\nTo: undisclosed-recipients:;\r\nSubject: " + subject + "\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n" + body + "\r\n.");
     last = ok ? "SMTP accepted notification" : last;
     c.stop();
     return ok;
@@ -122,10 +167,18 @@ bP6MvPJwNQzcmRk13NfIRmPVNnGuV/u3gm3c
   {
     N n;
     for (;;)
-      if (xQueueReceive(q, &n, portMAX_DELAY) && !send(n) && n.tries++ < config::get().maxRetries)
+      if (xQueueReceive(q, &n, portMAX_DELAY))
       {
-        vTaskDelay(3000 / portTICK_PERIOD_MS);
-        xQueueSendToBack(q, &n, 0);
+        while (!send(n))
+        {
+          // Keep the original event timestamp with this item while
+          // connectivity is unavailable. Retry promptly at first, then at a
+          // lower rate without discarding the pending notification.
+          uint32_t waitMs = n.tries++ < config::get().maxRetries ? 3000 : 60000;
+          if (n.tries > config::get().maxRetries)
+            last = "delivery pending; retrying";
+          vTaskDelay(waitMs / portTICK_PERIOD_MS);
+        }
       }
   }
 }
@@ -143,7 +196,7 @@ namespace email_manager
       last = "notification rate limited";
       return false;
     }
-    N n{id, c, test, 0};
+    N n{id, c, wifi_manager::currentEpoch(), test, 0};
     if (xQueueSendToBack(q, &n, 0) != pdTRUE)
     {
       last = "notification queue full";
@@ -151,6 +204,23 @@ namespace email_manager
     }
     if (!test)
       lastQueued = millis();
+    last = "notification queued";
+    return true;
+  }
+  bool queueIncident(uint32_t id, uint32_t c, time_t eventEpoch)
+  {
+    if (millis() - lastQueued < config::get().notificationIntervalMs)
+    {
+      last = "notification rate limited";
+      return false;
+    }
+    N n{id, c, eventEpoch, false, 0};
+    if (xQueueSendToBack(q, &n, 0) != pdTRUE)
+    {
+      last = "notification queue full";
+      return false;
+    }
+    lastQueued = millis();
     last = "notification queued";
     return true;
   }

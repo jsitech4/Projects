@@ -29,10 +29,12 @@ struct DeviceConfig {
   uint16_t smtpPort = 465;
   String senderEmail;
   String senderPassword;
-  String recipientEmail;
+  // Comma-separated canonical list.  Kept small so it remains practical for
+  // the ESP32's NVS and for a single SMTP transaction.
+  String recipientEmails;
   String senderName = "ESP32 Security";
-  String subjectTemplate = "SECURITY ALERT - {device_name}";
-  String bodyTemplate = "Intrusion detected at {device_location}. Event {event_id}, alarm cycle {alarm_cycle}. PIR: {motion_status}.";
+  String subjectTemplate = "SECURITY ALERT";
+  String bodyTemplate = "Intrusion detected.";
 };
 
 namespace config {

@@ -2,12 +2,14 @@
 #include "Storage/config/config.h"
 #include "Sensors/pir_sensor/pir_sensor.h"
 #include "Actuators/buzzer/buzzer.h"
+#include "Communication/wifi_manager/wifi_manager.h"
+#include "Control/alarm_policy/alarm_policy.h"
 
 namespace
 {
   IntrusionStatus state;
   uint32_t bootMs, rawChangedMs, alarmEndsMs;
-  bool rawPrevious;
+  bool rawPrevious, waitForConfirmedClear;
   intrusion_controller::NotificationCallback notifyCb;
   intrusion_controller::EventCallback eventCb;
   bool elapsed(uint32_t now, uint32_t since, uint32_t duration) { return (uint32_t)(now - since) >= duration; }
@@ -19,22 +21,25 @@ namespace
     state.alarmCycle = 1;
     state.alarmActive = true;
     state.lastEventMs = now;
+    state.eventEpoch = wifi_manager::currentEpoch();
     alarmEndsMs = now + cfg.alarmDurationMs;
     if (cfg.audibleAlarm)
       buzzer::on();
     if (notifyCb)
-      notifyCb(state.eventId, state.alarmCycle, false);
+      notifyCb(state.eventId, state.alarmCycle, state.eventEpoch, false);
     if (eventCb)
       eventCb(state, false);
   }
   void closeEvent()
   {
     state.alarmActive = false;
-    state.alarmCycle = 0;
     state.remainingAlarmMs = 0;
     buzzer::off();
     if (eventCb)
       eventCb(state, true);
+    state.alarmCycle = 0;
+    if (alarm_policy::mustClearBeforeAnotherEvent(state.confirmedMotion, config::get().repeatAlarm))
+      waitForConfirmedClear = true;
   }
 }
 
@@ -46,6 +51,7 @@ namespace intrusion_controller
     eventCb = event;
     bootMs = millis();
     rawPrevious = pir_sensor::isMotionDetected();
+    waitForConfirmedClear = false;
     rawChangedMs = bootMs;
     state.rawPir = rawPrevious;
   }
@@ -66,8 +72,11 @@ namespace intrusion_controller
       if (raw && !state.confirmedMotion && elapsed(now, rawChangedMs, cfg.motionConfirmMs))
         state.confirmedMotion = true;
       if (!raw && state.confirmedMotion && elapsed(now, rawChangedMs, cfg.clearConfirmMs))
+      {
         state.confirmedMotion = false;
-      if (cfg.armed && state.confirmedMotion && !state.alarmActive)
+        waitForConfirmedClear = false;
+      }
+      if (alarm_policy::shouldStartEvent(cfg.armed, state.confirmedMotion, state.alarmActive, waitForConfirmedClear))
         startEvent(now);
     }
     if (state.alarmActive)
@@ -75,7 +84,7 @@ namespace intrusion_controller
       state.remainingAlarmMs = (int32_t)(alarmEndsMs - now) > 0 ? alarmEndsMs - now : 0;
       if ((int32_t)(now - alarmEndsMs) >= 0)
       {
-        if (state.confirmedMotion && cfg.repeatAlarm)
+        if (alarm_policy::shouldRepeatAtBoundary(state.confirmedMotion, cfg.repeatAlarm))
         {
           state.alarmCycle++;
           alarmEndsMs = now + cfg.alarmDurationMs;
@@ -83,7 +92,7 @@ namespace intrusion_controller
           if (cfg.audibleAlarm)
             buzzer::on();
           if (notifyCb)
-            notifyCb(state.eventId, state.alarmCycle, false);
+            notifyCb(state.eventId, state.alarmCycle, state.eventEpoch, false);
           if (eventCb)
             eventCb(state, false);
         }

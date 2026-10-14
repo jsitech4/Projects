@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include <time.h>
 
 struct IntrusionStatus {
   bool rawPir = false;
@@ -11,10 +12,11 @@ struct IntrusionStatus {
   uint32_t remainingAlarmMs = 0;
   uint32_t totalEvents = 0;
   uint32_t lastEventMs = 0;
+  time_t eventEpoch = 0;
 };
 
 namespace intrusion_controller {
-  typedef void (*NotificationCallback)(uint32_t eventId, uint32_t cycle, bool test);
+  typedef void (*NotificationCallback)(uint32_t eventId, uint32_t cycle, time_t eventEpoch, bool test);
   typedef void (*EventCallback)(const IntrusionStatus &status, bool closed);
   void begin(NotificationCallback notification, EventCallback event);
   void update();

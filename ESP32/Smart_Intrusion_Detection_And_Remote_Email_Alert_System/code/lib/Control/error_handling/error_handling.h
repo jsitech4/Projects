@@ -7,7 +7,9 @@ namespace error_handling
 {
 
   void begin();
+  void enableWatchdog(uint8_t timeoutSeconds = 10);
   void update();
+  bool watchdogEnabled();
 
   void setCodeError(bool state);
   bool hasError();
