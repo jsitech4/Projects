@@ -313,6 +313,38 @@ Full Stack Developer
 
 ---
 
-## License
+## Engineering asset map and license scope
 
-Released under the [MIT License](LICENSE).
+The editable electrical design is in `hardware/` as the KiCad project,
+schematic, and PCB. Supporting symbols, footprints, 3D models, source/exported
+documentation, rendered images, the BOM, Gerbers, IPC netlist, designators,
+and placement data are included under `hardware/`, `documentation/`, and
+`production/`. Treat the KiCad source as authoritative; regenerate production
+files after a design change instead of editing Gerbers.
+
+The PlatformIO firmware in `code/` targets `esp32dev` with Arduino at 115200
+baud. Its modules separate sun-sensor processing, L298D motor driving, rotary
+encoder input, LEDs, error handling, reset, and sleep/wake control. The fixed
+GPIO map and motor-power cautions above must be reviewed against the schematic
+before wiring a panel or motor supply.
+
+The project's original firmware, KiCad design, original library assets, BOM,
+exports, images, and documentation are licensed by asset type below. Component datasheets,
+vendor models, PlatformIO libraries, and manufactured parts are not relicensed;
+their original terms still apply. Read the [license scope guide](../../LICENSE-SCOPE.md)
+for the practical boundary and safety responsibilities.
+
+## Licenses
+
+The original JSI Tech material in this mixed engineering project is licensed by
+asset type:
+
+| Material | License | Scope |
+| --- | --- | --- |
+| Software and firmware | [MIT](LICENSE) | Original source code, scripts, configuration examples, tests, and web assets in `code/`. |
+| Hardware design | [CERN-OHL-P-2.0](LICENSE-HARDWARE) | Original KiCad/design and manufacturing material in `hardware/` and `production/`. |
+| Documentation | [CC BY 4.0](LICENSE-DOCUMENTATION) | Original README text, written documentation, diagrams, photos, and screenshots. |
+| External material | [Third-party notices](THIRD-PARTY-NOTICES.md) | Vendor data, third-party libraries/models, dependencies, logos, and other material not created by JSI Tech. |
+
+The [collection licensing guide](../../LICENSE-SCOPE.md) explains the boundary,
+required notices, and limitations.

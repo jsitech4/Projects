@@ -83,6 +83,37 @@ Full Stack Developer
 ---
 
 
-## License
+## Engineering asset map and license scope
 
-Released under the [MIT License](LICENSE).
+The editable release is under `hardware/` as its KiCad project, schematic, and
+PCB with custom symbols, footprint, and 3D model. `documentation/` holds the
+schematic/block/3D-block PDFs, ESP32-S3 reference, and board render images.
+`production/` contains Gerbers, BOM, positions, designators, and IPC netlist;
+regenerate them from the KiCad design for a revised build.
+
+`code/` is Arduino/PlatformIO firmware for `esp32-s3-devkitc-1` at 115200 baud.
+The modules isolate vibration and temperature sensors, load relay/buzzer,
+LCD/LED interface, rotary input, storage, local server, maintenance policy,
+reset, error handling, and sleep/wake behavior. Measured vibration/temperature
+limits must be baseline-tested on the equipment and must not replace certified
+machine guarding or protection systems.
+
+The asset-type table below applies to the original firmware, KiCad sources, original manufacturing
+exports, images, and documentation. Vendor datasheets/models, PlatformIO
+libraries, components, and trademarks retain their own licenses. See the
+[license scope guide](../../LICENSE-SCOPE.md) for reuse and safety context.
+
+## Licenses
+
+The original JSI Tech material in this mixed engineering project is licensed by
+asset type:
+
+| Material | License | Scope |
+| --- | --- | --- |
+| Software and firmware | [MIT](LICENSE) | Original source code, scripts, configuration examples, tests, and web assets in `code/`. |
+| Hardware design | [CERN-OHL-P-2.0](LICENSE-HARDWARE) | Original KiCad/design and manufacturing material in `hardware/` and `production/`. |
+| Documentation | [CC BY 4.0](LICENSE-DOCUMENTATION) | Original README text, written documentation, diagrams, photos, and screenshots. |
+| External material | [Third-party notices](THIRD-PARTY-NOTICES.md) | Vendor data, third-party libraries/models, dependencies, logos, and other material not created by JSI Tech. |
+
+The [collection licensing guide](../../LICENSE-SCOPE.md) explains the boundary,
+required notices, and limitations.

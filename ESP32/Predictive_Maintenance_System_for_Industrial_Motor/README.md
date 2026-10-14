@@ -990,6 +990,39 @@ Full Stack Developer
 
 ---
 
-## License
+## Engineering asset map and license scope
 
-Released under the [MIT License](LICENSE). Use proper electrical safety practices when testing with industrial motors and mains-powered equipment.
+`hardware/` provides the available KiCad project and schematic, associated
+library/3D material, and design images. `documentation/` includes the block
+and schematic diagrams plus ESP32-S3 reference; `production/` includes Gerbers,
+BOM, positions, designators, and IPC netlist. No editable PCB file is currently
+present in `hardware/`, so treat the fabrication output as the only supplied
+board release and do not infer a modifiable PCB source from this repository.
+
+The Arduino PlatformIO firmware in `code/` targets
+`4d_systems_esp32s3_gen4_r8n16` at 115200 baud. Its units cover temperature and
+vibration acquisition, current monitoring, relay and buzzer outputs, LCD/LED
+display, rotary input, SD logging, local server, maintenance policy, reset,
+error handling, and sleep/wake behavior. Thresholds and diagnostic decisions
+are engineering aids, not a substitute for machinery protection systems.
+
+The asset-type table below applies to original project source code, the supplied KiCad source,
+original manufacturing exports, images, and documentation. Vendor datasheets,
+third-party libraries, component models, generated dependencies, and external
+assets retain their own terms. Follow the [license scope guide](../../LICENSE-SCOPE.md)
+and qualified industrial-safety practices before applying it to machinery.
+
+## Licenses
+
+The original JSI Tech material in this mixed engineering project is licensed by
+asset type:
+
+| Material | License | Scope |
+| --- | --- | --- |
+| Software and firmware | [MIT](LICENSE) | Original source code, scripts, configuration examples, tests, and web assets in `code/`. |
+| Hardware design | [CERN-OHL-P-2.0](LICENSE-HARDWARE) | Original KiCad/design and manufacturing material in `hardware/` and `production/`. |
+| Documentation | [CC BY 4.0](LICENSE-DOCUMENTATION) | Original README text, written documentation, diagrams, photos, and screenshots. |
+| External material | [Third-party notices](THIRD-PARTY-NOTICES.md) | Vendor data, third-party libraries/models, dependencies, logos, and other material not created by JSI Tech. |
+
+The [collection licensing guide](../../LICENSE-SCOPE.md) explains the boundary,
+required notices, and limitations.

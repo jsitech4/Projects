@@ -662,6 +662,41 @@ Full Stack Developer
 
 ---
 
-## License
+## Engineering asset map and license scope
 
-Released under the [MIT License](LICENSE).
+`hardware/` contains the supplied KiCad project and schematic plus source
+library assets; an editable PCB source is not present, while `production/`
+contains Gerbers, BOM, positions, designators, and IPC netlist for the included
+board release. `documentation/` includes diagrams, board renders/photos, ESP32
+and motor references, UART/I2C protocol PDFs, and linked driver-module source
+archives. Review the schematic and supplied manufacturing outputs carefully;
+do not assume a missing PCB source can be reconstructed without verification.
+
+The firmware in `code/` is an Arduino/PlatformIO `esp32dev` project at 115200
+baud. Its modules divide ultrasonic and gyroscope sensing, PID and robot
+control, servo/LED control, battery handling, UART and Yahboom motor-driver
+communication, Wi-Fi/web dashboard management, reset, error handling, and
+sleep/wake control. Tune PID values, motor direction, current limits, fail-safe
+stop behavior, and radio/network controls on blocks or a secured test stand
+before free-running the vehicle.
+
+Original firmware, supplied KiCad source, original manufacturing exports,
+images, and written documentation are licensed by asset type below. Separate driver-module
+archives, vendor data/protocol documents, PlatformIO libraries, components,
+and trademarks remain under their own licenses. See the
+[license scope guide](../../LICENSE-SCOPE.md) for the complete distinction.
+
+## Licenses
+
+The original JSI Tech material in this mixed engineering project is licensed by
+asset type:
+
+| Material | License | Scope |
+| --- | --- | --- |
+| Software and firmware | [MIT](LICENSE) | Original source code, scripts, configuration examples, tests, and web assets in `code/`. |
+| Hardware design | [CERN-OHL-P-2.0](LICENSE-HARDWARE) | Original KiCad/design and manufacturing material in `hardware/` and `production/`. |
+| Documentation | [CC BY 4.0](LICENSE-DOCUMENTATION) | Original README text, written documentation, diagrams, photos, and screenshots. |
+| External material | [Third-party notices](THIRD-PARTY-NOTICES.md) | Vendor data, third-party libraries/models, dependencies, logos, and other material not created by JSI Tech. |
+
+The [collection licensing guide](../../LICENSE-SCOPE.md) explains the boundary,
+required notices, and limitations.

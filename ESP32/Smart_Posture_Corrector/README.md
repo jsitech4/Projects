@@ -126,7 +126,38 @@ Full Stack Developer
 
 ---
 
-## License
+## Engineering asset map and license scope
 
-Released under the [MIT License](LICENSE).
+The editable board design is in `hardware/` as the KiCad project, schematic,
+and PCB. `documentation/` provides the block/schematic PDFs, ESP32 reference,
+board renders, layout images, and photographs; `production/` supplies the BOM,
+Gerbers, positions, designators, and IPC netlist. Use the KiCad files as the
+source of truth and regenerate manufacturing exports after any revision.
+
+`code/` builds as Arduino firmware for `esp32dev` at 115200 baud. The modules
+separate MPU6050 acquisition, posture logic, button input, vibration motor and
+buzzer outputs, LED status, battery measurement, SD storage, Wi-Fi/local
+server support, reset, error handling, and sleep/wake control. Fit, sensor
+orientation, thresholds, vibration intensity, battery protection, and user
+comfort all require physical validation for the intended wearable enclosure.
+
+The asset-type table below covers the original firmware, KiCad design, original project exports,
+images, and documentation. Sensor/ESP32 vendor files, libraries, external
+models, and trademarks retain their own terms. The [license scope guide](../../LICENSE-SCOPE.md)
+also makes clear that this is not medical advice or a medical-device approval.
+
+## Licenses
+
+The original JSI Tech material in this mixed engineering project is licensed by
+asset type:
+
+| Material | License | Scope |
+| --- | --- | --- |
+| Software and firmware | [MIT](LICENSE) | Original source code, scripts, configuration examples, tests, and web assets in `code/`. |
+| Hardware design | [CERN-OHL-P-2.0](LICENSE-HARDWARE) | Original KiCad/design and manufacturing material in `hardware/` and `production/`. |
+| Documentation | [CC BY 4.0](LICENSE-DOCUMENTATION) | Original README text, written documentation, diagrams, photos, and screenshots. |
+| External material | [Third-party notices](THIRD-PARTY-NOTICES.md) | Vendor data, third-party libraries/models, dependencies, logos, and other material not created by JSI Tech. |
+
+The [collection licensing guide](../../LICENSE-SCOPE.md) explains the boundary,
+required notices, and limitations.
 

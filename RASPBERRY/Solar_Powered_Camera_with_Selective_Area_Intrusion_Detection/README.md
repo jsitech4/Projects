@@ -523,6 +523,40 @@ Full Stack Developer
 
 ---
 
-## License
+## Engineering asset map and license scope
 
-Released under the [MIT License](LICENSE).
+The editable circuit is stored in `hardware/` as the KiCad project, schematic,
+and PCB. `bom/` contains the spreadsheet BOM; `documentation/` contains the
+block/schematic PDFs, project logo assets, and board imagery. The project does
+not currently include a `production/` directory, so regenerate Gerbers, drill
+files, positions, and other fabrication outputs from the KiCad source when a
+board is ready to manufacture.
+
+The software entry points are `code/zone_setup.py` and
+`code/main_intrusion.py`; `zone.json` persists the selected detection region,
+and `config/settings.json` carries non-secret defaults. The separate
+`.env.example` defines the email settings expected at run time. The system uses
+the Pi camera, GPIO-triggered PIR/buzzers, OpenCV motion/zone processing, and
+a Flask stream; its evidence directories and logs may contain sensitive images,
+video, network details, and recipient information.
+
+The asset-type table below covers original Python code, KiCad files, original BOM/documentation, and
+original images. Raspberry Pi/camera documentation, Python packages, SMTP
+provider terms, vendor assets, and trademarks are not relicensed. Review the
+[license scope guide](../../LICENSE-SCOPE.md) and local privacy, surveillance,
+and consent requirements before deployment.
+
+## Licenses
+
+The original JSI Tech material in this mixed engineering project is licensed by
+asset type:
+
+| Material | License | Scope |
+| --- | --- | --- |
+| Software and firmware | [MIT](LICENSE) | Original source code, scripts, configuration examples, tests, and web assets in `code/`. |
+| Hardware design | [CERN-OHL-P-2.0](LICENSE-HARDWARE) | Original KiCad/design and manufacturing material in `hardware/` and `bom/`. |
+| Documentation | [CC BY 4.0](LICENSE-DOCUMENTATION) | Original README text, written documentation, diagrams, photos, and screenshots. |
+| External material | [Third-party notices](THIRD-PARTY-NOTICES.md) | Vendor data, third-party libraries/models, dependencies, logos, and other material not created by JSI Tech. |
+
+The [collection licensing guide](../../LICENSE-SCOPE.md) explains the boundary,
+required notices, and limitations.
