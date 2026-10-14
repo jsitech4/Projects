@@ -361,6 +361,38 @@ Full Stack Developer
 
 ---
 
-## License
+## Engineering asset map and license scope
 
-Released under the [MIT License](LICENSE).
+The editable hardware design is contained in `hardware/` as the KiCad project,
+PCB, and schematic, with custom NodeMCU/HC-SR04 symbols, footprints, and STEP
+models. `documentation/` includes the BOM document, schematic PDF, top/bottom
+PCB-layer PDFs, and board images. No `production/` release folder is supplied;
+use the KiCad sources to generate Gerbers, drill files, positions, and a new
+BOM for the exact board revision you intend to fabricate.
+
+`code/` is a focused Arduino PlatformIO project for `nodemcuv2`; its
+`src/main.cpp` reads the HC-SR04, maps tank height to percent, drives a relay,
+and updates the PCA9555D I2C LED bar graph. Build/upload from `code/` with
+`pio run`, `pio run -t upload`, and `pio device monitor` after confirming the
+real tank's empty/full distances and the relay's active polarity.
+
+Original firmware, KiCad designs, original 3D assets, documentation, images,
+and BOM material are covered by the asset-type licenses below. Module datasheets,
+third-party libraries, and vendor component models retain their own terms. The
+[license scope guide](../../LICENSE-SCOPE.md) also explains that the license
+does not guarantee pump safety, water isolation, or electrical compliance.
+
+## Licenses
+
+The original JSI Tech material in this mixed engineering project is licensed by
+asset type:
+
+| Material | License | Scope |
+| --- | --- | --- |
+| Software and firmware | [MIT](LICENSE) | Original source code, scripts, configuration examples, tests, and web assets in `code/`. |
+| Hardware design | [CERN-OHL-P-2.0](LICENSE-HARDWARE) | Original KiCad/design and manufacturing material in `hardware/`. |
+| Documentation | [CC BY 4.0](LICENSE-DOCUMENTATION) | Original README text, written documentation, diagrams, photos, and screenshots. |
+| External material | [Third-party notices](THIRD-PARTY-NOTICES.md) | Vendor data, third-party libraries/models, dependencies, logos, and other material not created by JSI Tech. |
+
+The [collection licensing guide](../../LICENSE-SCOPE.md) explains the boundary,
+required notices, and limitations.

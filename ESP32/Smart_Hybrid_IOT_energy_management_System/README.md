@@ -525,6 +525,40 @@ Full Stack Developer
 
 ---
 
-## License
+## Engineering asset map and license scope
 
-Released under the [MIT License](LICENSE).
+The KiCad project, schematic, PCB, original symbols/footprints, and 3D assets
+are maintained in `hardware/`. Diagrams and board images are in
+`documentation/`; `production/` contains the BOM, Gerbers, component positions,
+designators, and IPC netlist. The KiCad source is the correct starting point
+for design updates and should be released with newly regenerated manufacturing
+files.
+
+`code/` is Arduino/PlatformIO firmware for `esp32dev` at 115200 baud. It
+organizes PZEM metering, utility/inverter sensing, source and load relays,
+GPIO-expander/regulator support, LCD/LED UI, rotary input, local IoT server,
+configuration/load management, reset, timing, and error/sleep facilities.
+Network access must be configured with local credentials that are never added
+to this repository; power-switching behavior must be verified on isolated,
+properly rated test equipment before live use.
+
+The original project firmware, KiCad design, project-made exports, images, and
+documentation are licensed by asset type below. Dependencies, vendor datasheets/models,
+components, cloud/network services, and their trademarks remain under their
+respective terms. Read the [license scope guide](../../LICENSE-SCOPE.md) for
+the boundary and hardware-safety limitation.
+
+## Licenses
+
+The original JSI Tech material in this mixed engineering project is licensed by
+asset type:
+
+| Material | License | Scope |
+| --- | --- | --- |
+| Software and firmware | [MIT](LICENSE) | Original source code, scripts, configuration examples, tests, and web assets in `code/`. |
+| Hardware design | [CERN-OHL-P-2.0](LICENSE-HARDWARE) | Original KiCad/design and manufacturing material in `hardware/` and `production/`. |
+| Documentation | [CC BY 4.0](LICENSE-DOCUMENTATION) | Original README text, written documentation, diagrams, photos, and screenshots. |
+| External material | [Third-party notices](THIRD-PARTY-NOTICES.md) | Vendor data, third-party libraries/models, dependencies, logos, and other material not created by JSI Tech. |
+
+The [collection licensing guide](../../LICENSE-SCOPE.md) explains the boundary,
+required notices, and limitations.

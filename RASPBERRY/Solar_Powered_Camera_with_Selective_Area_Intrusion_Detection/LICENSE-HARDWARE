@@ -1,0 +1,16 @@
+# Hardware Design License Notice
+
+Copyright (c) 2026 JSI Tech
+
+The original hardware design source and original manufacturing deliverables in
+`hardware/` and `bom/` are made available under the CERN Open Hardware Licence Version 2 —
+Permissive (CERN-OHL-P-2.0).
+
+Full unmodified license text:
+../../LICENSES/CERN-OHL-P-2.0.txt
+
+This notice covers original KiCad schematics, PCB layouts, project files,
+symbols, footprints, original 3D design assets, BOM material, Gerbers,
+positions, designators, and netlists in the stated paths. It excludes
+third-party data, vendor models, component documentation, and material marked
+with another notice. See THIRD-PARTY-NOTICES.md.

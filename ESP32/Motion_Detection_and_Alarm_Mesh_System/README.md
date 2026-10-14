@@ -348,6 +348,37 @@ Full Stack Developer
 
 ---
 
-## License
+## Engineering asset map and license scope
 
-Released under the [MIT License](LICENSE).
+`hardware/` contains the editable KiCad PCB, schematic, and project source;
+it also includes custom symbols, footprints, and 3D-model material. The
+rendered schematic/block diagrams, ESP32 reference, board imagery, BOM,
+Gerbers, positions, designators, and IPC netlist are distributed in
+`documentation/` and `production/`. Verify the KiCad source and regenerate
+the fabrication package after revisions.
+
+`code/` builds as Arduino firmware for `esp32dev` at 115200 baud. The modules
+cover PIR sensing, button input, buzzer and LED outputs, mesh communication,
+battery-level handling, reset, error reporting, and sleep/wake behavior. A
+mesh alarm deployment must still define node identities, pairing/recovery,
+radio range, alarm escalation, and power-failure behavior for its site.
+
+The original firmware, KiCad files, original exports, images, and documents
+are licensed by asset type below. Third-party ESP32/PIR/battery documentation, libraries,
+vendor design assets, components, and trademarks are not relicensed. Consult
+the [license scope guide](../../LICENSE-SCOPE.md) before reuse.
+
+## Licenses
+
+The original JSI Tech material in this mixed engineering project is licensed by
+asset type:
+
+| Material | License | Scope |
+| --- | --- | --- |
+| Software and firmware | [MIT](LICENSE) | Original source code, scripts, configuration examples, tests, and web assets in `code/`. |
+| Hardware design | [CERN-OHL-P-2.0](LICENSE-HARDWARE) | Original KiCad/design and manufacturing material in `hardware/` and `production/`. |
+| Documentation | [CC BY 4.0](LICENSE-DOCUMENTATION) | Original README text, written documentation, diagrams, photos, and screenshots. |
+| External material | [Third-party notices](THIRD-PARTY-NOTICES.md) | Vendor data, third-party libraries/models, dependencies, logos, and other material not created by JSI Tech. |
+
+The [collection licensing guide](../../LICENSE-SCOPE.md) explains the boundary,
+required notices, and limitations.

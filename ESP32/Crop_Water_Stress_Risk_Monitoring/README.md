@@ -118,6 +118,36 @@ Full Stack Developer
 ---
 
 
-## License
+## Engineering asset map and license scope
 
-This project is released under the [MIT License](LICENSE).
+This is the collection's full-stack project. `code/hardware/` contains the
+ESP32-WROOM-32U PlatformIO firmware, portal assets, schemas, tests, tools, and
+hardware-specific commissioning notes. `code/software/` contains the Fastify
+API, Prisma database schema, Next.js operator interface, shared contracts,
+Mosquitto/Caddy deployment examples, and Docker development stack.
+`code/simulation/` is a separate MQTT field-node simulator used to exercise
+the API without physical hardware. The documentation folder includes the
+ESP32 reference PDF; generated dependency folders are not source material.
+
+Original firmware, application code, schemas, deployment configuration, and
+documentation contributed here are covered by the asset-type licenses below.
+This project does not currently ship a top-level KiCad design or fabrication
+package, so no such asset is implied by this README. Datasheets, npm packages,
+container images, MQTT software, and other third-party dependencies keep their
+own terms. See the collection-wide [license scope guide](../../LICENSE-SCOPE.md)
+before reusing or redistributing a deployment.
+
+## Licenses
+
+The original JSI Tech material in this software and documentation project is
+licensed by asset type:
+
+| Material | License | Scope |
+| --- | --- | --- |
+| Software and firmware | [MIT](LICENSE) | Original ESP32 firmware, API, web application, simulator, scripts, configuration examples, tests, and deployment assets in `code/`. |
+| Documentation | [CC BY 4.0](LICENSE-DOCUMENTATION) | Original README text, written documentation, diagrams, photos, and screenshots. |
+| External material | [Third-party notices](THIRD-PARTY-NOTICES.md) | Datasheets, dependencies, container images, broker/database software, and other material not created by JSI Tech. |
+
+This project has no top-level KiCad design or production-hardware source and
+therefore no hardware-design license notice. The [collection licensing guide](../../LICENSE-SCOPE.md)
+explains the boundary and limitations.
