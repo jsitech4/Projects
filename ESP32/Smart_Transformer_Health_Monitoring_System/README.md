@@ -20,24 +20,24 @@ The ESP32 ADC pin must never be connected directly to AC mains or a high-voltage
 
 ## Main Pin Assignment
 
-| Function | ESP32-S3 GPIO |
-|---|---:|
-| I2C SDA | GPIO8 |
-| I2C SCL | GPIO9 |
-| ADXL345 INT | GPIO10 |
-| ZMCT103C current ADC | GPIO1 |
-| Transformer AC voltage ADC | GPIO2 |
-| DS18B20 data | GPIO4 |
-| SD CS | GPIO5 |
-| SD MOSI | GPIO11 |
-| SD SCK | GPIO12 |
-| SD MISO | GPIO13 |
-| Buzzer | GPIO14 |
-| Rotary encoder CLK | GPIO16 |
-| Rotary encoder DT | GPIO17 |
-| Rotary encoder SW | GPIO18 |
-| Transformer relay | GPIO21 |
-| Status LED | GPIO48 |
+| Function                   | ESP32-S3 GPIO |
+| -------------------------- | ------------: |
+| I2C SDA                    |         GPIO8 |
+| I2C SCL                    |         GPIO9 |
+| ADXL345 INT                |        GPIO10 |
+| ZMCT103C current ADC       |         GPIO1 |
+| Transformer AC voltage ADC |         GPIO2 |
+| DS18B20 data               |         GPIO4 |
+| SD CS                      |         GPIO5 |
+| SD MOSI                    |        GPIO11 |
+| SD SCK                     |        GPIO12 |
+| SD MISO                    |        GPIO13 |
+| Buzzer                     |        GPIO14 |
+| Rotary encoder CLK         |        GPIO16 |
+| Rotary encoder DT          |        GPIO17 |
+| Rotary encoder SW          |        GPIO18 |
+| Transformer relay          |        GPIO21 |
+| Status LED                 |        GPIO48 |
 
 ## Voltage Measurement Input
 
@@ -95,11 +95,11 @@ The dashboard shows:
 
 The project now stores transformer-related logs for transformer health history.
 
-| File | Purpose |
-|---|---|
-| `/transformer_log.csv` | Main transformer sensor and condition data |
-| `/analysis_log.csv` | Predictive maintenance analysis and recommendations |
-| `/event_log.csv` | Boot, relay, fault, storage, and state-change events |
+| File                   | Purpose                                              |
+| ---------------------- | ---------------------------------------------------- |
+| `/transformer_log.csv` | Main transformer sensor and condition data           |
+| `/analysis_log.csv`    | Predictive maintenance analysis and recommendations  |
+| `/event_log.csv`       | Boot, relay, fault, storage, and state-change events |
 
 ## Predictive Logic
 
@@ -114,12 +114,12 @@ The transformer health logic uses:
 
 Default voltage limits are configured for a 230 V class transformer output/input reading:
 
-| Limit | Default |
-|---|---:|
-| Low warning | 180 V |
-| Low fault | 160 V |
-| High warning | 250 V |
-| High fault | 270 V |
+| Limit        | Default |
+| ------------ | ------: |
+| Low warning  |   180 V |
+| Low fault    |   160 V |
+| High warning |   250 V |
+| High fault   |   270 V |
 
 These values should be adjusted if the monitored transformer voltage is not a 230 V class AC voltage.
 
@@ -150,7 +150,6 @@ Embedded Systems Developer
 Full Stack Developer
 
 ---
-
 
 ## License
 
