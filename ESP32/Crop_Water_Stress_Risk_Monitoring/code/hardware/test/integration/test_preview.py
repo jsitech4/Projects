@@ -117,7 +117,7 @@ def test_preview_responsive_layout(preview, width):
 
 def test_client_view_has_only_admin_interface(preview):
     preview.goto((ROOT / 'UI/test.html').as_uri())
-    expect(preview).to_have_title('CWS · Device setup')
+    expect(preview).to_have_title('Crop Water Stress Monitor')
     expect(preview.locator('#preview-tools')).to_be_hidden()
     assert 'simulated' not in preview.locator('body').inner_text().lower()
     sign_in(preview)

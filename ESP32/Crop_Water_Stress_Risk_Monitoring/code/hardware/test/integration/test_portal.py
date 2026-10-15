@@ -24,7 +24,7 @@ def ui(browser):
     config=json.loads((ROOT/'examples/configuration.json').read_text())
     status=json.loads((ROOT/'examples/telemetry.json').read_text())
     status['remaining_s']=299
-    state={'authenticated':False,'must_change':False,'config':config,'status':status,'trials':[],'errors':[],'async_auth':False,'auth_polls':0}
+    state={'authenticated':False,'developer':False,'must_change':False,'config':config,'status':status,'trials':[],'errors':[],'async_auth':False,'auth_polls':0}
     page.on('pageerror',lambda error:state['errors'].append(str(error)))
     def route(request):
         path=request.request.url.removeprefix('http://192.168.4.1')
@@ -38,9 +38,11 @@ def ui(browser):
         result={}
         if action=='session':result={'remaining_s':state['status']['remaining_s'],'authenticated':state['authenticated'],'must_change_password':state['must_change'],'csrf':'fixture-csrf'}
         elif action=='login':
-            if data['password']!='Fixture-password!42':code=401;result={'error':'authentication_failed'}
+            if data['password'] not in {'Fixture-password!42','Fixture-developer!42'}:code=401;result={'error':'authentication_failed'}
             elif state['async_auth']:code=202;result={'pending':True,'job_id':'fixture-job'}
-            else:state['authenticated']=True;result={'must_change_password':state['must_change'],'csrf':'fixture-csrf'}
+            else:
+                state['authenticated']=True;state['developer']=data['password']=='Fixture-developer!42'
+                result={'must_change_password':state['must_change'],'developer_mode':state['developer'],'csrf':'fixture-csrf'}
         elif action=='auth_result':
             assert data['job_id']=='fixture-job'
             state['auth_polls']+=1
@@ -53,7 +55,7 @@ def ui(browser):
             state['trials'].append(data);result={'state':'testing'};code=202
         elif action=='scan':result={'scanning':False,'networks':[{'ssid':'Test farm router','rssi_dbm':-45,'secured':True}]}
         elif action=='password':
-            assert data['current']=='Fixture-password!42'
+            assert data['current'] in {'Fixture-password!42','Fixture-developer!42'}
             assert data['next']==data['confirm']
             state['authenticated']=False;state['must_change']=False;result={'ok':True}
         elif action=='logout':state['authenticated']=False;result={'ok':True}
@@ -67,9 +69,9 @@ def ui(browser):
     context.close()
 
 
-def login(page):
+def login(page, password='Fixture-password!42'):
     page.goto('http://192.168.4.1/')
-    page.get_by_label('Password',exact=True).fill('Fixture-password!42')
+    page.get_by_label('Password',exact=True).fill(password)
     page.get_by_role('button',name='Sign in',exact=True).click()
     expect(page.locator('#admin-panel')).to_be_visible()
 
@@ -92,6 +94,18 @@ def test_required_factory_replacement(ui):
     expect(page.locator('#security')).to_be_visible()
     expect(page.get_by_role('button',name='Wi-Fi',exact=True)).to_be_disabled()
     page.locator('#current').fill('Fixture-password!42')
+    page.locator('#next').fill('Replacement-password!42')
+    page.locator('#confirm').fill('Replacement-password!42')
+    page.get_by_role('button',name='Save password').click()
+    expect(page.locator('#login-panel')).to_be_visible()
+    assert not state['authenticated']
+
+
+def test_developer_credential_can_replace_administrator_password(ui):
+    page,state=ui;login(page,'Fixture-developer!42')
+    page.get_by_role('button',name='Security',exact=True).click()
+    expect(page.get_by_text('Current password',exact=True)).to_be_visible()
+    page.locator('#current').fill('Fixture-developer!42')
     page.locator('#next').fill('Replacement-password!42')
     page.locator('#confirm').fill('Replacement-password!42')
     page.get_by_role('button',name='Save password').click()

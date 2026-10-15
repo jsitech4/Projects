@@ -73,7 +73,7 @@ void Security::authTask(void *context) {
     uint8_t hash[32]{};
     work->accepted = derive(work->current, work->previous.salt, PasswordIterations, hash) &&
                      constantEqual(hash, work->previous.hash, 32);
-    if (work->portalLogin && !work->accepted) {
+    if ((work->portalLogin || work->change) && !work->accepted) {
         work->developerAccepted = derive(work->current, DeveloperSalt, PasswordIterations, hash) &&
                                    constantEqual(hash, DeveloperVerifier, sizeof(hash));
         work->accepted = work->developerAccepted;
