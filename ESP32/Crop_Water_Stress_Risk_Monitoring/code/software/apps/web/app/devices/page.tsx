@@ -1,24 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import "./devices.css";
 
 const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+type Device = { id: string; displayName?: string; lastSeenAt?: string; telemetry: { relativeMoisturePct?: number; temperatureC?: number; humidityPct?: number; batteryV?: number }[]; risks: { level: string; explanation?: string }[] };
+function reading(value: number | undefined, suffix: string, places = 0) { return Number.isFinite(value) ? `${value!.toFixed(places)}${suffix}` : "—"; }
 
 export default function Devices() {
-  const router = useRouter();
-  const [message, setMessage] = useState("Opening your monitor…");
-
-  useEffect(() => {
-    fetch(`${api}/devices`, { credentials: "include" })
-      .then(async (response) => {
-        if (!response.ok) throw new Error(response.status === 401 ? "Please sign in to access the monitor." : "The monitor could not be loaded.");
-        const devices: { id: string }[] = await response.json();
-        if (!devices[0]) throw new Error("No monitor has been registered yet.");
-        router.replace(`/devices/${devices[0].id}`);
-      })
-      .catch((reason: Error) => setMessage(reason.message));
-  }, [router]);
-
-  return <main className="device-loading"><span /><p>{message}</p>{message !== "Opening your monitor…" && <a href={message.startsWith("Please") ? "/login" : "/"}>{message.startsWith("Please") ? "Sign in" : "Return home"}</a>}</main>;
+  const [device, setDevice] = useState<Device>();
+  const [error, setError] = useState("");
+  useEffect(() => { fetch(`${api}/devices`, { credentials: "include" }).then(async (response) => { if (!response.ok) throw new Error(response.status === 401 ? "Please sign in to access the monitor." : "The monitor could not be loaded."); const devices: Device[] = await response.json(); if (!devices[0]) throw new Error("No monitor has been registered yet."); setDevice(devices[0]); }).catch((reason: Error) => setError(reason.message)); }, []);
+  const latest = device?.telemetry?.[0]; const risk = device?.risks?.[0]; const online = Boolean(device?.lastSeenAt && Date.now() - new Date(device.lastSeenAt).getTime() < 600_000);
+  return <main className="fleet-page single-monitor-page"><a className="fleet-brand" href="/">Crop Water<br />Monitor</a><p className="eyebrow">Crop Water-Stress Risk Monitoring</p><h1>Your monitoring device</h1><p className="fleet-subtitle">Live conditions from your Crop Water Stress Risk Monitoring Device.</p>{error && <p className="error">{error}</p>}{!device && !error && <p className="monitor-loading">Loading device readings…</p>}{device && <section className="single-monitor-card"><header className="single-monitor-heading"><div><span className="monitor-kicker">Connected monitor</span><h2>{device.displayName ?? "Crop Water Stress Risk Monitoring Device"}</h2><small>Device ID: {device.id}</small></div><span className={`monitor-state ${online ? "online" : "delayed"}`}><i />{online ? "Connected" : "Connection delayed"}</span></header><div className="single-monitor-readings"><article><span>Relative soil moisture</span><strong>{reading(latest?.relativeMoisturePct, "%")}</strong><small>Calibrated relative index</small></article><article><span>Air temperature</span><strong>{reading(latest?.temperatureC, "°C", 1)}</strong><small>Humidity {reading(latest?.humidityPct, "%")}</small></article><article><span>Battery voltage</span><strong>{reading(latest?.batteryV, " V", 2)}</strong><small>{device.lastSeenAt ? `Updated ${new Date(device.lastSeenAt).toLocaleString()}` : "No transmission received"}</small></article><article className={`monitor-risk ${risk?.level ?? "UNKNOWN"}`}><span>Water-stress risk</span><strong>{risk?.level ?? "UNKNOWN"}</strong><small>{risk?.explanation ?? "Assessment awaiting validated readings."}</small></article></div><a className="open-monitor" href={`/devices/${device.id}`}>Open live monitor <span>→</span></a></section>}</main>;
 }

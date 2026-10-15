@@ -1,47 +1,5 @@
-"use client";
-
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import "./operations.css";
-
-const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-type Organization = { id: string; name: string; _count: { farms: number; sites: number; devices: number; alerts: number } };
-
-async function request(path: string, init?: RequestInit) {
-  const response = await fetch(`${api}${path}`, { credentials: "include", headers: { "content-type": "application/json", ...(init?.headers ?? {}) }, ...init });
-  if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message ?? "Request could not be completed.");
-  return response.json();
-}
+import { redirect } from "next/navigation";
 
 export default function OperationsPage() {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [organizationId, setOrganizationId] = useState("");
-  const [dashboard, setDashboard] = useState<any>();
-  const [structure, setStructure] = useState<any>();
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const selected = useMemo(() => organizations.find((item) => item.id === organizationId), [organizations, organizationId]);
-  const refresh = async (id = organizationId) => {
-    if (!id) return;
-    try { const [nextDashboard, nextStructure] = await Promise.all([request(`/organizations/${id}/dashboard`), request(`/organizations/${id}/structure`)]); setDashboard(nextDashboard); setStructure(nextStructure); setError(""); }
-    catch (reason: any) { setError(reason.message); }
-  };
-  useEffect(() => { request("/organizations").then((items) => { setOrganizations(items); if (items[0]) setOrganizationId(items[0].id); }).catch(() => setError("Sign in to access farm operations.")); }, []);
-  useEffect(() => { refresh(); const interval = window.setInterval(refresh, 15_000); return () => window.clearInterval(interval); }, [organizationId]);
-  const createFarm = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); try { await request(`/organizations/${organizationId}/farms`, { method: "POST", body: JSON.stringify(Object.fromEntries(new FormData(event.currentTarget))) }); event.currentTarget.reset(); setMessage("Farm created."); await refresh(); } catch (reason: any) { setError(reason.message); } };
-  const createProfile = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const form = new FormData(event.currentTarget); const body = { name: form.get("name"), cultivar: form.get("cultivar"), thresholds: { soilModerate: Number(form.get("moderate")), soilHigh: Number(form.get("high")), soilCritical: Number(form.get("critical")), staleMinutes: Number(form.get("stale")), ruleVersion: form.get("ruleVersion") } }; try { await request(`/organizations/${organizationId}/crop-profiles`, { method: "POST", body: JSON.stringify(body) }); event.currentTarget.reset(); setMessage("Crop profile created."); await refresh(); } catch (reason: any) { setError(reason.message); } };
-  const acknowledge = async (id: string) => { try { await request(`/alerts/${id}/acknowledge`, { method: "POST" }); setMessage("Alert acknowledged."); await refresh(); } catch (reason: any) { setError(reason.message); } };
-  if (error && !organizationId) return <main className="ops-empty"><h1>Farm operations</h1><p>{error}</p><a href="/login">Sign in</a></main>;
-  const online = dashboard?.devices.filter((device: any) => device.lastSeenAt && Date.now() - new Date(device.lastSeenAt).getTime() < 600_000).length;
-  return <main className="ops-shell">
-    <header className="ops-header"><div><p className="ops-eyebrow">Crop water-stress monitor</p><h1>Farm operations</h1><p className="ops-subtitle">Live field conditions, action queue and farm structure.</p></div><div className="ops-actions"><select aria-label="Organization" value={organizationId} onChange={(event) => setOrganizationId(event.target.value)}>{organizations.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select><button className="secondary" onClick={() => refresh()}>Refresh</button></div></header>
-    {message && <p className="ops-notice">{message}</p>}{error && <p className="ops-error">{error}</p>}
-    <section className="ops-metrics"><Metric label="Connected devices" value={online ?? "—"} note={`of ${dashboard?.devices.length ?? 0} registered`} /><Metric label="Open alerts" value={dashboard?.alerts.filter((alert: any) => alert.status === "OPEN").length ?? "—"} note="firmware-backed risk events" /><Metric label="Measurements / 24h" value={dashboard?.measurementsLast24h ?? "—"} note="durably stored records" /><Metric label="Farm structure" value={selected?._count.farms ?? "—"} note={`farms · ${selected?._count.sites ?? 0} fields`} /></section>
-    <section className="ops-grid"><section className="ops-panel span-two"><div className="ops-panel-heading"><div><p className="ops-eyebrow">Live monitoring</p><h2>Field devices</h2></div><span>Refreshes every 15 seconds</span></div><div className="device-table"><div className="device-row device-label"><span>Device / plot</span><span>Soil index</span><span>Air</span><span>Risk</span><span>Last seen</span></div>{dashboard?.devices?.map((device: any) => <DeviceRow device={device} key={device.id} />) ?? <p className="ops-empty-state">No devices are registered yet.</p>}</div></section><section className="ops-panel"><p className="ops-eyebrow">Action queue</p><h2>Alerts</h2><div className="alert-list">{dashboard?.alerts?.length ? dashboard.alerts.map((alert: any) => <article key={alert.id}><span className={`status ${alert.severity}`}>{alert.severity}</span><div><b>{alert.title}</b><p>{alert.device.displayName ?? alert.device.id} · {new Date(alert.createdAt).toLocaleString()}</p></div>{alert.status === "OPEN" && <button className="quiet" onClick={() => acknowledge(alert.id)}>Acknowledge</button>}</article>) : <p className="ops-empty-state">No open or acknowledged alerts.</p>}</div></section></section>
-    <section className="ops-grid"><section className="ops-panel"><p className="ops-eyebrow">Farm structure</p><h2>Farms, fields and plots</h2><div className="structure-tree">{structure?.farms?.length ? structure.farms.map((farm: any) => <FarmTree farm={farm} key={farm.id} />) : <p className="ops-empty-state">Create a farm to begin mapping fields and plots.</p>}</div><form onSubmit={createFarm} className="inline-form"><input required name="name" placeholder="New farm name" /><input name="location" placeholder="Location (optional)" /><button>Add farm</button></form></section><section className="ops-panel"><p className="ops-eyebrow">Crop risk</p><h2>Crop profiles</h2><p className="ops-copy">Profiles use locally validated thresholds for the relative soil-moisture index. They do not claim VWC.</p><div className="profile-list">{structure?.cropProfiles?.map((profile: any) => <article key={profile.id}><b>{profile.name}</b><small>{profile.cultivar || "Cultivar not specified"} · {profile.thresholds.ruleVersion}</small></article>)}</div><form onSubmit={createProfile} className="profile-form"><input name="name" required placeholder="Profile name" /><input name="cultivar" placeholder="Cultivar (optional)" /><label>Moderate<input name="moderate" type="number" min="0" max="100" required /></label><label>High<input name="high" type="number" min="0" max="100" required /></label><label>Critical<input name="critical" type="number" min="0" max="100" required /></label><label>Stale min<input name="stale" type="number" min="1" defaultValue="30" required /></label><input name="ruleVersion" required placeholder="Rule version" /><button>Create profile</button></form></section></section>
-    <section className="ops-panel"><p className="ops-eyebrow">Device administration</p><h2>Safe remote actions and calibration</h2><p className="ops-copy">Commands are tracked until final firmware response. Sensor calibration stays in the protected device portal, where fresh readings and physical references can be verified.</p><div className="admin-links"><a href="/devices">Open device management</a><a href="/devices">Download CSV telemetry</a><a href="/devices">Review configuration commands</a></div></section>
-  </main>;
+  redirect("/devices");
 }
-
-function Metric({ label, value, note }: { label: string; value: string | number; note: string }) { return <article><span>{label}</span><strong>{value}</strong><small>{note}</small></article>; }
-function DeviceRow({ device }: { device: any }) { const reading = device.telemetry[0]; const risk = device.risks[0]; return <div className="device-row"><span><b>{device.displayName ?? device.id}</b><small>{device.plot?.site?.farm?.name ?? "Unassigned farm"} / {device.plot?.name ?? "Unassigned plot"}</small></span><span>{reading?.relativeMoisturePct == null ? "Unavailable" : `${reading.relativeMoisturePct.toFixed(0)}%`}</span><span>{reading?.temperatureC == null ? "Unavailable" : `${reading.temperatureC.toFixed(1)} °C`}<small>{reading?.humidityPct == null ? "" : `${reading.humidityPct.toFixed(0)}% RH`}</small></span><span className={`status ${risk?.level ?? "UNKNOWN"}`}>{risk?.level ?? "UNKNOWN"}</span><span>{device.lastSeenAt ? new Date(device.lastSeenAt).toLocaleString() : "Never"}</span></div>; }
-function FarmTree({ farm }: { farm: any }) { return <details open><summary>{farm.name}<small>{farm.location || "Location not set"}</small></summary>{farm.fields.map((field: any) => <div className="field" key={field.id}><b>{field.name}</b>{field.plots.map((plot: any) => <span key={plot.id}>{plot.name}{plot.crop ? ` · ${plot.crop}` : ""}{plot.cropProfile ? ` · ${plot.cropProfile.name}` : " · no crop profile"}</span>)}</div>)}</details>; }
