@@ -31,6 +31,10 @@ npm test
 npm run build
 ```
 
+## Dashboard
+
+The Crop Water Monitor device view is a data-driven single-device dashboard with the supplied desktop reference layout. It reads live telemetry and history through the authenticated API, while device configuration changes remain command-confirmed rather than optimistic. See [dashboard implementation](docs/DASHBOARD.md).
+
 ## Crop risk configuration
 
 The relative soil-moisture channel is not VWC, and no universal crop threshold is used. Create a crop profile for an organization with locally validated `soilModerate`, `soilHigh`, `soilCritical`, `staleMinutes`, and `ruleVersion` values, then assign it to the plot. Until that profile and valid, calibrated live measurements exist, water-stress risk is shown as `UNKNOWN`.
