@@ -17,11 +17,11 @@ The browser reads `GET /devices/:id`, `GET /devices/:id/history`, and `GET /devi
 
 Transmission interval maps to the device's supported `upload_s` configuration. Saving sends `config.patch` through `POST /devices/:id/configuration` with the current configuration revision, then waits for the device command response before reporting confirmation.
 
-Data logging and the three alert thresholds are displayed as unavailable because the active ESP32 configuration contract does not advertise remotely writable controls for them. They are not simulated or persisted by the dashboard.
+The dashboard surfaces the ESP32's real on-device logging state from the telemetry storage record, along with its stored-record capacity and running uptime. Status LED and buzzer preferences are command-backed and use the existing `config.patch` contract. Unsupported generic crop and temperature threshold fields are not displayed.
 
 ## Risk and unavailable data
 
-Risk comes from the latest validated backend assessment. Without a valid configured threshold profile, the display says **Insufficient data**. Missing sensor readings remain unavailable; they are never replaced with zero or reference-image values.
+Risk comes from the latest validated backend assessment. Without configured crop-specific thresholds, the banner becomes a **Sensor data: Live** status rather than pretending a calibrated relative moisture index is a crop-risk classification. Missing sensor readings remain unavailable; they are never replaced with zero or reference-image values.
 
 ## Verification
 
