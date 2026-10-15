@@ -2,7 +2,7 @@
 
 The local username is `admin`. Setup-network authentication and administrator authentication use separate credentials. First commissioning authenticates against the private factory verifier and permits only password replacement or logout.
 
-Replacement passwords contain 12–96 printable ASCII characters with uppercase, lowercase, a digit and punctuation. Confirmation must match, and the replacement must differ from the current password. Either the current administrator password or the developer password authorizes replacement. The developer password is therefore a master recovery credential for every device built with its verifier and must be held separately from client credentials. PBKDF2-HMAC-SHA256 uses 60,000 iterations and a fresh random 16-byte salt. The NVS verifier blob becomes authoritative only after a successful write; a stored verifier never falls back to the factory password.
+Replacement passwords contain 12–96 printable ASCII characters with uppercase, lowercase, a digit and punctuation. Confirmation must match, and the replacement must differ from the current password. The supplied password is verified before replacement. PBKDF2-HMAC-SHA256 uses 60,000 iterations and a fresh random 16-byte salt. The NVS verifier blob becomes authoritative only after a successful write; a stored verifier never falls back to the factory password.
 
 Hash computation runs in a separate idle-priority task. HTTP starts a job and polls it with a random 256-bit job ID. Completed unclaimed jobs expire after 30 seconds; setup shutdown cancels all jobs. The application task commits results, avoiding races with NVS or session state.
 
@@ -10,7 +10,7 @@ Failed authentication incurs exponential throttling up to 60 seconds. One authen
 
 Password replacement invalidates prior sessions and preserves connectivity, calibration and records. Power cycling does not reset authentication. Physical-service recovery requires the separate per-device service token:
 
-The privileged calibration password is evaluated by the ordinary sign-in field. Its immutable verifier is compiled into the firmware image and is not kept as a plaintext source value, NVS value, portal response or log entry. It is unaffected by administrator password replacement and can also authorize a replacement through the local Administrator password page. A privileged sign-in enables calibration only for the current local session; logout, portal expiry and restart remove that access.
+The privileged calibration password is evaluated by the ordinary sign-in field. Its immutable verifier is compiled into the firmware image and is not kept as a plaintext source value, NVS value, portal response or log entry. It is unaffected by administrator password replacement. A privileged sign-in enables calibration only for the current local session; logout, portal expiry and restart remove that access.
 
 ```powershell
 python tools/commission.py service --port <identified-port> --record provisioning/private/<unit>/service.json --operation recover_admin

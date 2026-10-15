@@ -104,7 +104,7 @@ def test_required_factory_replacement(ui):
 def test_developer_credential_can_replace_administrator_password(ui):
     page,state=ui;login(page,'Fixture-developer!42')
     page.get_by_role('button',name='Security',exact=True).click()
-    expect(page.get_by_text('Current administrator or developer password',exact=True)).to_be_visible()
+    expect(page.get_by_text('Current password',exact=True)).to_be_visible()
     page.locator('#current').fill('Fixture-developer!42')
     page.locator('#next').fill('Replacement-password!42')
     page.locator('#confirm').fill('Replacement-password!42')

@@ -8,6 +8,6 @@ Only one trial runs at a time. Local and remote configuration changes require th
 
 At every reboot the owner has a new five-minute portal window, including when saved Wi-Fi is wrong or the backend is unreachable. AP credentials and administrator replacement remain independent of connectivity. A setup session ending does not extend or restart a connection trial already authorized during the window.
 
-`config.restore_defaults` resets operating preferences while preserving saved Wi-Fi, MQTT and calibration configuration. `device.factory_reset` resets configuration, including networks, schedules a restart and preserves administrator authentication, calibration and measurement files. Both require `confirm_device_id`. A forgotten administrator password can be replaced locally with the developer master credential; if that is also unavailable, use authorized physical service. No power-cycle backdoor exists.
+`config.restore_defaults` resets operating preferences while preserving saved Wi-Fi, MQTT and calibration configuration. `device.factory_reset` resets configuration, including networks, schedules a restart and preserves administrator authentication, calibration and measurement files. Both require `confirm_device_id`. Forgotten administrator passwords use authorized physical service, not a power-cycle backdoor.
 
 Native fault-injection tests exercise inactive-slot write/commit-pointer interruption and CRC fallback. Physical brownout testing on the manufactured PCB remains outstanding.
