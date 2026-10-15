@@ -25,7 +25,11 @@ export class IngestionService {
         const limits = validThresholds(profile?.thresholds) ? profile.thresholds : undefined;
         const risk = calculateRisk({ temperatureC: record.temperatureC, humidityPct: record.humidityPct, relativeMoisturePct: record.relativeMoisturePct, batteryV: record.batteryV, soilValid: m.soil.valid, environmentValid: m.environment.valid, sampledAt: record.sampledAt, ingestedAt: record.ingestedAt, batteryCritical: m.battery.critical, faults: payload.health.active_faults }, limits);
         if (profile) risk.factors.unshift(`Crop profile: ${profile.name}.`);
-        await tx.riskAssessment.create({ data: { deviceId: route.deviceId, telemetryId: record.id, level: risk.level, ruleVersion: risk.ruleVersion, factors: risk.factors, explanation: risk.explanation } });
+        const assessment = await tx.riskAssessment.create({ data: { deviceId: route.deviceId, telemetryId: record.id, level: risk.level, ruleVersion: risk.ruleVersion, factors: risk.factors, explanation: risk.explanation } });
+        if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
+          const existingAlert = await tx.alert.findFirst({ where: { deviceId: route.deviceId, status: { in: ['OPEN', 'ACKNOWLEDGED'] }, severity: risk.level }, orderBy: { createdAt: 'desc' } });
+          if (!existingAlert) await tx.alert.create({ data: { organizationId: device.organizationId, deviceId: route.deviceId, riskAssessmentId: assessment.id, title: `Water-stress risk: ${risk.level.toLowerCase()}`, severity: risk.level, detail: risk.explanation } });
+        }
       } else if (route.kind === 'events') await tx.deviceEvent.create({ data: { messageId: payload.message_id, deviceId: route.deviceId, code: payload.code, payload, occurredAt: deviceTime(payload) } });
       else if (route.kind === 'command_responses') await tx.command.updateMany({ where: { requestId: payload.request_id, deviceId: route.deviceId }, data: { status: payload.status.toUpperCase(), response: payload } });
       else await tx.deviceSnapshot.upsert({ where: { deviceId_kind: { deviceId: route.deviceId, kind: route.kind } }, create: { deviceId: route.deviceId, kind: route.kind, payload }, update: { payload, receivedAt } });

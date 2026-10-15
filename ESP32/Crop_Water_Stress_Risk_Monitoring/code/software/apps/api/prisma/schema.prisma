@@ -28,6 +28,11 @@ enum CommandStatus {
   FAILED
   TIMED_OUT
 }
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
 
 model User {
   id String @id @default(cuid())
@@ -37,6 +42,7 @@ model User {
   createdAt DateTime @default(now())
   memberships Membership[]
   auditLogs AuditLog[]
+  notificationPreferences NotificationPreference[]
 }
 model Organization {
   id String @id @default(cuid())
@@ -44,8 +50,10 @@ model Organization {
   createdAt DateTime @default(now())
   memberships Membership[]
   sites Site[]
+  farms Farm[]
   devices Device[]
   alertRules AlertRule[]
+  alerts Alert[]
   cropProfiles CropProfile[]
 }
 model Membership {
@@ -59,9 +67,21 @@ model Membership {
 model Site {
   id String @id @default(cuid())
   organizationId String
+  farmId String?
   name String
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  farm Farm? @relation(fields: [farmId], references: [id], onDelete: SetNull)
   plots Plot[]
+  @@unique([organizationId, name])
+}
+model Farm {
+  id String @id @default(cuid())
+  organizationId String
+  name String
+  location String?
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  fields Site[]
   @@unique([organizationId, name])
 }
 model Plot {
@@ -106,6 +126,7 @@ model Device {
   commands Command[]
   risks RiskAssessment[]
   snapshots DeviceSnapshot[]
+  alerts Alert[]
 }
 model RawMessage {
   id String @id @default(cuid())
@@ -188,8 +209,29 @@ model AlertRule {
   name String
   enabled Boolean @default(true)
   thresholds Json
+  escalationMinutes Int @default(60)
   createdAt DateTime @default(now())
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+model Alert {
+  id String @id @default(cuid())
+  organizationId String
+  deviceId String
+  riskAssessmentId String?
+  title String
+  severity RiskLevel
+  detail String
+  status AlertStatus @default(OPEN)
+  acknowledgedAt DateTime?
+  acknowledgedById String?
+  resolvedAt DateTime?
+  escalatedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  @@index([organizationId, status, createdAt])
+  @@index([deviceId, status])
 }
 model AuditLog {
   id String @id @default(cuid())
@@ -207,5 +249,6 @@ model NotificationPreference {
   channel String
   enabled Boolean @default(true)
   destination String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([userId, channel])
 }
