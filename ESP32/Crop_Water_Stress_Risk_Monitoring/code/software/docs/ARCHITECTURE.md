@@ -16,4 +16,6 @@ The backend is intentionally the permanent-ingestion authority. MQTT transport a
 
 The worker receives only the six device-originated topic suffixes. It validates the exact topic device ID against the envelope, validates the firmware's JSON schema, records the original payload, normalizes telemetry, calculates a transparent risk assessment, then publishes the acknowledgement after the database transaction resolves.
 
+Risk assessment thresholds are supplied by the crop profile assigned to the device plot. A missing profile, stale record, failed calibration, or invalid sensor frame produces `UNKNOWN`; the system does not apply a global crop threshold to the firmware's relative-moisture index.
+
 `capabilities` controls future command UI expansion. Optional LCD and encoder controls must not be inferred from dashboard settings.

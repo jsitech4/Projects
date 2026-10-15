@@ -46,6 +46,7 @@ model Organization {
   sites Site[]
   devices Device[]
   alertRules AlertRule[]
+  cropProfiles CropProfile[]
 }
 model Membership {
   userId String
@@ -68,9 +69,25 @@ model Plot {
   siteId String
   name String
   crop String?
+  cropProfileId String?
   site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  cropProfile CropProfile? @relation(fields: [cropProfileId], references: [id], onDelete: SetNull)
   devices Device[]
   @@unique([siteId, name])
+}
+model CropProfile {
+  id String @id @default(cuid())
+  organizationId String
+  name String
+  cultivar String?
+  description String?
+  thresholds Json
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plots Plot[]
+  @@unique([organizationId, name])
 }
 model Device {
   id String @id
