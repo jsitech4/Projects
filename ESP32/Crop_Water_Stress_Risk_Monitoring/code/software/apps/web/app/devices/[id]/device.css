@@ -337,7 +337,7 @@
   margin-top: 12px;
 }
 
-.lower-grid .panel { height: 315px; }
+.lower-grid .panel { height: 350px; }
 .lower-grid .config-panel { height: auto; min-height: 350px; }
 
 .hardware-body {
@@ -580,8 +580,8 @@
 @media (min-width: 1101px) {
   .identity-band { padding-top: 8px; padding-bottom: 8px; }
 
-  .lower-grid:has(.command) .panel { height: 335px; }
-  .lower-grid .config-panel:has(.command) { height: auto; min-height: 335px; }
+  .lower-grid:has(.command) .panel { height: 350px; }
+  .lower-grid .config-panel:has(.command) { height: auto; min-height: 350px; }
 }
 
 @media (min-width: 701px) and (max-width: 1100px) {
@@ -616,9 +616,9 @@
   .chart-panel .recharts-responsive-container { height: 272px !important; }
 
   .lower-grid { grid-template-columns: 1fr 1fr; }
-  .lower-grid .panel { height: 318px; }
+  .lower-grid .panel { height: 350px; }
   .lower-grid .config-panel { grid-column: span 2; height: auto; min-height: 350px; }
-  .config-panel:has(.command) { height: auto; min-height: 335px; }
+  .config-panel:has(.command) { height: auto; min-height: 350px; }
 }
 
 @media (max-width: 700px) {

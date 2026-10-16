@@ -169,17 +169,12 @@ bool Storage::append(const String &json, const String &id, uint16_t retain, bool
 bool Storage::acknowledge(const String &id) {
     for (size_t i = 0; i < count; i++)
         if (id == entries[i].id) {
-            if (entries[i].ack)
-                return true;
-            Entry e = entries[i];
-            e.ack = true;
-            if (!LittleFS.rename(path(entries[i]), path(e))) {
-                faults++;
-                return false;
-            }
-            entries[i] = e;
             lastAck = id;
-            return true;
+            // A durable acknowledgement is emitted only after the backend
+            // commits the original record. Delete the flash copy now so a
+            // fully synchronized queue returns to zero and cannot fill with
+            // data that has already reached the server.
+            return erase(i);
         }
     return false;
 }

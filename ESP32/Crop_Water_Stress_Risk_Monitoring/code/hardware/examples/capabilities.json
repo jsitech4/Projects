@@ -95,7 +95,7 @@
     "encoder_enabled": false,
     "tls_required": true,
     "mqtt_qos": 1,
-    "durable_ack_enabled": false,
+    "durable_ack_enabled": true,
     "ota": false,
     "vwc": false,
     "battery_percentage": false,
