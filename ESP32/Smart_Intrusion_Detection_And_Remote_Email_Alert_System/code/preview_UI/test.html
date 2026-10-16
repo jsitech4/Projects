@@ -805,11 +805,9 @@
             <label class="full">Alert message<textarea
                 placeholder="Hello, there is an intruder.">Intrusion detected.</textarea></label>
             <div class="calibration full">Your message is sent as written. The device automatically adds the location,
-              event ID, and current time to each intrusion alert. If delivery is delayed by a connection loss, the
-              original event time is retained.</div>
+              event ID, and current time.</div>
           </div>
-          <div class="savebar"><span class="notice">Credentials are saved only when you submit this
-              form.</span><button>Save email settings</button></div>
+          <div class="savebar"><span class="notice"></span><button>Save email settings</button></div>
         </form>
       </section>
       <section id="device" class="view">
@@ -817,13 +815,12 @@
         <p class="view-lead">Network and device identity settings.</p>
         <form class="panel form-card" onsubmit="save(event,'Device settings saved.')">
           <div class="form-grid">
-            <div class="calibration full"><strong>Indicator lights</strong><br><strong>GPIO2 status LED:</strong> one
-              brief heartbeat means powered, healthy, and internet-reachable; three rapid flashes mean intrusion; four
+            <div class="calibration full"><strong>Indicator lights</strong><br><strong></strong> one
+              brief heartbeat means powered, healthy, and internet reachable; three rapid flashes mean intrusion; four
               short flashes mean critical battery; two medium flashes mean low battery; one long flash means Wi-Fi
-              disconnected; two very short flashes mean Wi-Fi connected without internet. <strong>Battery
-                gauge:</strong> GPIO16, GPIO17, GPIO18, and GPIO19 show cumulative 25%, 50%, 75%, and 100% battery
-              levels.</div><label>Device name<input value="Main Entrance Sensor"></label><label>Location<input
-                value="Main Entrance"></label><label>Time zone<input value="WAT-1"><small>Nigeria uses WAT-1 (UTC+1).
+              disconnected; two very short flashes mean Wi-Fi connected without internet.</div><label>Device name<input
+                value="Main Entrance Sensor"></label><label>Location<input value="Main Entrance"></label><label>Time
+              zone<input value="WAT-1"><small>Nigeria uses WAT-1 (UTC+1).
                 Time synchronizes automatically when Wi-Fi is connected.</small></label><label>Wi-Fi network
               name<input value="Office WiFi"></label><label class="full">Wi-Fi password<input type="password"
                 placeholder="Leave blank to keep the saved password"></label>
