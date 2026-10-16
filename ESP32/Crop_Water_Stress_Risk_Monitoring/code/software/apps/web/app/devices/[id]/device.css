@@ -264,10 +264,10 @@
   height: 9px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: #3e9461;
+  background: #2f7d5b;
 }
 
-.series-key span + span i { background: #4287a6; }
+.series-key span + span i { background: #b86645; }
 
 .chart-panel .recharts-responsive-container { height: 238px !important; }
 .chart-panel .recharts-cartesian-axis-tick-value { fill: #65736b; font-size: 11px; }

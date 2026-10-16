@@ -2,9 +2,9 @@
 
 LittleFS contains pending `/records/<cursor>.rec` files. Each record has a magic value, byte length, CRC32, monotonic history cursor and the original JSON payload. A temporary file is flushed and renamed before it enters the in-memory index. Startup scans and verifies finalized files, discards incomplete temporary writes and preserves corrupt records for service rather than automatically formatting the filesystem.
 
-History cursors are reserved in NVS in batches of 64 before use. Gaps are valid; a reboot or purge cannot reuse an earlier cursor. Record identity is independent of this cursor and remains stable through retransmission. Startup restores acknowledgement state from filenames and recovers the latest acknowledged identity.
+History cursors are reserved in NVS in batches of 64 before use. Gaps are valid; a reboot cannot reuse an earlier cursor. Record identity is independent of this cursor and remains stable through retransmission. Startup verifies the remaining pending files and recovers the next cursor safely.
 
-Retention is 8–256 records, default 256, shared by telemetry and events. With `drop_oldest: false`, acknowledged records are evicted first; a full queue of pending records rejects new records and increments its drop counter. With explicit `drop_oldest: true`, the oldest pending record can be discarded. Capacity also reserves 16 KiB free space for filesystem operation. Overflow is reported, never hidden as successful storage.
+Retention is 8-256 records, default 256, shared by telemetry and events. A durable backend acknowledgement removes its record immediately. If the device remains offline and the queue fills, `drop_oldest: true` discards the oldest pending record so fresh readings can still be queued. Capacity also reserves 16 KiB free space for filesystem operation. Overflow is reported, never hidden as successful storage.
 
 Synchronization starts on MQTT connection, at the configured upload interval, or by an explicit retry command. At most one queued record is offered per second. The original topic category, ID, timestamp and payload are preserved. A disconnected/full MQTT queue leaves the cursor eligible for retry. A synchronization pass is restarted periodically; without backend acknowledgements this intentionally republishes retained history.
 

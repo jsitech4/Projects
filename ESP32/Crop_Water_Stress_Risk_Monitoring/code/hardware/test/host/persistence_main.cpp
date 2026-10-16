@@ -134,12 +134,11 @@ static void queue_survives_restart_and_ack() {
     assert(reboot.pendingAfter(0, json, cursor));
     assert(json == record("record-1"));
     assert(reboot.acknowledge("record-1"));
+    assert(host::files.empty());
     Storage again;
     assert(again.begin());
     assert(again.pending() == 0);
     assert(!again.acknowledge("unknown"));
-    assert(again.purgeAcknowledged());
-    assert(host::files.empty());
 }
 static void queue_interrupted_write() {
     reset();

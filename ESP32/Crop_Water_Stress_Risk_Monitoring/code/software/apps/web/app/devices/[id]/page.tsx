@@ -335,11 +335,12 @@ export default function DevicePage({
       (device?.telemetry ?? [])
         .slice()
         .reverse()
-        .map((entry: any) => ({
-          at: new Intl.DateTimeFormat(undefined, {
-            hour: "2-digit",
-            minute: "2-digit",
-          }).format(new Date(entry.ingestedAt)),
+        .map((entry: any, index: number) => ({
+          // Both sensor values come from the same telemetry message. A shared
+          // timestamp keeps them on the same vertical time guide in the chart.
+          timestamp: Number.isFinite(Date.parse(entry.ingestedAt))
+            ? Date.parse(entry.ingestedAt)
+            : index,
           moisture: entry.relativeMoisturePct,
           temperature: entry.temperatureC,
         })),
@@ -567,8 +568,8 @@ export default function DevicePage({
                       x2="0"
                       y2="1"
                     >
-                      <stop offset="0" stopColor="#27854A" stopOpacity=".13" />
-                      <stop offset="1" stopColor="#27854A" stopOpacity="0" />
+                      <stop offset="0" stopColor="#2F7D5B" stopOpacity=".16" />
+                      <stop offset="1" stopColor="#2F7D5B" stopOpacity="0" />
                     </linearGradient>
                     <linearGradient
                       id="temperature-area"
@@ -577,13 +578,23 @@ export default function DevicePage({
                       x2="0"
                       y2="1"
                     >
-                      <stop offset="0" stopColor="#1784B9" stopOpacity=".1" />
-                      <stop offset="1" stopColor="#1784B9" stopOpacity="0" />
+                      <stop offset="0" stopColor="#B86645" stopOpacity=".16" />
+                      <stop offset="1" stopColor="#B86645" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="#e5eae8" vertical />
+                  <CartesianGrid stroke="#e5eae8" vertical horizontal />
                   <XAxis
-                    dataKey="at"
+                    dataKey="timestamp"
+                    type="number"
+                    scale="time"
+                    domain={["dataMin", "dataMax"]}
+                    tickFormatter={(value) =>
+                      new Intl.DateTimeFormat(undefined, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      }).format(new Date(Number(value)))
+                    }
                     tickLine={false}
                     axisLine={{ stroke: "#cfd8d3" }}
                     minTickGap={42}
@@ -593,6 +604,8 @@ export default function DevicePage({
                     domain={[0, 100]}
                     tickLine={false}
                     axisLine={false}
+                    tick={{ fill: "#2F7D5B" }}
+                    tickFormatter={(value) => `${value}%`}
                   />
                   <YAxis
                     yAxisId="temperature"
@@ -600,8 +613,20 @@ export default function DevicePage({
                     domain={["auto", "auto"]}
                     tickLine={false}
                     axisLine={false}
+                    tick={{ fill: "#B86645" }}
+                    tickFormatter={(value) => `${value}°`}
                   />
                   <Tooltip
+                    labelFormatter={(value) =>
+                      new Intl.DateTimeFormat(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      }).format(new Date(Number(value)))
+                    }
+                    cursor={{ stroke: "#95a69c", strokeDasharray: "4 4" }}
                     formatter={(number: number, name: string) => [
                       name === "moisture"
                         ? `${number.toFixed(1)}%`
@@ -615,7 +640,7 @@ export default function DevicePage({
                     yAxisId="moisture"
                     type="monotone"
                     dataKey="moisture"
-                    stroke="#27854A"
+                    stroke="#2F7D5B"
                     strokeWidth={2.4}
                     fill="url(#moisture-area)"
                     dot={false}
@@ -625,7 +650,7 @@ export default function DevicePage({
                     yAxisId="temperature"
                     type="monotone"
                     dataKey="temperature"
-                    stroke="#1784B9"
+                    stroke="#B86645"
                     strokeWidth={2.4}
                     fill="url(#temperature-area)"
                     dot={false}
