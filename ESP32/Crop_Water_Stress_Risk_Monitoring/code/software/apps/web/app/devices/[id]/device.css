@@ -434,15 +434,18 @@
   min-height: 266px;
   display: grid;
   grid-template-columns: 158px minmax(0, 1fr);
+  gap: 20px;
   align-content: center;
   align-items: center;
-  padding: 6px 17px 8px;
+  padding: 16px 22px 20px;
 }
 
 .hardware-body .enclosure {
   width: 142px;
   height: 218px;
   justify-self: center;
+  object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 5px 5px rgba(27, 53, 41, 0.11));
 }
 
@@ -452,11 +455,11 @@
 }
 
 .hardware-body dl > div {
-  min-height: 27px;
+  min-height: 29px;
   display: grid;
   grid-template-columns: 42% 58%;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   border-bottom: 1px solid var(--monitor-soft-line);
 }
 
@@ -510,6 +513,16 @@
 }
 .activity-row > span:last-child {
   border-right: 0;
+}
+.activity-row:not(.table-head) > span {
+  align-items: flex-start;
+  min-height: 40px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
 }
 .activity-row:not(.table-head):nth-child(even) {
   background: #fbfcfb;
@@ -1014,6 +1027,20 @@
   .lower-grid .panel {
     height: 350px;
   }
+  .hardware-body {
+    grid-template-columns: 124px minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px 16px 18px;
+  }
+  .hardware-body .enclosure {
+    width: 118px;
+    height: 190px;
+  }
+  .hardware-body dl > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 4px 0;
+  }
   .lower-grid .config-panel {
     grid-column: span 2;
     height: auto;
@@ -1112,9 +1139,10 @@
   }
 
   .metric {
-    height: 74px;
+    min-height: 84px;
+    height: auto;
     gap: 9px;
-    padding: 0 10px;
+    padding: 10px;
   }
   .metric svg {
     width: 20px;
@@ -1122,10 +1150,19 @@
     padding: 7px;
   }
   .metric span {
+    margin-bottom: 4px;
+    overflow: visible;
     font-size: 9px;
+    line-height: 1.15;
+    text-overflow: clip;
+    white-space: normal;
   }
   .metric strong {
+    overflow: visible;
     font-size: 20px;
+    line-height: 1.08;
+    text-overflow: clip;
+    white-space: normal;
   }
   .metric.transmission strong {
     font-size: 16px;
@@ -1168,19 +1205,33 @@
     height: auto;
   }
   .chart-heading {
-    min-height: 44px;
-    padding: 0 16px;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 7px 10px;
+    padding: 0 16px 10px;
   }
   .chart-heading h2 {
+    grid-column: 1 / -1;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
     font-size: 16px;
   }
   .series-key {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
     gap: 12px;
-    margin: 8px 16px;
+    margin: 0;
     font-size: 10px;
   }
   .history-trigger {
-    margin: 0 16px 8px auto;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    margin: 0;
   }
   .chart-panel .recharts-responsive-container {
     height: 250px !important;
@@ -1198,11 +1249,12 @@
   }
 
   .hardware-body {
-    grid-template-columns: 112px minmax(0, 1fr);
-    padding: 7px 10px 12px;
+    grid-template-columns: 118px minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px 16px 18px;
   }
   .hardware-body .enclosure {
-    width: 105px;
+    width: 112px;
     height: 190px;
   }
   .hardware-body dl > div {
@@ -1333,8 +1385,24 @@
     grid-template-columns: 1fr;
   }
 
+  .hardware-body {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+  .hardware-body .enclosure {
+    width: 140px;
+    height: 190px;
+  }
+  .hardware-body dl > div {
+    grid-template-columns: minmax(96px, 42%) minmax(0, 1fr);
+    gap: 10px;
+    padding: 6px 0;
+  }
+
   .metric {
-    height: 68px;
+    min-height: 74px;
+    height: auto;
   }
 
   .history-filters button {
