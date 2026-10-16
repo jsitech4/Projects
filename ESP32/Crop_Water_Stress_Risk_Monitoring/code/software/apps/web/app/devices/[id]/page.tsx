@@ -124,11 +124,11 @@ function Icon({ name }: { name: IconName }) {
     </svg>
   );
 }
-function Enclosure({ placement }: { placement: "header" | "overview" }) {
+function Enclosure() {
   return (
     <img
       className="enclosure"
-      src={`/images/crop-water-stress/${placement}-enclosure.svg`}
+      src="/images/crop-water-stress/overview-enclosure.png"
       alt="Crop Water Stress Monitor enclosure"
       aria-label="Crop water monitor enclosure"
     />
@@ -511,10 +511,8 @@ export default function DevicePage({
     <main className="crop-monitor">
       <section className="identity-band">
         <div className="identity-device">
-          <Enclosure placement="header" />
           <div>
             <h1>{device.displayName ?? "Crop Water Stress Monitor"}</h1>
-            <p>{device.id}</p>
           </div>
         </div>
         <div className="identity-actions">
@@ -744,7 +742,7 @@ export default function DevicePage({
           <section className="panel hardware-panel">
             <h2>Hardware overview</h2>
             <div className="hardware-body">
-              <Enclosure placement="overview" />
+              <Enclosure />
               <dl>
                 <div>
                   <dt>Device model</dt>

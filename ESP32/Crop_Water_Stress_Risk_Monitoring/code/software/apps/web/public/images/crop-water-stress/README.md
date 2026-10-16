@@ -1,8 +1,8 @@
 # Crop Water Stress Monitor images
 
-This folder contains the artwork shown in the Crop Water Stress Monitor web app.
+This folder holds raster images for the live monitor.
 
-- `header-enclosure.svg` is used only in the device header.
-- `overview-enclosure.svg` is used only in the **Hardware overview** card.
+- `overview-enclosure.png` appears only in the **Hardware overview** card.
+- `header-enclosure.png` is not currently used; it is retained in case you want to reintroduce a header image later.
 
-Replace either SVG independently to change that area only. Keeping the `viewBox` close to `0 0 150 238` preserves the current layout. A PNG or WebP can also be used, but change its matching `.svg` extension in `app/devices/[id]/page.tsx` to match the new file name.
+Replace `overview-enclosure.png` to change the Hardware overview image. A portrait-oriented PNG with a transparent background works best. JPG is also supported: rename the chosen file to `.jpg`, then change its `.png` extension in `app/devices/[id]/page.tsx`.
