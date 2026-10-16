@@ -207,6 +207,7 @@ export default function DevicePage({
   const [saving, setSaving] = useState(false);
   const [command, setCommand] = useState<any>();
   const [fallbackRefreshSeconds, setFallbackRefreshSeconds] = useState(1);
+  const [now, setNow] = useState(() => Date.now());
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyRange, setHistoryRange] = useState(initialHistoryRange);
   const [historyQuery, setHistoryQuery] = useState(initialHistoryRange);
@@ -294,6 +295,10 @@ export default function DevicePage({
       String(fallbackRefreshSeconds),
     );
   }, [fallbackRefreshSeconds]);
+  useEffect(() => {
+    const clock = window.setInterval(() => setNow(Date.now()), 1_000);
+    return () => window.clearInterval(clock);
+  }, []);
   useEffect(() => {
     if (!id) return;
     let refreshing = false;
@@ -467,9 +472,14 @@ export default function DevicePage({
   const payload = latest?.raw ?? {};
   const raw = payload.measurements ?? payload;
   const valid = latest?.valid ?? raw?.valid ?? {};
+  const uploadSeconds = Math.max(
+    5,
+    Number(configuration?.configuration?.upload_s) || 15,
+  );
+  const onlineTimeoutMs = Math.max(20_000, uploadSeconds * 3_000);
   const online = Boolean(
     device.lastSeenAt &&
-    Date.now() - new Date(device.lastSeenAt).getTime() < 600_000,
+    now - new Date(device.lastSeenAt).getTime() < onlineTimeoutMs,
   );
   const level = device.risks?.[0]?.level ?? "UNKNOWN";
   const activity = history?.entries?.slice(0, 6) ?? [];

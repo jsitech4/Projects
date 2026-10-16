@@ -16,6 +16,7 @@
 
 .crop-monitor {
   min-height: 100dvh;
+  overflow-x: clip;
   background: var(--monitor-page);
   color: var(--monitor-ink);
   font-family: Arial, Helvetica, sans-serif;
@@ -234,7 +235,7 @@
 
 .upper-grid {
   display: grid;
-  grid-template-columns: minmax(0, 2.07fr) minmax(410px, 1fr);
+  grid-template-columns: minmax(0, 2.07fr) minmax(360px, 1fr);
   gap: 12px;
 }
 
@@ -1022,6 +1023,26 @@
   }
 }
 
+@media (min-width: 701px) and (max-width: 860px) {
+  .identity-band {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .identity-device,
+  .identity-actions {
+    width: 100%;
+  }
+
+  .identity-actions {
+    justify-content: space-between;
+  }
+
+  .connection-badge {
+    margin-left: auto;
+  }
+}
+
 @media (max-width: 700px) {
   .identity-band {
     min-height: 0;
@@ -1277,5 +1298,24 @@
   }
   .config-panel label {
     grid-template-columns: 1fr 126px;
+  }
+}
+
+@media (max-width: 350px) {
+  .identity-band {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .measurements {
+    grid-template-columns: 1fr;
+  }
+
+  .metric {
+    height: 68px;
+  }
+
+  .history-filters button {
+    flex: 1 1 auto;
   }
 }
