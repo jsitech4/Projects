@@ -129,7 +129,7 @@ bool validate(JsonVariantConst d, std::string &e) {
         return fail("identity_invalid");
     for (auto key : {"sample_s", "upload_s", "health_s"})
         if (!d[key].is<uint32_t>() ||
-            !range(d[key], key == std::string("sample_s") ? 5 : 10, 86400))
+            !range(d[key], key == std::string("health_s") ? 10 : 5, 86400))
             return fail("interval_invalid");
     auto w = d["wifi"];
     if (!str(w["ssid"], 32) || !str(w["password"], 63) || !w["dhcp"].is<bool>())

@@ -1,6 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
+import { EventEmitter } from 'node:events';
 import { calculateRisk, DEVICE_BASELINE_RISK_THRESHOLDS, type CropRiskThresholds } from './risk.js';
 import { ContractValidator, deviceTime, parseDeviceTopic, type DeviceMessageKind } from './contracts.js';
+
+export const telemetryEvents = new EventEmitter();
 
 export class IngestionService {
   constructor(private db: PrismaClient, private contracts: ContractValidator) {}
@@ -37,6 +40,7 @@ export class IngestionService {
       else if (route.kind === 'command_responses') await tx.command.updateMany({ where: { requestId: payload.request_id, deviceId: route.deviceId }, data: { status: payload.status.toUpperCase(), response: payload } });
       else await tx.deviceSnapshot.upsert({ where: { deviceId_kind: { deviceId: route.deviceId, kind: route.kind } }, create: { deviceId: route.deviceId, kind: route.kind, payload }, update: { payload, receivedAt } });
     });
+    if (route.kind === 'telemetry') telemetryEvents.emit('telemetry', route.deviceId);
     return { deviceId: route.deviceId, messageId: payload.message_id, duplicate: false };
   }
 }

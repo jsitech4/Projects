@@ -338,6 +338,7 @@
 }
 
 .lower-grid .panel { height: 315px; }
+.lower-grid .config-panel { height: auto; min-height: 350px; }
 
 .hardware-body {
   min-height: 266px;
@@ -616,7 +617,7 @@
 
   .lower-grid { grid-template-columns: 1fr 1fr; }
   .lower-grid .panel { height: 318px; }
-  .config-panel { grid-column: span 2; }
+  .lower-grid .config-panel { grid-column: span 2; height: auto; min-height: 350px; }
   .config-panel:has(.command) { height: auto; min-height: 335px; }
 }
 
