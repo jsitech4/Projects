@@ -817,11 +817,18 @@
         <h2 class="view-title">Device</h2>
         <p class="view-lead">Network and device identity settings.</p>
         <form class="panel form-card" onsubmit="save(event,'Device settings saved.')">
-          <div class="form-grid"><div class="calibration full"><strong>Indicator lights</strong><br><strong>GPIO2 status LED:</strong> one brief heartbeat means powered, healthy, and internet-reachable; three rapid flashes mean intrusion; four short flashes mean critical battery; two medium flashes mean low battery; one long flash means Wi-Fi disconnected; two very short flashes mean Wi-Fi connected without internet. <strong>Battery gauge:</strong> GPIO16, GPIO17, GPIO18, and GPIO19 show cumulative 25%, 50%, 75%, and 100% battery levels.</div><label>Device name<input value="Main Entrance Sensor"></label><label>Location<input
+          <div class="form-grid">
+            <div class="calibration full"><strong>Indicator lights</strong><br><strong>GPIO2 status LED:</strong> one
+              brief heartbeat means powered, healthy, and internet-reachable; three rapid flashes mean intrusion; four
+              short flashes mean critical battery; two medium flashes mean low battery; one long flash means Wi-Fi
+              disconnected; two very short flashes mean Wi-Fi connected without internet. <strong>Battery
+                gauge:</strong> GPIO16, GPIO17, GPIO18, and GPIO19 show cumulative 25%, 50%, 75%, and 100% battery
+              levels.</div><label>Device name<input value="Main Entrance Sensor"></label><label>Location<input
                 value="Main Entrance"></label><label>Time zone<input value="WAT-1"><small>Nigeria uses WAT-1 (UTC+1).
                 Time synchronizes automatically when Wi-Fi is connected.</small></label><label>Wi-Fi network
               name<input value="Office WiFi"></label><label class="full">Wi-Fi password<input type="password"
-                placeholder="Leave blank to keep the saved password"></label></div>
+                placeholder="Leave blank to keep the saved password"></label>
+          </div>
           <div class="savebar"><span class="notice">Wi-Fi changes may reconnect the device.</span><button>Save device
               settings</button></div>
         </form>
