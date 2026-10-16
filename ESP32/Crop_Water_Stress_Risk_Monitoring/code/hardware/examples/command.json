@@ -2,7 +2,8 @@
   "schema_version": "1.0",
   "request_id": "integration-1",
   "device_id": "CWS-TEST",
-  "command": "soil.get_status",
-  "args": {},
-  "expires_at": 1800000120
+  "command": "config.patch",
+  "args": { "patch": { "upload_s": 15 } },
+  "expires_at": 1800000120,
+  "expected_revision": 1
 }

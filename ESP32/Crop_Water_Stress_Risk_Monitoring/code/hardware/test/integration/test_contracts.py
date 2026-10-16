@@ -29,7 +29,7 @@ def test_mutation_requires_revision_and_bounds():
     message.pop('expected_revision')
     with pytest.raises(ValidationError):validate(message)
     message['expected_revision']=2
-    message['args']['dry']=5000
+    message['args']['patch']['upload_s']=4
     with pytest.raises(ValidationError):validate(message)
 
 
