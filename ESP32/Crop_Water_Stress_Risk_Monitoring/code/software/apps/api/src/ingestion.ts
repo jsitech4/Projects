@@ -10,7 +10,7 @@ export class IngestionService {
   async ingest(topic: string, raw: Buffer): Promise<{ deviceId: string; messageId: string; duplicate: boolean } | undefined> {
     const route = parseDeviceTopic(topic); if (!route) return undefined;
     let payload: any; try { payload = JSON.parse(raw.toString('utf8')); } catch { throw new Error('invalid_json'); }
-    const expectedMessageType: Record<DeviceMessageKind, string> = { telemetry: 'telemetry', status: 'status', events: 'event', command_responses: 'command_response', configuration: 'configuration', capabilities: 'capabilities' };
+    const expectedMessageType: Record<DeviceMessageKind, string> = { telemetry: 'telemetry', events: 'event', command_responses: 'command_response', configuration: 'configuration' };
     if (payload.device_id !== route.deviceId || payload.message_type !== expectedMessageType[route.kind]) throw new Error('topic_envelope_mismatch');
     const errors = this.contracts.validate(route.kind, payload); if (errors.length) throw new Error(`schema_invalid: ${errors.join('; ')}`);
     const existing = await this.db.rawMessage.findUnique({ where: { messageId: payload.message_id } });
@@ -28,7 +28,7 @@ export class IngestionService {
         const cropThresholds = profile?.thresholds;
         const hasCropProfile = validThresholds(cropThresholds);
         const limits: CropRiskThresholds = hasCropProfile ? cropThresholds : DEVICE_BASELINE_RISK_THRESHOLDS;
-        const risk = calculateRisk({ temperatureC: record.temperatureC, humidityPct: record.humidityPct, relativeMoisturePct: record.relativeMoisturePct, batteryV: record.batteryV, soilValid: m.soil.valid, environmentValid: m.environment.valid, sampledAt: record.sampledAt, ingestedAt: record.ingestedAt, batteryCritical: m.battery.critical, faults: payload.health.active_faults }, limits);
+        const risk = calculateRisk({ temperatureC: record.temperatureC, humidityPct: record.humidityPct, relativeMoisturePct: record.relativeMoisturePct, batteryV: record.batteryV, soilValid: m.soil.valid, environmentValid: m.environment.valid, sampledAt: record.sampledAt, ingestedAt: record.ingestedAt, batteryCritical: m.battery.critical }, limits);
         if (hasCropProfile && profile) risk.factors.unshift(`Crop profile: ${profile.name}.`);
         else risk.factors.unshift('Device baseline: calibrated soil moisture, air temperature, and humidity.');
         const assessment = await tx.riskAssessment.create({ data: { deviceId: route.deviceId, telemetryId: record.id, level: risk.level, ruleVersion: risk.ruleVersion, factors: risk.factors, explanation: risk.explanation } });

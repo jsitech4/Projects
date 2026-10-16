@@ -1,106 +1,37 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Crop Water Stress Monitor dashboard configuration",
   "type": "object",
   "properties": {
-    "schema_version": {
-      "const": "1.0"
-    },
-    "message_type": {
-      "const": "configuration"
-    },
-    "message_id": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$",
-      "minLength": 1,
-      "maxLength": 79
-    },
-    "device_id": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9_-]+$",
-      "minLength": 1,
-      "maxLength": 79
-    },
-    "boot_id": {
-      "type": "string",
-      "pattern": "^[a-f0-9]{16}$"
-    },
-    "sequence": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 4294967295
-    },
+    "schema_version": { "const": "1.0" },
+    "message_type": { "const": "configuration" },
+    "message_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 1, "maxLength": 79 },
+    "device_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$", "minLength": 1, "maxLength": 79 },
+    "boot_id": { "type": "string", "pattern": "^[a-f0-9]{16}$" },
+    "sequence": { "type": "integer", "minimum": 1, "maximum": 4294967295 },
     "time": {
       "type": "object",
       "properties": {
-        "uptime_ms": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "synchronized": {
-          "type": "boolean"
-        },
-        "unix_s": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "minimum": 1700000000
-        }
+        "uptime_ms": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "synchronized": { "type": "boolean" },
+        "unix_s": { "type": ["integer", "null"], "minimum": 1700000000 }
       },
-      "required": [
-        "uptime_ms",
-        "synchronized",
-        "unix_s"
-      ],
+      "required": ["uptime_ms", "synchronized", "unix_s"],
       "additionalProperties": false
     },
     "configuration": {
       "type": "object",
-      "not": {
-        "anyOf": [
-          {
-            "required": [
-              "admin_password"
-            ]
-          },
-          {
-            "properties": {
-              "wifi": {
-                "required": [
-                  "password"
-                ]
-              }
-            },
-            "required": [
-              "wifi"
-            ]
-          },
-          {
-            "properties": {
-              "mqtt": {
-                "required": [
-                  "password"
-                ]
-              }
-            },
-            "required": [
-              "mqtt"
-            ]
-          }
-        ]
-      }
+      "properties": {
+        "revision": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "upload_s": { "type": "integer", "minimum": 5, "maximum": 86400 },
+        "led": { "type": "object", "properties": { "enabled": { "type": "boolean" } }, "required": ["enabled"], "additionalProperties": false },
+        "buzzer": { "type": "object", "properties": { "enabled": { "type": "boolean" } }, "required": ["enabled"], "additionalProperties": false },
+        "storage": { "type": "object", "properties": { "retain": { "type": "integer", "minimum": 8, "maximum": 256 } }, "required": ["retain"], "additionalProperties": false }
+      },
+      "required": ["revision", "upload_s", "led", "buzzer", "storage"],
+      "additionalProperties": false
     }
   },
-  "required": [
-    "schema_version",
-    "message_type",
-    "message_id",
-    "device_id",
-    "boot_id",
-    "sequence",
-    "time",
-    "configuration"
-  ],
+  "required": ["schema_version", "message_type", "message_id", "device_id", "boot_id", "sequence", "time", "configuration"],
   "additionalProperties": false
 }

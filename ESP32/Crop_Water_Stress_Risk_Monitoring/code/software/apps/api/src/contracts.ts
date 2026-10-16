@@ -7,18 +7,14 @@ const addFormats: any = require('ajv-formats').default;
 
 export type DeviceMessageKind =
   | "telemetry"
-  | "status"
   | "events"
   | "command_responses"
-  | "configuration"
-  | "capabilities";
+  | "configuration";
 const schemaFor: Record<DeviceMessageKind, string> = {
   telemetry: "telemetry",
-  status: "status",
   events: "event",
   command_responses: "command_response",
   configuration: "configuration",
-  capabilities: "capabilities",
 };
 export class ContractValidator {
   private ajv = addFormats(new Ajv2020({ allErrors: true, strict: false }));
@@ -57,7 +53,7 @@ export function parseDeviceTopic(
   topic: string,
 ): { deviceId: string; kind: DeviceMessageKind } | undefined {
   const match =
-    /^cws\/v1\/devices\/([A-Za-z0-9_-]+)\/(telemetry|status|events|command_responses|configuration|capabilities)$/.exec(
+    /^cws\/v1\/devices\/([A-Za-z0-9_-]+)\/(telemetry|events|command_responses|configuration)$/.exec(
       topic,
     );
   return match

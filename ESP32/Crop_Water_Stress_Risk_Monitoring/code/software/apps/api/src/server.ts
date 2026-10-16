@@ -966,34 +966,6 @@ app.get("/devices/:id/telemetry.csv", async (request: any, reply) => {
     );
   return output;
 });
-app.post("/devices/:id/commands", async (request: any) => {
-  const actor = requireRole(request, [Role.OWNER, Role.MANAGER]);
-  const body = request.body ?? {};
-  return commands.send({
-    deviceId: request.params.id,
-    command: body.command,
-    args: body.args,
-    expectedRevision: body.expectedRevision,
-    actorId: actor.userId,
-  });
-});
-app.get("/devices/:id/commands", async (request: any) => {
-  session(request);
-  return db.command.findMany({
-    where: { deviceId: request.params.id },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
-});
-app.get("/devices/:id/commands/:requestId", async (request: any) => {
-  session(request);
-  const command = await db.command.findFirst({
-    where: { deviceId: request.params.id, requestId: request.params.requestId },
-  });
-  if (!command) throw fail(404);
-  return command;
-});
-
 process.on("SIGTERM", async () => {
   mqtt.stop();
   await db.$disconnect();

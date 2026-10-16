@@ -457,10 +457,10 @@ export default function DevicePage({
     valid.environment !== false &&
     latest?.relativeMoisturePct !== null &&
     latest?.temperatureC !== null;
-  const loggingActive = Boolean(
-    payload.storage?.mounted &&
-    (configuration?.configuration?.storage?.retain ?? 0) > 0,
-  );
+  // Storage diagnostics stay on the device. The dashboard only needs to reflect whether
+  // data logging is configured, not expose the device's flash usage or queue state.
+  const loggingActive =
+    (configuration?.configuration?.storage?.retain ?? 0) > 0;
   const deviceUptime = uptime(
     payload.health?.uptime_ms ?? payload.time?.uptime_ms,
   );

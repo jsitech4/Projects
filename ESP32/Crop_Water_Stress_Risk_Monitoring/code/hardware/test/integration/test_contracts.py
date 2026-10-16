@@ -46,10 +46,11 @@ def test_ack_requires_permanent_ingestion():
     with pytest.raises(ValidationError):validate(message)
 
 
-def test_nulls_remain_null():
+def test_missing_sensor_values_remain_null():
     message=json.loads((ROOT/'examples/telemetry.json').read_text())
-    assert message['measurements']['soil']['vwc_pct'] is None
-    message['measurements']['soil']['vwc_pct']=45
+    message['measurements']['soil']['relative_moisture_pct']=None
+    assert message['measurements']['soil']['relative_moisture_pct'] is None
+    message['measurements']['soil']['relative_moisture_pct']=101
     with pytest.raises(ValidationError):validate(message)
 
 

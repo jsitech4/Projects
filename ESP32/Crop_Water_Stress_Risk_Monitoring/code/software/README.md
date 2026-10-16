@@ -4,7 +4,7 @@ Self-hosted web, API, database, and MQTT ingestion services for the ESP32 crop w
 
 ## Hardware telemetry boundary
 
-The platform stores only measurements emitted by the firmware: air temperature and relative humidity (AM2301A), calibrated relative soil-moisture index, battery voltage, solar voltage, sensor quality/calibration state, connectivity, storage, and device health. It does not infer rainfall, light, pH, EC, nutrients, true VWC, charging current, crop yield, or harvest maturity. See [hardware data capabilities](docs/HARDWARE_DATA_CAPABILITIES.md).
+The platform stores only dashboard telemetry emitted by the firmware: air temperature and relative humidity (AM2301A), calibrated relative soil-moisture index, battery voltage, solar voltage, sensor validity, timestamps and minimal device identity. It does not receive Wi-Fi identity, IP address, broker settings, raw ADC/calibration values, storage counters, diagnostics, rainfall, light, pH, EC, nutrients, true VWC, charging current, crop yield, or harvest maturity. See [hardware data capabilities](docs/HARDWARE_DATA_CAPABILITIES.md).
 
 ## Requirements
 

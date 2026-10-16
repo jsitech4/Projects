@@ -16,7 +16,7 @@ class App {
     String trialKind, trialRequest;
     bool trialSave = false;
     uint32_t trialStarted = 0;
-    uint32_t lastSample = 0, lastUpload = 0, lastHealth = 0, lastSync = 0, lastFault = 0,
+    uint32_t lastSample = 0, lastUpload = 0, lastSync = 0, lastFault = 0,
              lastService = 0;
     uint32_t syncCursor = 0, sequence = 0, rebootAt = 0;
     bool syncing = false, previousOnline = false, previousWifi = false, previousPortal = false;
@@ -58,6 +58,7 @@ class App {
     }
     void envelope(JsonDocument &d, const char *type);
     void status(JsonDocument &d);
+    void dashboardConfiguration(JsonObject out) const;
     void health(JsonObject out);
     void capabilities(JsonDocument &d);
     void event(const char *code);

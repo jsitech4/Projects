@@ -180,10 +180,9 @@ void Commands::receive(const char *json) {
             response["error"] = e.c_str();
         else {
             String command = request["command"] | "";
-            bool known = false;
-            for (size_t i = 0; i < CommandCount; i++)
-                if (command == CommandNames[i])
-                    known = true;
+            // The cloud dashboard manages only its four visible preferences through one
+            // revision-checked patch. Commissioning, calibration and diagnostics stay local.
+            bool known = command == "config.patch";
             bool read = readOnly(command);
             int prior = read ? -1 : receipt(id);
             if (!known)
@@ -240,15 +239,7 @@ void Commands::receive(const char *json) {
 }
 void Commands::capabilities(JsonObject o) const {
     auto commands = o.createNestedArray("commands");
-    for (size_t i = 0; i < CommandCount; i++) {
-        String c = CommandNames[i];
-        if (c.startsWith("lcd.") && !app.display.available() && c != "lcd.get_status" &&
-            c != "lcd.set_enabled")
-            continue;
-        if (developerOnlyRemote(c))
-            continue;
-        commands.add(c);
-    }
+    commands.add("config.patch");
     o["command_authorization"] = "TLS broker identity and per-device ACL";
     o["mutations_require_expected_revision"] = true;
     o["max_command_lifetime_s"] = 300;

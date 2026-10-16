@@ -7,7 +7,7 @@ export class MqttService {
   constructor(private config: AppConfig, private ingestion: IngestionService, private log: { info: Function; warn: Function; error: Function }) {}
   start() {
     this.client = mqtt.connect(this.config.MQTT_BROKER_URL, { username: this.config.MQTT_USERNAME, password: this.config.MQTT_PASSWORD, ca: this.config.mqttCa, rejectUnauthorized: true, clean: true, reconnectPeriod: 5_000 });
-    this.client.on('connect', () => { this.log.info('MQTT connected'); this.client!.subscribe(['cws/v1/devices/+/telemetry', 'cws/v1/devices/+/status', 'cws/v1/devices/+/events', 'cws/v1/devices/+/command_responses', 'cws/v1/devices/+/configuration', 'cws/v1/devices/+/capabilities'], { qos: 1 }); });
+    this.client.on('connect', () => { this.log.info('MQTT connected'); this.client!.subscribe(['cws/v1/devices/+/telemetry', 'cws/v1/devices/+/events', 'cws/v1/devices/+/command_responses', 'cws/v1/devices/+/configuration'], { qos: 1 }); });
     this.client.on('message', async (topic, message) => {
       try {
         const saved = await this.ingestion.ingest(topic, message);

@@ -27,6 +27,7 @@ const mutations = new Set([
   "storage.retry_sync",
   "storage.set_retention",
 ]);
+const dashboardCommands = new Set(["config.patch"]);
 export class CommandService {
   constructor(
     private db: PrismaClient,
@@ -39,6 +40,8 @@ export class CommandService {
     expectedRevision?: number;
     actorId?: string;
   }) {
+    if (!dashboardCommands.has(input.command))
+      throw new Error("This dashboard accepts configuration updates only.");
     const args = input.args ?? {};
     if (
       destructive.has(input.command) &&
