@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
-import { calculateRisk, type CropRiskThresholds } from './risk.js';
+import { calculateRisk, DEVICE_BASELINE_RISK_THRESHOLDS, type CropRiskThresholds } from './risk.js';
 import { ContractValidator, deviceTime, parseDeviceTopic, type DeviceMessageKind } from './contracts.js';
 
 export class IngestionService {
@@ -22,9 +22,12 @@ export class IngestionService {
         const m = payload.measurements;
         const record = await tx.telemetry.create({ data: { messageId: payload.message_id, deviceId: route.deviceId, sampledAt: deviceTime(payload), temperatureC: m.environment.temperature_c, humidityPct: m.environment.humidity_pct, relativeMoisturePct: m.soil.relative_moisture_pct, batteryV: m.battery.voltage_v, solarV: m.solar.voltage_v, valid: { soil: m.soil.valid, environment: m.environment.valid, battery: m.battery.valid, solar: m.solar.valid }, raw: payload } });
         const profile = device.plot?.cropProfile;
-        const limits = validThresholds(profile?.thresholds) ? profile.thresholds : undefined;
+        const cropThresholds = profile?.thresholds;
+        const hasCropProfile = validThresholds(cropThresholds);
+        const limits: CropRiskThresholds = hasCropProfile ? cropThresholds : DEVICE_BASELINE_RISK_THRESHOLDS;
         const risk = calculateRisk({ temperatureC: record.temperatureC, humidityPct: record.humidityPct, relativeMoisturePct: record.relativeMoisturePct, batteryV: record.batteryV, soilValid: m.soil.valid, environmentValid: m.environment.valid, sampledAt: record.sampledAt, ingestedAt: record.ingestedAt, batteryCritical: m.battery.critical, faults: payload.health.active_faults }, limits);
-        if (profile) risk.factors.unshift(`Crop profile: ${profile.name}.`);
+        if (hasCropProfile && profile) risk.factors.unshift(`Crop profile: ${profile.name}.`);
+        else risk.factors.unshift('Device baseline: calibrated soil moisture, air temperature, and humidity.');
         const assessment = await tx.riskAssessment.create({ data: { deviceId: route.deviceId, telemetryId: record.id, level: risk.level, ruleVersion: risk.ruleVersion, factors: risk.factors, explanation: risk.explanation } });
         if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
           const existingAlert = await tx.alert.findFirst({ where: { deviceId: route.deviceId, status: { in: ['OPEN', 'ACKNOWLEDGED'] }, severity: risk.level }, orderBy: { createdAt: 'desc' } });
