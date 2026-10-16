@@ -72,7 +72,8 @@
 }
 
 .identity-actions {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   gap: 22px;
 }
 
@@ -96,27 +97,54 @@
 .identity-refresh:focus-visible { outline: 3px solid #9bdfaa; outline-offset: 2px; }
 .identity-refresh:disabled { opacity: 0.6; cursor: default; }
 .identity-refresh svg { width: 17px; height: 17px; }
+.identity-refresh { margin-left: auto; }
 
 .risk {
-  min-height: 48px;
-  gap: 14px;
-  padding-left: 22px;
-  border-left: 1px solid #82a495;
-  color: #eff7f2;
-  font-size: 14px;
+  order: -1;
+  position: relative;
+  margin-left: 30px;
+  min-height: 52px;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: #2a604b;
+  color: #fff;
+  font-size: 16px;
   font-weight: 700;
   white-space: nowrap;
 }
 
+.risk::before {
+  width: 1px;
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: -24px;
+  content: '';
+  background: #82a495;
+}
+
+.risk span {
+  display: flex;
+  align-items: center;
+  padding: 0 22px;
+}
+
 .risk strong {
-  padding: 9px 16px;
-  border-radius: 6px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: 0 22px;
+  border-radius: 0;
   background: #3a9360;
   color: #fff;
-  font-size: 15px;
+  font-size: 16px;
   text-transform: capitalize;
 }
 
+.risk strong.moderate { background: #be803b; }
 .risk strong.high,
 .risk strong.critical { background: #b6504c; }
 .risk strong.unknown { background: #65776e; }

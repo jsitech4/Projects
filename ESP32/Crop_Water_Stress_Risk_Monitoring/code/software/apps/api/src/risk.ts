@@ -32,7 +32,7 @@ export function calculateRisk(t: TelemetryInput, limits: CropRiskThresholds | un
   if (!limits) return {
     level: 'UNKNOWN', ruleVersion: 'unconfigured-crop-profile',
     factors: ['No field-specific crop risk profile is assigned.'],
-    explanation: 'Water-stress risk is not assessed until a crop profile with locally validated relative-moisture thresholds is assigned to this plot.',
+    explanation: 'Water stress risk is not assessed until a crop profile with locally validated relative-moisture thresholds is assigned to this plot.',
   };
   const stale = now.getTime() - (t.sampledAt ?? t.ingestedAt).getTime() > limits.staleMinutes * 60_000;
   if (!t.soilValid || !t.environmentValid || t.relativeMoisturePct === null || stale) {
@@ -50,5 +50,5 @@ export function calculateRisk(t: TelemetryInput, limits: CropRiskThresholds | un
   if (t.batteryCritical) { points += 1; factors.push('Battery is critical; monitoring reliability may be affected.'); }
   if ((t.faults?.length ?? 0) > 0) { points += 1; factors.push('The device reports active faults.'); }
   const level: RiskLevel = points >= 4 ? 'CRITICAL' : points >= 3 ? 'HIGH' : points >= 1 ? 'MODERATE' : 'LOW';
-  return { level, ruleVersion: limits.ruleVersion, factors, explanation: factors.length ? factors.join(' ') : 'Current valid readings do not meet the active water-stress thresholds.' };
+  return { level, ruleVersion: limits.ruleVersion, factors, explanation: factors.length ? factors.join(' ') : 'Current valid readings do not meet the active water stress thresholds.' };
 }
