@@ -124,45 +124,14 @@ function Icon({ name }: { name: IconName }) {
     </svg>
   );
 }
-function Enclosure() {
+function Enclosure({ placement }: { placement: "header" | "overview" }) {
   return (
-    <svg
+    <img
       className="enclosure"
-      viewBox="0 0 150 238"
+      src={`/images/crop-water-stress/${placement}-enclosure.svg`}
+      alt="Crop Water Stress Monitor enclosure"
       aria-label="Crop water monitor enclosure"
-      role="img"
-    >
-      <rect
-        x="17"
-        y="12"
-        width="116"
-        height="158"
-        rx="13"
-        fill="#edf1ef"
-        stroke="#b8c0bd"
-        strokeWidth="2"
-      />
-      <circle cx="31" cy="29" r="4" fill="#4c5554" />
-      <circle cx="119" cy="29" r="4" fill="#4c5554" />
-      <circle cx="31" cy="151" r="4" fill="#4c5554" />
-      <circle cx="119" cy="151" r="4" fill="#4c5554" />
-      <path d="M85 73c-21 7-32 23-30 43 22-4 33-20 30-43Z" fill="#315a46" />
-      <path d="M55 116c10-15 18-24 30-32" stroke="#ffffff" strokeWidth="1.5" />
-      <path
-        d="M38 169v24m13-24v43m14-43v24m28-24v43m14-43v24"
-        stroke="#293430"
-        strokeWidth="9"
-      />
-      <path
-        d="M34 190h8m9 18h8m2-18h8m28 18h8m2-18h8"
-        stroke="#59615e"
-        strokeWidth="4"
-      />
-      <rect x="29" y="166" width="18" height="14" rx="3" fill="#3c4543" />
-      <rect x="51" y="166" width="18" height="14" rx="3" fill="#3c4543" />
-      <rect x="89" y="166" width="18" height="14" rx="3" fill="#3c4543" />
-      <rect x="111" y="166" width="18" height="14" rx="3" fill="#3c4543" />
-    </svg>
+    />
   );
 }
 function Metric({
@@ -542,7 +511,7 @@ export default function DevicePage({
     <main className="crop-monitor">
       <section className="identity-band">
         <div className="identity-device">
-          <Enclosure />
+          <Enclosure placement="header" />
           <div>
             <h1>{device.displayName ?? "Crop Water Stress Monitor"}</h1>
             <p>{device.id}</p>
@@ -775,7 +744,7 @@ export default function DevicePage({
           <section className="panel hardware-panel">
             <h2>Hardware overview</h2>
             <div className="hardware-body">
-              <Enclosure />
+              <Enclosure placement="overview" />
               <dl>
                 <div>
                   <dt>Device model</dt>
@@ -912,13 +881,6 @@ export default function DevicePage({
                   }
                 />
                 <span />
-              </label>
-              <label>
-                Stored records
-                <span className="setting-value">
-                  {payload.storage?.records ?? 0} /{" "}
-                  {payload.storage?.capacity_records ?? 0}
-                </span>
               </label>
               <button type="submit" disabled={!draft || saving}>
                 {saving ? "Sending…" : "Save configuration"}
