@@ -812,30 +812,28 @@
       </section>
       <section id="device" class="view">
         <h2 class="view-title">Device</h2>
-        <p class="view-lead">Network and device identity settings.</p>
+        <p class="view-lead"></p>
         <form class="panel form-card" onsubmit="save(event,'Device settings saved.')">
           <div class="form-grid">
             <div class="calibration full"><strong>Indicator lights</strong><br><strong></strong> one
-              brief heartbeat means powered, healthy, and internet reachable; three rapid flashes mean intrusion; four
+              brief heartbeat means powered, healthy, and internet-reachable; three rapid flashes mean intrusion; four
               short flashes mean critical battery; two medium flashes mean low battery; one long flash means Wi-Fi
               disconnected; two very short flashes mean Wi-Fi connected without internet.</div><label>Device name<input
                 value="Main Entrance Sensor"></label><label>Location<input value="Main Entrance"></label><label>Time
-              zone<input value="WAT-1"><small>Nigeria uses WAT-1 (UTC+1).
-                Time synchronizes automatically when Wi-Fi is connected.</small></label><label>Wi-Fi network
+              zone<input value="WAT-1"><small></small></label><label>Wi-Fi network
               name<input value="Office WiFi"></label><label class="full">Wi-Fi password<input type="password"
                 placeholder="Leave blank to keep the saved password"></label>
           </div>
-          <div class="savebar"><span class="notice">Wi-Fi changes may reconnect the device.</span><button>Save device
+          <div class="savebar"><span class="notice"></span><button>Save device
               settings</button></div>
         </form>
       </section>
       <section id="battery" class="view">
         <h2 class="view-title">Battery</h2>
-        <p class="view-lead">Calibrate percentage against your battery and voltage divider.</p>
+        <p class="view-lead"></p>
         <form class="panel form-card" onsubmit="save(event,'Battery settings saved.')">
           <div class="form-grid">
-            <div class="calibration full">The percentage is calculated from <strong>empty voltage</strong> to
-              <strong>full voltage</strong>. Use a multimeter to calibrate the divider scale.
+            <div class="calibration full">Use a multimeter to calibrate the divider scale.
             </div><label class="check"><input type="checkbox" checked> Battery monitoring enabled</label>
             <div></div><label>Battery divider scale<input type="number" step="0.001" value="1.610"></label><label>Empty
               battery voltage<input type="number" step="0.01" value="3.00"></label><label>Full battery voltage<input
@@ -849,7 +847,7 @@
       </section>
       <section id="settings" class="view">
         <h2 class="view-title">Settings</h2>
-        <p class="view-lead">Alarm behaviour and physical button setup.</p>
+        <p class="view-lead"></p>
         <form class="panel form-card" onsubmit="save(event,'Alarm settings saved.')">
           <div class="form-grid"><label class="check"><input type="checkbox" checked> System armed</label><label
               class="check"><input type="checkbox" checked> Audible alarm enabled</label><label class="check"><input
@@ -879,7 +877,7 @@
     function renderRecipients() { recipientStore.value = recipients.join(','); recipientList.replaceChildren(); recipients.forEach(address => { const chip = document.createElement('span'), remove = document.createElement('button'); chip.className = 'recipient-chip'; chip.append(address); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', `Remove ${address}`); remove.onclick = () => { recipients = recipients.filter(item => item !== address); recipientError.textContent = ''; renderRecipients() }; chip.append(remove); recipientList.append(chip) }) }
     function addRecipient() { const address = recipientEntry.value.trim(); if (!validRecipient(address)) { recipientError.textContent = 'Enter a valid email address.'; return } if (recipients.some(item => item.toLowerCase() === address.toLowerCase())) { recipientError.textContent = 'That address has already been added.'; return } if (recipients.length >= 5) { recipientError.textContent = 'A maximum of 5 recipient addresses is allowed.'; return } recipients.push(address); recipientEntry.value = ''; recipientError.textContent = ''; renderRecipients() }
     document.getElementById('addRecipient').onclick = addRecipient; recipientEntry.onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); addRecipient() } }; renderRecipients()
-    const settingsPanel = document.getElementById('settings'); settingsPanel.insertAdjacentHTML('beforeend', '<section class="panel form-card"><h2>Device administration</h2><p class="notice">Administrative actions require your current password.</p><div class="form-grid"><label>Current administrator password<input id="adminCurrentPassword" type="password"></label><label>New administrator password<input id="adminNewPassword" type="password" minlength="12"></label><label class="full">Confirm new password<input id="adminConfirmPassword" type="password" minlength="12"></label></div><div class="savebar"><span id="adminResult" class="notice"></span><button id="changeAdminPassword" type="button">Change administrator password</button></div><div class="savebar"><span class="notice">Restart applies the current configuration.</span><button id="rebootDevice" class="button ghost" type="button">Restart device</button></div><div class="calibration"><strong>Factory reset</strong><br>Erases saved configuration, administrator credentials, and event history. Enter <code>FACTORY RESET</code> below, then your current password.</div><div class="form-grid"><label>Confirmation<input id="factoryConfirmation" placeholder="FACTORY RESET"></label><label>Current administrator password<input id="factoryCurrentPassword" type="password"></label></div><div class="savebar"><span id="factoryResult" class="notice"></span><button id="factoryReset" class="button danger" type="button">Factory reset device</button></div></section>');
+    const settingsPanel = document.getElementById('settings'); settingsPanel.insertAdjacentHTML('beforeend', '<section class="panel form-card"><h2>Device administration</h2><p class="notice"></p><div class="form-grid"><label>Current administrator password<input id="adminCurrentPassword" type="password"></label><label>New administrator password<input id="adminNewPassword" type="password" minlength="12"></label><label class="full">Confirm new password<input id="adminConfirmPassword" type="password" minlength="12"></label></div><div class="savebar"><span id="adminResult" class="notice"></span><button id="changeAdminPassword" type="button">Change administrator password</button></div><div class="savebar"><span class="notice">Restart applies the current configuration.</span><button id="rebootDevice" class="button ghost" type="button">Restart device</button></div><div class="calibration"><strong>Factory reset</strong><br>Erases saved configuration, administrator credentials, and event history. Enter <code>FACTORY RESET</code> below, then your current password.</div><div class="form-grid"><label>Confirmation<input id="factoryConfirmation" placeholder="FACTORY RESET"></label><label>Current administrator password<input id="factoryCurrentPassword" type="password"></label></div><div class="savebar"><span id="factoryResult" class="notice"></span><button id="factoryReset" class="button danger" type="button">Factory reset device</button></div></section>');
     document.getElementById('changeAdminPassword').onclick = () => { const current = document.getElementById('adminCurrentPassword').value, next = document.getElementById('adminNewPassword').value, confirmPassword = document.getElementById('adminConfirmPassword').value, result = document.getElementById('adminResult'); result.textContent = !current || !next ? 'Enter your current and new passwords.' : next !== confirmPassword ? 'The new passwords do not match.' : next.length < 12 ? 'Use at least 12 characters.' : 'Administrator password changed successfully.' }
     document.getElementById('rebootDevice').onclick = () => { if (confirm('Restart this device now?')) document.getElementById('adminResult').textContent = 'Restarting device…' }
     document.getElementById('factoryReset').onclick = () => { const confirmation = document.getElementById('factoryConfirmation').value, password = document.getElementById('factoryCurrentPassword').value; document.getElementById('factoryResult').textContent = confirmation !== 'FACTORY RESET' ? 'Enter FACTORY RESET exactly to continue.' : !password ? 'Enter your current administrator password.' : 'Factory reset is restarting the device…' }
