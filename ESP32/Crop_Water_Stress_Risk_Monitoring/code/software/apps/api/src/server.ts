@@ -1,115 +1,1003 @@
-import Fastify from 'fastify';
-import cookie from '@fastify/cookie';
-import cors from '@fastify/cors';
-import argon2 from 'argon2';
-import { PrismaClient, Role } from '@prisma/client';
-import { loadConfig } from './config.js';
-import { ContractValidator } from './contracts.js';
-import { IngestionService, telemetryEvents } from './ingestion.js';
-import { MqttService } from './mqtt.js';
-import { CommandService } from './commands.js';
+import Fastify from "fastify";
+import cookie from "@fastify/cookie";
+import cors from "@fastify/cors";
+import argon2 from "argon2";
+import { PrismaClient, Role } from "@prisma/client";
+import { loadConfig } from "./config.js";
+import { ContractValidator } from "./contracts.js";
+import { IngestionService, telemetryEvents } from "./ingestion.js";
+import { MqttService } from "./mqtt.js";
+import { CommandService } from "./commands.js";
 
-const config = loadConfig(); const db = new PrismaClient();
+const config = loadConfig();
+const db = new PrismaClient();
 const app = Fastify({ logger: true, trustProxy: true });
 await app.register(cookie, { secret: config.SESSION_SECRET });
-await app.register(cors, { origin: config.CORS_ALLOWED_ORIGINS.split(',').map((x) => x.trim()), credentials: true });
-const ingestion = new IngestionService(db, new ContractValidator(config.CONTRACT_DIR));
-const mqtt = new MqttService(config, ingestion, app.log); const commands = new CommandService(db, mqtt);
+await app.register(cors, {
+  origin: config.CORS_ALLOWED_ORIGINS.split(",").map((x) => x.trim()),
+  credentials: true,
+});
+const ingestion = new IngestionService(
+  db,
+  new ContractValidator(config.CONTRACT_DIR),
+);
+const mqtt = new MqttService(config, ingestion, app.log);
+const commands = new CommandService(db, mqtt);
 type Session = { userId: string; role: Role };
-const fail = (statusCode: number, message = 'Request rejected') => Object.assign(new Error(message), { statusCode });
-function session(request: any): Session { const value = request.unsignCookie(request.cookies.cws_session ?? ''); if (!value.valid) throw fail(401); const [userId, role] = value.value.split(':'); if (!userId || !Object.values(Role).includes(role as Role)) throw fail(401); return { userId, role: role as Role }; }
-function requireRole(request: any, allowed: Role[]) { const s = session(request); if (!allowed.includes(s.role)) throw fail(403); return s; }
-async function organizationAccess(request: any, organizationId: string, allowed: Role[]) {
+const fail = (statusCode: number, message = "Request rejected") =>
+  Object.assign(new Error(message), { statusCode });
+function session(request: any): Session {
+  const value = request.unsignCookie(request.cookies.cws_session ?? "");
+  if (!value.valid) throw fail(401);
+  const [userId, role] = value.value.split(":");
+  if (!userId || !Object.values(Role).includes(role as Role)) throw fail(401);
+  return { userId, role: role as Role };
+}
+function requireRole(request: any, allowed: Role[]) {
+  const s = session(request);
+  if (!allowed.includes(s.role)) throw fail(403);
+  return s;
+}
+async function organizationAccess(
+  request: any,
+  organizationId: string,
+  allowed: Role[],
+) {
   const actor = session(request);
   if (actor.role === Role.OWNER) return actor;
-  const membership = await db.membership.findUnique({ where: { userId_organizationId: { userId: actor.userId, organizationId } } });
+  const membership = await db.membership.findUnique({
+    where: { userId_organizationId: { userId: actor.userId, organizationId } },
+  });
   if (!membership || !allowed.includes(membership.role)) throw fail(403);
   return actor;
 }
 async function deviceAccess(request: any, deviceId: string, allowed: Role[]) {
   const device = await db.device.findUnique({ where: { id: deviceId } });
-  if (!device) throw fail(404, 'Device not found.');
+  if (!device) throw fail(404, "Device not found.");
   await organizationAccess(request, device.organizationId, allowed);
   return device;
 }
 async function visibleOrganizationIds(actor: Session) {
   if (actor.role === Role.OWNER) return undefined;
-  return (await db.membership.findMany({ where: { userId: actor.userId }, select: { organizationId: true } })).map((m) => m.organizationId);
+  return (
+    await db.membership.findMany({
+      where: { userId: actor.userId },
+      select: { organizationId: true },
+    })
+  ).map((m) => m.organizationId);
 }
 function cropThresholds(value: any) {
   const thresholds = value ?? {};
-  const numeric = ['soilModerate', 'soilHigh', 'soilCritical', 'staleMinutes'];
-  for (const key of numeric) if (!Number.isFinite(thresholds[key])) throw fail(400, `thresholds.${key} must be a number.`);
-  for (const key of ['temperatureHigh', 'humidityLow']) if (thresholds[key] !== undefined && !Number.isFinite(thresholds[key])) throw fail(400, `thresholds.${key} must be a number when provided.`);
-  if (thresholds.soilCritical < 0 || thresholds.soilCritical > thresholds.soilHigh || thresholds.soilHigh > thresholds.soilModerate || thresholds.soilModerate > 100) throw fail(400, 'Soil thresholds must be ordered from critical to moderate and stay within 0–100.');
-  if (!Number.isInteger(thresholds.staleMinutes) || thresholds.staleMinutes < 1 || thresholds.staleMinutes > 1440) throw fail(400, 'thresholds.staleMinutes must be an integer between 1 and 1440.');
-  if (typeof thresholds.ruleVersion !== 'string' || !thresholds.ruleVersion.trim() || thresholds.ruleVersion.trim().length > 64) throw fail(400, 'thresholds.ruleVersion is required (maximum 64 characters).');
-  return { soilModerate: thresholds.soilModerate, soilHigh: thresholds.soilHigh, soilCritical: thresholds.soilCritical, staleMinutes: thresholds.staleMinutes, ruleVersion: thresholds.ruleVersion.trim(), ...(thresholds.temperatureHigh === undefined ? {} : { temperatureHigh: thresholds.temperatureHigh }), ...(thresholds.humidityLow === undefined ? {} : { humidityLow: thresholds.humidityLow }) };
+  const numeric = ["soilModerate", "soilHigh", "soilCritical", "staleMinutes"];
+  for (const key of numeric)
+    if (!Number.isFinite(thresholds[key]))
+      throw fail(400, `thresholds.${key} must be a number.`);
+  for (const key of ["temperatureHigh", "humidityLow"])
+    if (thresholds[key] !== undefined && !Number.isFinite(thresholds[key]))
+      throw fail(400, `thresholds.${key} must be a number when provided.`);
+  if (
+    thresholds.soilCritical < 0 ||
+    thresholds.soilCritical > thresholds.soilHigh ||
+    thresholds.soilHigh > thresholds.soilModerate ||
+    thresholds.soilModerate > 100
+  )
+    throw fail(
+      400,
+      "Soil thresholds must be ordered from critical to moderate and stay within 0–100.",
+    );
+  if (
+    !Number.isInteger(thresholds.staleMinutes) ||
+    thresholds.staleMinutes < 1 ||
+    thresholds.staleMinutes > 1440
+  )
+    throw fail(
+      400,
+      "thresholds.staleMinutes must be an integer between 1 and 1440.",
+    );
+  if (
+    typeof thresholds.ruleVersion !== "string" ||
+    !thresholds.ruleVersion.trim() ||
+    thresholds.ruleVersion.trim().length > 64
+  )
+    throw fail(
+      400,
+      "thresholds.ruleVersion is required (maximum 64 characters).",
+    );
+  return {
+    soilModerate: thresholds.soilModerate,
+    soilHigh: thresholds.soilHigh,
+    soilCritical: thresholds.soilCritical,
+    staleMinutes: thresholds.staleMinutes,
+    ruleVersion: thresholds.ruleVersion.trim(),
+    ...(thresholds.temperatureHigh === undefined
+      ? {}
+      : { temperatureHigh: thresholds.temperatureHigh }),
+    ...(thresholds.humidityLow === undefined
+      ? {}
+      : { humidityLow: thresholds.humidityLow }),
+  };
 }
 function configurationPatch(input: any) {
-  const value = input ?? {}; const patch: Record<string, unknown> = {};
-  const text = (key: string, max = 48) => { if (value[key] !== undefined) { if (typeof value[key] !== 'string' || !value[key].trim() || value[key].trim().length > max) throw fail(400, `${key} must be a non-empty value of at most ${max} characters.`); patch[key] = value[key].trim(); } };
-  const integer = (key: string, min: number, max: number) => { if (value[key] !== undefined) { if (!Number.isInteger(value[key]) || value[key] < min || value[key] > max) throw fail(400, `${key} must be an integer between ${min} and ${max}.`); patch[key] = value[key]; } };
-  const preferences = (key: 'led' | 'buzzer', allowed: string[]) => { if (value[key] !== undefined) { if (!value[key] || typeof value[key] !== 'object') throw fail(400, `${key} preferences are invalid.`); const item: Record<string, boolean> = {}; for (const field of allowed) { if (value[key][field] !== undefined) { if (typeof value[key][field] !== 'boolean') throw fail(400, `${key}.${field} must be true or false.`); item[field] = value[key][field]; } } if (!Object.keys(item).length) throw fail(400, `${key} preferences are empty.`); patch[key] = item; } };
-  text('name'); integer('sample_s', 5, 86400); integer('upload_s', 5, 86400); integer('health_s', 10, 86400); integer('retain', 8, 256);
-  preferences('led', ['enabled', 'breathing']); preferences('buzzer', ['enabled', 'alerts']);
-  if (value.retain !== undefined || value.drop_oldest !== undefined || value.durable_ack !== undefined) {
-    const storage: Record<string, unknown> = {}; if (value.retain !== undefined) storage.retain = value.retain;
-    for (const field of ['drop_oldest', 'durable_ack']) { if (value[field] !== undefined) { if (typeof value[field] !== 'boolean') throw fail(400, `${field} must be true or false.`); storage[field] = value[field]; } }
+  const value = input ?? {};
+  const patch: Record<string, unknown> = {};
+  const text = (key: string, max = 48) => {
+    if (value[key] !== undefined) {
+      if (
+        typeof value[key] !== "string" ||
+        !value[key].trim() ||
+        value[key].trim().length > max
+      )
+        throw fail(
+          400,
+          `${key} must be a non-empty value of at most ${max} characters.`,
+        );
+      patch[key] = value[key].trim();
+    }
+  };
+  const integer = (key: string, min: number, max: number) => {
+    if (value[key] !== undefined) {
+      if (!Number.isInteger(value[key]) || value[key] < min || value[key] > max)
+        throw fail(400, `${key} must be an integer between ${min} and ${max}.`);
+      patch[key] = value[key];
+    }
+  };
+  const preferences = (key: "led" | "buzzer", allowed: string[]) => {
+    if (value[key] !== undefined) {
+      if (!value[key] || typeof value[key] !== "object")
+        throw fail(400, `${key} preferences are invalid.`);
+      const item: Record<string, boolean> = {};
+      for (const field of allowed) {
+        if (value[key][field] !== undefined) {
+          if (typeof value[key][field] !== "boolean")
+            throw fail(400, `${key}.${field} must be true or false.`);
+          item[field] = value[key][field];
+        }
+      }
+      if (!Object.keys(item).length)
+        throw fail(400, `${key} preferences are empty.`);
+      patch[key] = item;
+    }
+  };
+  text("name");
+  integer("sample_s", 5, 86400);
+  integer("upload_s", 5, 86400);
+  integer("health_s", 10, 86400);
+  integer("retain", 8, 256);
+  preferences("led", ["enabled", "breathing"]);
+  preferences("buzzer", ["enabled", "alerts"]);
+  if (
+    value.retain !== undefined ||
+    value.drop_oldest !== undefined ||
+    value.durable_ack !== undefined
+  ) {
+    const storage: Record<string, unknown> = {};
+    if (value.retain !== undefined) storage.retain = value.retain;
+    for (const field of ["drop_oldest", "durable_ack"]) {
+      if (value[field] !== undefined) {
+        if (typeof value[field] !== "boolean")
+          throw fail(400, `${field} must be true or false.`);
+        storage[field] = value[field];
+      }
+    }
     patch.storage = storage;
   }
-  if (!Object.keys(patch).length) throw fail(400, 'At least one supported configuration value is required.');
+  if (!Object.keys(patch).length)
+    throw fail(400, "At least one supported configuration value is required.");
   return patch;
 }
 
-app.get('/health', async () => ({ ok: true, service: 'cws-api' }));
-app.post('/auth/login', async (request: any, reply) => { const { email, password } = request.body ?? {}; const user = await db.user.findUnique({ where: { email } }); if (!user || !await argon2.verify(user.passwordHash, password ?? '')) throw fail(401, 'Invalid credentials'); reply.setCookie('cws_session', `${user.id}:${user.role}`, { signed: true, httpOnly: true, secure: config.NODE_ENV === 'production', sameSite: 'strict', domain: config.COOKIE_DOMAIN || undefined, path: '/' }); return { id: user.id, email: user.email, role: user.role }; });
-app.post('/auth/logout', async (_request, reply) => { reply.clearCookie('cws_session', { path: '/', domain: config.COOKIE_DOMAIN || undefined }); return { ok: true }; });
-app.get('/me', async (request) => { const s = session(request); return db.user.findUnique({ where: { id: s.userId }, select: { id: true, email: true, role: true } }); });
-app.get('/organizations', async (request: any) => { const actor = session(request); const ids = await visibleOrganizationIds(actor); return db.organization.findMany({ where: ids ? { id: { in: ids } } : undefined, include: { _count: { select: { farms: true, sites: true, devices: true, alerts: { where: { status: 'OPEN' } } } } }, orderBy: { name: 'asc' } }); });
-app.post('/organizations', async (request: any) => { const actor = requireRole(request, [Role.OWNER]); const name = request.body?.name; if (typeof name !== 'string' || !name.trim() || name.trim().length > 100) throw fail(400, 'Organization name is required.'); const organization = await db.organization.create({ data: { name: name.trim(), memberships: { create: { userId: actor.userId, role: Role.OWNER } } } }); await db.auditLog.create({ data: { userId: actor.userId, action: 'organization.created', targetType: 'Organization', targetId: organization.id, detail: { name: organization.name } } }); return organization; });
-app.get('/organizations/:organizationId/structure', async (request: any) => { const organizationId = request.params.organizationId; await organizationAccess(request, organizationId, [Role.OWNER, Role.MANAGER, Role.VIEWER]); return db.organization.findUnique({ where: { id: organizationId }, include: { farms: { orderBy: { name: 'asc' }, include: { fields: { orderBy: { name: 'asc' }, include: { plots: { orderBy: { name: 'asc' }, include: { cropProfile: true, devices: { select: { id: true, displayName: true, lastSeenAt: true } } } } } } } }, cropProfiles: { where: { active: true }, orderBy: { name: 'asc' } } } }); });
-app.post('/organizations/:organizationId/farms', async (request: any) => { const organizationId = request.params.organizationId; const actor = await organizationAccess(request, organizationId, [Role.OWNER, Role.MANAGER]); const { name, location } = request.body ?? {}; if (typeof name !== 'string' || !name.trim() || name.trim().length > 100) throw fail(400, 'Farm name is required.'); const farm = await db.farm.create({ data: { organizationId, name: name.trim(), location: typeof location === 'string' ? location.trim().slice(0, 180) || null : null } }); await db.auditLog.create({ data: { userId: actor.userId, action: 'farm.created', targetType: 'Farm', targetId: farm.id, detail: { organizationId } } }); return farm; });
-app.post('/farms/:farmId/fields', async (request: any) => { const farm = await db.farm.findUnique({ where: { id: request.params.farmId } }); if (!farm) throw fail(404, 'Farm not found.'); const actor = await organizationAccess(request, farm.organizationId, [Role.OWNER, Role.MANAGER]); const name = request.body?.name; if (typeof name !== 'string' || !name.trim() || name.trim().length > 100) throw fail(400, 'Field name is required.'); const field = await db.site.create({ data: { organizationId: farm.organizationId, farmId: farm.id, name: name.trim() } }); await db.auditLog.create({ data: { userId: actor.userId, action: 'field.created', targetType: 'Field', targetId: field.id, detail: { farmId: farm.id } } }); return field; });
-app.post('/fields/:fieldId/plots', async (request: any) => { const field = await db.site.findUnique({ where: { id: request.params.fieldId } }); if (!field) throw fail(404, 'Field not found.'); const actor = await organizationAccess(request, field.organizationId, [Role.OWNER, Role.MANAGER]); const { name, crop, cropProfileId } = request.body ?? {}; if (typeof name !== 'string' || !name.trim() || name.trim().length > 100) throw fail(400, 'Plot name is required.'); if (cropProfileId) { const profile = await db.cropProfile.findFirst({ where: { id: cropProfileId, organizationId: field.organizationId, active: true } }); if (!profile) throw fail(400, 'Crop profile is not available for this organization.'); } const plot = await db.plot.create({ data: { siteId: field.id, name: name.trim(), crop: typeof crop === 'string' ? crop.trim().slice(0, 80) || null : null, cropProfileId: cropProfileId || null } }); await db.auditLog.create({ data: { userId: actor.userId, action: 'plot.created', targetType: 'Plot', targetId: plot.id, detail: { fieldId: field.id } } }); return plot; });
-app.get('/organizations/:organizationId/dashboard', async (request: any) => { const organizationId = request.params.organizationId; await organizationAccess(request, organizationId, [Role.OWNER, Role.MANAGER, Role.VIEWER]); const since = new Date(Date.now() - 24 * 60 * 60_000); const [devices, alerts, recent] = await Promise.all([db.device.findMany({ where: { organizationId }, include: { plot: { include: { site: { include: { farm: true } } } }, risks: { take: 1, orderBy: { calculatedAt: 'desc' } }, telemetry: { take: 1, orderBy: { ingestedAt: 'desc' } } }, orderBy: { lastSeenAt: 'desc' } }), db.alert.findMany({ where: { organizationId, status: { in: ['OPEN', 'ACKNOWLEDGED'] } }, include: { device: { select: { id: true, displayName: true } } }, orderBy: { createdAt: 'desc' }, take: 20 }), db.telemetry.count({ where: { device: { organizationId }, ingestedAt: { gte: since } } })]); return { generatedAt: new Date(), devices, alerts, measurementsLast24h: recent }; });
-app.get('/organizations/:organizationId/alerts', async (request: any) => { const organizationId = request.params.organizationId; await organizationAccess(request, organizationId, [Role.OWNER, Role.MANAGER, Role.VIEWER]); return db.alert.findMany({ where: { organizationId }, include: { device: { select: { id: true, displayName: true, plot: { include: { site: true } } } } }, orderBy: { createdAt: 'desc' }, take: 200 }); });
-app.post('/alerts/:id/acknowledge', async (request: any) => { const alert = await db.alert.findUnique({ where: { id: request.params.id } }); if (!alert) throw fail(404, 'Alert not found.'); const actor = await organizationAccess(request, alert.organizationId, [Role.OWNER, Role.MANAGER]); const updated = await db.alert.update({ where: { id: alert.id }, data: { status: 'ACKNOWLEDGED', acknowledgedAt: new Date(), acknowledgedById: actor.userId } }); await db.auditLog.create({ data: { userId: actor.userId, action: 'alert.acknowledged', targetType: 'Alert', targetId: alert.id } }); return updated; });
-app.post('/alerts/:id/resolve', async (request: any) => { const alert = await db.alert.findUnique({ where: { id: request.params.id } }); if (!alert) throw fail(404, 'Alert not found.'); const actor = await organizationAccess(request, alert.organizationId, [Role.OWNER, Role.MANAGER]); const updated = await db.alert.update({ where: { id: alert.id }, data: { status: 'RESOLVED', resolvedAt: new Date() } }); await db.auditLog.create({ data: { userId: actor.userId, action: 'alert.resolved', targetType: 'Alert', targetId: alert.id } }); return updated; });
-app.get('/organizations/:organizationId/audit-logs', async (request: any) => { const organizationId = request.params.organizationId; await organizationAccess(request, organizationId, [Role.OWNER, Role.MANAGER]); return db.auditLog.findMany({ where: { OR: [{ detail: { path: ['organizationId'], equals: organizationId } }, { targetType: 'Organization', targetId: organizationId }] }, include: { user: { select: { email: true } } }, orderBy: { createdAt: 'desc' }, take: 300 }); });
-app.get('/organizations/:organizationId/users', async (request: any) => { const organizationId = request.params.organizationId; await organizationAccess(request, organizationId, [Role.OWNER, Role.MANAGER]); return db.membership.findMany({ where: { organizationId }, include: { user: { select: { id: true, email: true, role: true, createdAt: true } } }, orderBy: { user: { email: 'asc' } } }); });
-app.put('/users/me/notification-preferences', async (request: any) => { const actor = session(request); const { channel, enabled, destination } = request.body ?? {}; if (typeof channel !== 'string' || !['in_app', 'email', 'sms'].includes(channel) || typeof enabled !== 'boolean') throw fail(400, 'A supported channel and enabled flag are required.'); return db.notificationPreference.upsert({ where: { userId_channel: { userId: actor.userId, channel } }, create: { userId: actor.userId, channel, enabled, destination: typeof destination === 'string' ? destination.trim().slice(0, 160) || null : null }, update: { enabled, destination: typeof destination === 'string' ? destination.trim().slice(0, 160) || null : null } }); });
-app.get('/organizations/:organizationId/crop-profiles', async (request: any) => { await organizationAccess(request, request.params.organizationId, [Role.OWNER, Role.MANAGER, Role.VIEWER]); return db.cropProfile.findMany({ where: { organizationId: request.params.organizationId, active: true }, orderBy: { name: 'asc' } }); });
-app.post('/organizations/:organizationId/crop-profiles', async (request: any) => {
-  const organizationId = request.params.organizationId; const actor = await organizationAccess(request, organizationId, [Role.OWNER, Role.MANAGER]); const body = request.body ?? {};
-  if (typeof body.name !== 'string' || !body.name.trim() || body.name.trim().length > 80) throw fail(400, 'name is required and must be at most 80 characters.');
-  const text = (value: unknown, key: string, max: number) => { if (value !== undefined && (typeof value !== 'string' || value.trim().length > max)) throw fail(400, `${key} must be text of at most ${max} characters.`); return typeof value === 'string' ? value.trim() || null : null; };
-  const profile = await db.cropProfile.create({ data: { organizationId, name: body.name.trim(), cultivar: text(body.cultivar, 'cultivar', 80), description: text(body.description, 'description', 500), thresholds: cropThresholds(body.thresholds) } });
-  await db.auditLog.create({ data: { userId: actor.userId, action: 'crop_profile.created', targetType: 'CropProfile', targetId: profile.id, detail: { organizationId, name: profile.name } } });
-  return profile;
+app.get("/health", async () => ({ ok: true, service: "cws-api" }));
+app.post("/auth/login", async (request: any, reply) => {
+  const { email, password } = request.body ?? {};
+  const user = await db.user.findUnique({ where: { email } });
+  if (!user || !(await argon2.verify(user.passwordHash, password ?? "")))
+    throw fail(401, "Invalid credentials");
+  reply.setCookie("cws_session", `${user.id}:${user.role}`, {
+    signed: true,
+    httpOnly: true,
+    secure: config.NODE_ENV === "production",
+    sameSite: "strict",
+    domain: config.COOKIE_DOMAIN || undefined,
+    path: "/",
+  });
+  return { id: user.id, email: user.email, role: user.role };
 });
-app.post('/plots/:id/crop-profile', async (request: any) => {
-  const plot = await db.plot.findUnique({ where: { id: request.params.id }, include: { site: true } }); if (!plot) throw fail(404);
-  const actor = await organizationAccess(request, plot.site.organizationId, [Role.OWNER, Role.MANAGER]); const profileId = request.body?.cropProfileId;
-  if (profileId !== null && typeof profileId !== 'string') throw fail(400, 'cropProfileId must be a profile ID or null.');
-  if (profileId) { const profile = await db.cropProfile.findFirst({ where: { id: profileId, organizationId: plot.site.organizationId, active: true } }); if (!profile) throw fail(400, 'Crop profile is not available for this organization.'); }
-  const updated = await db.plot.update({ where: { id: plot.id }, data: { cropProfileId: profileId ?? null }, include: { cropProfile: true } });
-  await db.auditLog.create({ data: { userId: actor.userId, action: 'plot.crop_profile_assigned', targetType: 'Plot', targetId: plot.id, detail: { cropProfileId: profileId ?? null } } });
+app.post("/auth/logout", async (_request, reply) => {
+  reply.clearCookie("cws_session", {
+    path: "/",
+    domain: config.COOKIE_DOMAIN || undefined,
+  });
+  return { ok: true };
+});
+app.get("/me", async (request) => {
+  const s = session(request);
+  return db.user.findUnique({
+    where: { id: s.userId },
+    select: { id: true, email: true, role: true },
+  });
+});
+app.get("/organizations", async (request: any) => {
+  const actor = session(request);
+  const ids = await visibleOrganizationIds(actor);
+  return db.organization.findMany({
+    where: ids ? { id: { in: ids } } : undefined,
+    include: {
+      _count: {
+        select: {
+          farms: true,
+          sites: true,
+          devices: true,
+          alerts: { where: { status: "OPEN" } },
+        },
+      },
+    },
+    orderBy: { name: "asc" },
+  });
+});
+app.post("/organizations", async (request: any) => {
+  const actor = requireRole(request, [Role.OWNER]);
+  const name = request.body?.name;
+  if (typeof name !== "string" || !name.trim() || name.trim().length > 100)
+    throw fail(400, "Organization name is required.");
+  const organization = await db.organization.create({
+    data: {
+      name: name.trim(),
+      memberships: { create: { userId: actor.userId, role: Role.OWNER } },
+    },
+  });
+  await db.auditLog.create({
+    data: {
+      userId: actor.userId,
+      action: "organization.created",
+      targetType: "Organization",
+      targetId: organization.id,
+      detail: { name: organization.name },
+    },
+  });
+  return organization;
+});
+app.get("/organizations/:organizationId/structure", async (request: any) => {
+  const organizationId = request.params.organizationId;
+  await organizationAccess(request, organizationId, [
+    Role.OWNER,
+    Role.MANAGER,
+    Role.VIEWER,
+  ]);
+  return db.organization.findUnique({
+    where: { id: organizationId },
+    include: {
+      farms: {
+        orderBy: { name: "asc" },
+        include: {
+          fields: {
+            orderBy: { name: "asc" },
+            include: {
+              plots: {
+                orderBy: { name: "asc" },
+                include: {
+                  cropProfile: true,
+                  devices: {
+                    select: { id: true, displayName: true, lastSeenAt: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      cropProfiles: { where: { active: true }, orderBy: { name: "asc" } },
+    },
+  });
+});
+app.post("/organizations/:organizationId/farms", async (request: any) => {
+  const organizationId = request.params.organizationId;
+  const actor = await organizationAccess(request, organizationId, [
+    Role.OWNER,
+    Role.MANAGER,
+  ]);
+  const { name, location } = request.body ?? {};
+  if (typeof name !== "string" || !name.trim() || name.trim().length > 100)
+    throw fail(400, "Farm name is required.");
+  const farm = await db.farm.create({
+    data: {
+      organizationId,
+      name: name.trim(),
+      location:
+        typeof location === "string"
+          ? location.trim().slice(0, 180) || null
+          : null,
+    },
+  });
+  await db.auditLog.create({
+    data: {
+      userId: actor.userId,
+      action: "farm.created",
+      targetType: "Farm",
+      targetId: farm.id,
+      detail: { organizationId },
+    },
+  });
+  return farm;
+});
+app.post("/farms/:farmId/fields", async (request: any) => {
+  const farm = await db.farm.findUnique({
+    where: { id: request.params.farmId },
+  });
+  if (!farm) throw fail(404, "Farm not found.");
+  const actor = await organizationAccess(request, farm.organizationId, [
+    Role.OWNER,
+    Role.MANAGER,
+  ]);
+  const name = request.body?.name;
+  if (typeof name !== "string" || !name.trim() || name.trim().length > 100)
+    throw fail(400, "Field name is required.");
+  const field = await db.site.create({
+    data: {
+      organizationId: farm.organizationId,
+      farmId: farm.id,
+      name: name.trim(),
+    },
+  });
+  await db.auditLog.create({
+    data: {
+      userId: actor.userId,
+      action: "field.created",
+      targetType: "Field",
+      targetId: field.id,
+      detail: { farmId: farm.id },
+    },
+  });
+  return field;
+});
+app.post("/fields/:fieldId/plots", async (request: any) => {
+  const field = await db.site.findUnique({
+    where: { id: request.params.fieldId },
+  });
+  if (!field) throw fail(404, "Field not found.");
+  const actor = await organizationAccess(request, field.organizationId, [
+    Role.OWNER,
+    Role.MANAGER,
+  ]);
+  const { name, crop, cropProfileId } = request.body ?? {};
+  if (typeof name !== "string" || !name.trim() || name.trim().length > 100)
+    throw fail(400, "Plot name is required.");
+  if (cropProfileId) {
+    const profile = await db.cropProfile.findFirst({
+      where: {
+        id: cropProfileId,
+        organizationId: field.organizationId,
+        active: true,
+      },
+    });
+    if (!profile)
+      throw fail(400, "Crop profile is not available for this organization.");
+  }
+  const plot = await db.plot.create({
+    data: {
+      siteId: field.id,
+      name: name.trim(),
+      crop: typeof crop === "string" ? crop.trim().slice(0, 80) || null : null,
+      cropProfileId: cropProfileId || null,
+    },
+  });
+  await db.auditLog.create({
+    data: {
+      userId: actor.userId,
+      action: "plot.created",
+      targetType: "Plot",
+      targetId: plot.id,
+      detail: { fieldId: field.id },
+    },
+  });
+  return plot;
+});
+app.get("/organizations/:organizationId/dashboard", async (request: any) => {
+  const organizationId = request.params.organizationId;
+  await organizationAccess(request, organizationId, [
+    Role.OWNER,
+    Role.MANAGER,
+    Role.VIEWER,
+  ]);
+  const since = new Date(Date.now() - 24 * 60 * 60_000);
+  const [devices, alerts, recent] = await Promise.all([
+    db.device.findMany({
+      where: { organizationId },
+      include: {
+        plot: { include: { site: { include: { farm: true } } } },
+        risks: { take: 1, orderBy: { calculatedAt: "desc" } },
+        telemetry: { take: 1, orderBy: { ingestedAt: "desc" } },
+      },
+      orderBy: { lastSeenAt: "desc" },
+    }),
+    db.alert.findMany({
+      where: { organizationId, status: { in: ["OPEN", "ACKNOWLEDGED"] } },
+      include: { device: { select: { id: true, displayName: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    db.telemetry.count({
+      where: { device: { organizationId }, ingestedAt: { gte: since } },
+    }),
+  ]);
+  return {
+    generatedAt: new Date(),
+    devices,
+    alerts,
+    measurementsLast24h: recent,
+  };
+});
+app.get("/organizations/:organizationId/alerts", async (request: any) => {
+  const organizationId = request.params.organizationId;
+  await organizationAccess(request, organizationId, [
+    Role.OWNER,
+    Role.MANAGER,
+    Role.VIEWER,
+  ]);
+  return db.alert.findMany({
+    where: { organizationId },
+    include: {
+      device: {
+        select: {
+          id: true,
+          displayName: true,
+          plot: { include: { site: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
+});
+app.post("/alerts/:id/acknowledge", async (request: any) => {
+  const alert = await db.alert.findUnique({ where: { id: request.params.id } });
+  if (!alert) throw fail(404, "Alert not found.");
+  const actor = await organizationAccess(request, alert.organizationId, [
+    Role.OWNER,
+    Role.MANAGER,
+  ]);
+  const updated = await db.alert.update({
+    where: { id: alert.id },
+    data: {
+      status: "ACKNOWLEDGED",
+      acknowledgedAt: new Date(),
+      acknowledgedById: actor.userId,
+    },
+  });
+  await db.auditLog.create({
+    data: {
+      userId: actor.userId,
+      action: "alert.acknowledged",
+      targetType: "Alert",
+      targetId: alert.id,
+    },
+  });
   return updated;
 });
-app.get('/devices', async (request: any) => { const actor = session(request); const ids = await visibleOrganizationIds(actor); return db.device.findMany({ where: ids ? { organizationId: { in: ids } } : undefined, include: { plot: { include: { site: true } }, risks: { orderBy: { calculatedAt: 'desc' }, take: 1 } }, orderBy: { lastSeenAt: 'desc' } }); });
-app.post('/devices', async (request: any) => { const actor = requireRole(request, [Role.OWNER, Role.MANAGER]); const { id, organizationId, plotId, displayName, hardwareModel, firmwareVersion } = request.body ?? {}; if (!/^CWS-[A-F0-9]+$/.test(id ?? '')) throw fail(400, 'id must be the stable CWS-<MAC> identifier'); const membership = await db.membership.findUnique({ where: { userId_organizationId: { userId: actor.userId, organizationId } } }); if (!membership && actor.role !== Role.OWNER) throw fail(403); return db.device.create({ data: { id, organizationId, plotId, displayName, hardwareModel, firmwareVersion } }); });
-app.get('/devices/:id', async (request: any) => { const device = await db.device.findUnique({ where: { id: request.params.id }, include: { plot: { include: { site: true, cropProfile: true } }, snapshots: true, risks: { orderBy: { calculatedAt: 'desc' }, take: 1 }, telemetry: { orderBy: { ingestedAt: 'desc' }, take: 200 }, events: { orderBy: { ingestedAt: 'desc' }, take: 100 } } }); if (!device) throw fail(404); await organizationAccess(request, device.organizationId, [Role.OWNER, Role.MANAGER, Role.VIEWER]); return device; });
-app.get('/devices/:id/live', async (request: any, reply: any) => { await deviceAccess(request, request.params.id, [Role.OWNER, Role.MANAGER, Role.VIEWER]); reply.hijack(); reply.raw.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache, no-transform', connection: 'keep-alive', 'x-accel-buffering': 'no' }); const send = () => reply.raw.write(`event: telemetry\ndata: {"deviceId":"${request.params.id}"}\n\n`); const listener = (deviceId: string) => { if (deviceId === request.params.id) send(); }; const heartbeat = setInterval(() => reply.raw.write(': keep-alive\n\n'), 25_000); telemetryEvents.on('telemetry', listener); request.raw.on('close', () => { clearInterval(heartbeat); telemetryEvents.off('telemetry', listener); }); send(); });
-app.get('/devices/:id/configuration', async (request: any) => { session(request); const device = await db.device.findUnique({ where: { id: request.params.id }, select: { id: true, lastConfigurationRevision: true } }); if (!device) throw fail(404); const snapshot = await db.deviceSnapshot.findUnique({ where: { deviceId_kind: { deviceId: device.id, kind: 'configuration' } } }); const latestRead = await db.command.findFirst({ where: { deviceId: device.id, command: 'config.get', status: 'APPLIED' }, orderBy: { updatedAt: 'desc' } }); const configuration = (snapshot?.payload as any)?.configuration ?? (latestRead?.response as any)?.result ?? null; return { configuration, revision: configuration?.revision ?? device.lastConfigurationRevision ?? null, receivedAt: snapshot?.receivedAt ?? latestRead?.updatedAt ?? null }; });
-app.post('/devices/:id/configuration', async (request: any) => { const actor = requireRole(request, [Role.OWNER, Role.MANAGER]); const body = request.body ?? {}; if (!Number.isInteger(body.expectedRevision) || body.expectedRevision < 0) throw fail(400, 'A current device configuration revision is required.'); const device = await db.device.findUnique({ where: { id: request.params.id }, select: { id: true } }); if (!device) throw fail(404); return commands.send({ deviceId: device.id, command: 'config.patch', args: { patch: configurationPatch(body.patch) }, expectedRevision: body.expectedRevision, actorId: actor.userId }); });
-app.get('/devices/:id/history', async (request: any) => { session(request); const query = request.query ?? {}; const limit = Math.min(50, Math.max(1, Number(query.limit) || 10)); const page = Math.max(1, Number(query.page) || 1); const from = query.from ? new Date(`${query.from}T00:00:00.000Z`) : new Date(Date.now() - 7 * 86400000); const to = query.to ? new Date(`${query.to}T23:59:59.999Z`) : new Date(); if (Number.isNaN(+from) || Number.isNaN(+to) || from > to) throw fail(400, 'Choose a valid date range.'); const records = await db.rawMessage.findMany({ where: { deviceId: request.params.id, messageType: { in: ['telemetry', 'event'] }, ingestedAt: { gte: from, lte: to } }, orderBy: { ingestedAt: 'desc' } }); const entries = records.map((r) => { const p: any = r.payload; if (r.messageType === 'telemetry') { const soil = p.measurements?.soil?.relative_moisture_pct; const temp = p.measurements?.environment?.temperature_c; return { id: r.id, at: r.ingestedAt, type: 'telemetry', title: soil === null ? 'Relative soil moisture unavailable' : `Relative soil moisture ${soil}%`, detail: temp === null ? 'Temperature unavailable' : `Temperature ${temp}°C` }; } return { id: r.id, at: r.ingestedAt, type: 'event', title: p.code?.replaceAll('_', ' ') ?? 'Device event', detail: 'Device status update' }; }); const start = (page - 1) * limit; return { entries: entries.slice(start, start + limit), page, limit, total: entries.length, hasNext: start + limit < entries.length, hasPrevious: page > 1 }; });
+app.post("/alerts/:id/resolve", async (request: any) => {
+  const alert = await db.alert.findUnique({ where: { id: request.params.id } });
+  if (!alert) throw fail(404, "Alert not found.");
+  const actor = await organizationAccess(request, alert.organizationId, [
+    Role.OWNER,
+    Role.MANAGER,
+  ]);
+  const updated = await db.alert.update({
+    where: { id: alert.id },
+    data: { status: "RESOLVED", resolvedAt: new Date() },
+  });
+  await db.auditLog.create({
+    data: {
+      userId: actor.userId,
+      action: "alert.resolved",
+      targetType: "Alert",
+      targetId: alert.id,
+    },
+  });
+  return updated;
+});
+app.get("/organizations/:organizationId/audit-logs", async (request: any) => {
+  const organizationId = request.params.organizationId;
+  await organizationAccess(request, organizationId, [Role.OWNER, Role.MANAGER]);
+  return db.auditLog.findMany({
+    where: {
+      OR: [
+        { detail: { path: ["organizationId"], equals: organizationId } },
+        { targetType: "Organization", targetId: organizationId },
+      ],
+    },
+    include: { user: { select: { email: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 300,
+  });
+});
+app.get("/organizations/:organizationId/users", async (request: any) => {
+  const organizationId = request.params.organizationId;
+  await organizationAccess(request, organizationId, [Role.OWNER, Role.MANAGER]);
+  return db.membership.findMany({
+    where: { organizationId },
+    include: {
+      user: { select: { id: true, email: true, role: true, createdAt: true } },
+    },
+    orderBy: { user: { email: "asc" } },
+  });
+});
+app.put("/users/me/notification-preferences", async (request: any) => {
+  const actor = session(request);
+  const { channel, enabled, destination } = request.body ?? {};
+  if (
+    typeof channel !== "string" ||
+    !["in_app", "email", "sms"].includes(channel) ||
+    typeof enabled !== "boolean"
+  )
+    throw fail(400, "A supported channel and enabled flag are required.");
+  return db.notificationPreference.upsert({
+    where: { userId_channel: { userId: actor.userId, channel } },
+    create: {
+      userId: actor.userId,
+      channel,
+      enabled,
+      destination:
+        typeof destination === "string"
+          ? destination.trim().slice(0, 160) || null
+          : null,
+    },
+    update: {
+      enabled,
+      destination:
+        typeof destination === "string"
+          ? destination.trim().slice(0, 160) || null
+          : null,
+    },
+  });
+});
+app.get(
+  "/organizations/:organizationId/crop-profiles",
+  async (request: any) => {
+    await organizationAccess(request, request.params.organizationId, [
+      Role.OWNER,
+      Role.MANAGER,
+      Role.VIEWER,
+    ]);
+    return db.cropProfile.findMany({
+      where: { organizationId: request.params.organizationId, active: true },
+      orderBy: { name: "asc" },
+    });
+  },
+);
+app.post(
+  "/organizations/:organizationId/crop-profiles",
+  async (request: any) => {
+    const organizationId = request.params.organizationId;
+    const actor = await organizationAccess(request, organizationId, [
+      Role.OWNER,
+      Role.MANAGER,
+    ]);
+    const body = request.body ?? {};
+    if (
+      typeof body.name !== "string" ||
+      !body.name.trim() ||
+      body.name.trim().length > 80
+    )
+      throw fail(400, "name is required and must be at most 80 characters.");
+    const text = (value: unknown, key: string, max: number) => {
+      if (
+        value !== undefined &&
+        (typeof value !== "string" || value.trim().length > max)
+      )
+        throw fail(400, `${key} must be text of at most ${max} characters.`);
+      return typeof value === "string" ? value.trim() || null : null;
+    };
+    const profile = await db.cropProfile.create({
+      data: {
+        organizationId,
+        name: body.name.trim(),
+        cultivar: text(body.cultivar, "cultivar", 80),
+        description: text(body.description, "description", 500),
+        thresholds: cropThresholds(body.thresholds),
+      },
+    });
+    await db.auditLog.create({
+      data: {
+        userId: actor.userId,
+        action: "crop_profile.created",
+        targetType: "CropProfile",
+        targetId: profile.id,
+        detail: { organizationId, name: profile.name },
+      },
+    });
+    return profile;
+  },
+);
+app.post("/plots/:id/crop-profile", async (request: any) => {
+  const plot = await db.plot.findUnique({
+    where: { id: request.params.id },
+    include: { site: true },
+  });
+  if (!plot) throw fail(404);
+  const actor = await organizationAccess(request, plot.site.organizationId, [
+    Role.OWNER,
+    Role.MANAGER,
+  ]);
+  const profileId = request.body?.cropProfileId;
+  if (profileId !== null && typeof profileId !== "string")
+    throw fail(400, "cropProfileId must be a profile ID or null.");
+  if (profileId) {
+    const profile = await db.cropProfile.findFirst({
+      where: {
+        id: profileId,
+        organizationId: plot.site.organizationId,
+        active: true,
+      },
+    });
+    if (!profile)
+      throw fail(400, "Crop profile is not available for this organization.");
+  }
+  const updated = await db.plot.update({
+    where: { id: plot.id },
+    data: { cropProfileId: profileId ?? null },
+    include: { cropProfile: true },
+  });
+  await db.auditLog.create({
+    data: {
+      userId: actor.userId,
+      action: "plot.crop_profile_assigned",
+      targetType: "Plot",
+      targetId: plot.id,
+      detail: { cropProfileId: profileId ?? null },
+    },
+  });
+  return updated;
+});
+app.get("/devices", async (request: any) => {
+  const actor = session(request);
+  const ids = await visibleOrganizationIds(actor);
+  return db.device.findMany({
+    where: ids ? { organizationId: { in: ids } } : undefined,
+    include: {
+      plot: { include: { site: true } },
+      risks: { orderBy: { calculatedAt: "desc" }, take: 1 },
+    },
+    orderBy: { lastSeenAt: "desc" },
+  });
+});
+app.post("/devices", async (request: any) => {
+  const actor = requireRole(request, [Role.OWNER, Role.MANAGER]);
+  const {
+    id,
+    organizationId,
+    plotId,
+    displayName,
+    hardwareModel,
+    firmwareVersion,
+  } = request.body ?? {};
+  if (!/^CWS-[A-F0-9]+$/.test(id ?? ""))
+    throw fail(400, "id must be the stable CWS-<MAC> identifier");
+  const membership = await db.membership.findUnique({
+    where: { userId_organizationId: { userId: actor.userId, organizationId } },
+  });
+  if (!membership && actor.role !== Role.OWNER) throw fail(403);
+  return db.device.create({
+    data: {
+      id,
+      organizationId,
+      plotId,
+      displayName,
+      hardwareModel,
+      firmwareVersion,
+    },
+  });
+});
+app.get("/devices/:id", async (request: any) => {
+  const device = await db.device.findUnique({
+    where: { id: request.params.id },
+    include: {
+      plot: { include: { site: true, cropProfile: true } },
+      snapshots: true,
+      risks: { orderBy: { calculatedAt: "desc" }, take: 1 },
+      telemetry: { orderBy: { ingestedAt: "desc" }, take: 200 },
+      events: { orderBy: { ingestedAt: "desc" }, take: 100 },
+    },
+  });
+  if (!device) throw fail(404);
+  await organizationAccess(request, device.organizationId, [
+    Role.OWNER,
+    Role.MANAGER,
+    Role.VIEWER,
+  ]);
+  return device;
+});
+app.get("/devices/:id/live", async (request: any, reply: any) => {
+  await deviceAccess(request, request.params.id, [
+    Role.OWNER,
+    Role.MANAGER,
+    Role.VIEWER,
+  ]);
+  reply.hijack();
+  reply.raw.writeHead(200, {
+    "content-type": "text/event-stream",
+    "cache-control": "no-cache, no-transform",
+    connection: "keep-alive",
+    "x-accel-buffering": "no",
+  });
+  const send = () =>
+    reply.raw.write(
+      `event: telemetry\ndata: {"deviceId":"${request.params.id}"}\n\n`,
+    );
+  const listener = (deviceId: string) => {
+    if (deviceId === request.params.id) send();
+  };
+  const heartbeat = setInterval(
+    () => reply.raw.write(": keep-alive\n\n"),
+    25_000,
+  );
+  telemetryEvents.on("telemetry", listener);
+  request.raw.on("close", () => {
+    clearInterval(heartbeat);
+    telemetryEvents.off("telemetry", listener);
+  });
+  send();
+});
+app.get("/devices/:id/configuration", async (request: any) => {
+  session(request);
+  const device = await db.device.findUnique({
+    where: { id: request.params.id },
+    select: { id: true, lastConfigurationRevision: true },
+  });
+  if (!device) throw fail(404);
+  const snapshot = await db.deviceSnapshot.findUnique({
+    where: { deviceId_kind: { deviceId: device.id, kind: "configuration" } },
+  });
+  const latestRead = await db.command.findFirst({
+    where: { deviceId: device.id, command: "config.get", status: "APPLIED" },
+    orderBy: { updatedAt: "desc" },
+  });
+  const configuration =
+    (snapshot?.payload as any)?.configuration ??
+    (latestRead?.response as any)?.result ??
+    null;
+  return {
+    configuration,
+    revision:
+      configuration?.revision ?? device.lastConfigurationRevision ?? null,
+    receivedAt: snapshot?.receivedAt ?? latestRead?.updatedAt ?? null,
+  };
+});
+app.post("/devices/:id/configuration", async (request: any) => {
+  const actor = requireRole(request, [Role.OWNER, Role.MANAGER]);
+  const body = request.body ?? {};
+  if (!Number.isInteger(body.expectedRevision) || body.expectedRevision < 0)
+    throw fail(400, "A current device configuration revision is required.");
+  const device = await db.device.findUnique({
+    where: { id: request.params.id },
+    select: { id: true },
+  });
+  if (!device) throw fail(404);
+  return commands.send({
+    deviceId: device.id,
+    command: "config.patch",
+    args: { patch: configurationPatch(body.patch) },
+    expectedRevision: body.expectedRevision,
+    actorId: actor.userId,
+  });
+});
+app.get("/devices/:id/history", async (request: any) => {
+  await deviceAccess(request, request.params.id, [
+    Role.OWNER,
+    Role.MANAGER,
+    Role.VIEWER,
+  ]);
+  const query = request.query ?? {};
+  const limit = Math.min(50, Math.max(1, Number(query.limit) || 10));
+  const page = Math.max(1, Number(query.page) || 1);
+  const from = query.from
+    ? new Date(`${query.from}T00:00:00.000Z`)
+    : new Date(Date.now() - 7 * 86400000);
+  const to = query.to ? new Date(`${query.to}T23:59:59.999Z`) : new Date();
+  if (Number.isNaN(+from) || Number.isNaN(+to) || from > to)
+    throw fail(400, "Choose a valid date range.");
+  const records = await db.rawMessage.findMany({
+    where: {
+      deviceId: request.params.id,
+      messageType: { in: ["telemetry", "event"] },
+      ingestedAt: { gte: from, lte: to },
+    },
+    orderBy: { ingestedAt: "desc" },
+  });
+  const entries = records.map((r) => {
+    const p: any = r.payload;
+    if (r.messageType === "telemetry") {
+      const soil = p.measurements?.soil?.relative_moisture_pct;
+      const temp = p.measurements?.environment?.temperature_c;
+      return {
+        id: r.id,
+        at: r.ingestedAt,
+        type: "telemetry",
+        title:
+          soil === null
+            ? "Relative soil moisture unavailable"
+            : `Relative soil moisture ${soil}%`,
+        detail:
+          temp === null ? "Temperature unavailable" : `Temperature ${temp}°C`,
+      };
+    }
+    return {
+      id: r.id,
+      at: r.ingestedAt,
+      type: "event",
+      title: p.code?.replaceAll("_", " ") ?? "Device event",
+      detail: "Device status update",
+    };
+  });
+  const start = (page - 1) * limit;
+  return {
+    entries: entries.slice(start, start + limit),
+    page,
+    limit,
+    total: entries.length,
+    hasNext: start + limit < entries.length,
+    hasPrevious: page > 1,
+  };
+});
+app.get("/devices/:id/telemetry-history", async (request: any) => {
+  await deviceAccess(request, request.params.id, [
+    Role.OWNER,
+    Role.MANAGER,
+    Role.VIEWER,
+  ]);
+  const query = request.query ?? {};
+  const limit = Math.min(100, Math.max(1, Number(query.limit) || 25));
+  const page = Math.max(1, Number(query.page) || 1);
+  const from = query.from
+    ? new Date(`${query.from}T00:00:00.000Z`)
+    : new Date(Date.now() - 7 * 86400000);
+  const to = query.to ? new Date(`${query.to}T23:59:59.999Z`) : new Date();
+  if (Number.isNaN(+from) || Number.isNaN(+to) || from > to)
+    throw fail(400, "Choose a valid date range.");
+  const where = {
+    deviceId: request.params.id,
+    ingestedAt: { gte: from, lte: to },
+  };
+  const [total, records] = await Promise.all([
+    db.telemetry.count({ where }),
+    db.telemetry.findMany({
+      where,
+      orderBy: { ingestedAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+  ]);
+  return {
+    records,
+    page,
+    limit,
+    total,
+    hasNext: page * limit < total,
+    hasPrevious: page > 1,
+    from: from.toISOString(),
+    to: to.toISOString(),
+  };
+});
 let weatherCache: { expires: number; payload: unknown } | undefined;
-app.get('/weather/forecast', async (request: any) => { session(request); const lat = Number(request.query?.latitude ?? config.WEATHER_LATITUDE); const lon = Number(request.query?.longitude ?? config.WEATHER_LONGITUDE); if (!Number.isFinite(lat) || !Number.isFinite(lon)) return { configured: false, days: [] }; if (weatherCache && weatherCache.expires > Date.now()) return weatherCache.payload; const url = new URL('https://api.open-meteo.com/v1/forecast'); url.search = new URLSearchParams({ latitude: String(lat), longitude: String(lon), daily: 'weather_code,temperature_2m_max,precipitation_probability_max', timezone: 'auto', forecast_days: '7' }).toString(); const response = await fetch(url, { signal: AbortSignal.timeout(8000) }); if (!response.ok) throw fail(502, 'Weather forecast is temporarily unavailable.'); const data: any = await response.json(); const payload = { configured: true, source: 'Open-Meteo', generatedAt: new Date().toISOString(), days: data.daily.time.map((date: string, i: number) => ({ date, weatherCode: data.daily.weather_code[i], maxTemperatureC: data.daily.temperature_2m_max[i], rainProbability: data.daily.precipitation_probability_max[i] })) }; weatherCache = { expires: Date.now() + 15 * 60_000, payload }; return payload; });
-app.get('/devices/:id/telemetry.csv', async (request: any, reply) => { session(request); const rows = await db.telemetry.findMany({ where: { deviceId: request.params.id }, orderBy: { ingestedAt: 'desc' }, take: 10_000 }); const escape = (v: unknown) => `"${String(v ?? '').replaceAll('"', '""')}"`; const output = ['ingested_at,sampled_at,temperature_c,humidity_pct,relative_moisture_pct,battery_v,solar_v', ...rows.map((r) => [r.ingestedAt.toISOString(), r.sampledAt?.toISOString(), r.temperatureC, r.humidityPct, r.relativeMoisturePct, r.batteryV, r.solarV].map(escape).join(','))].join('\n'); reply.header('content-type', 'text/csv').header('content-disposition', `attachment; filename="${request.params.id}-telemetry.csv"`); return output; });
-app.post('/devices/:id/commands', async (request: any) => { const actor = requireRole(request, [Role.OWNER, Role.MANAGER]); const body = request.body ?? {}; return commands.send({ deviceId: request.params.id, command: body.command, args: body.args, expectedRevision: body.expectedRevision, actorId: actor.userId }); });
-app.get('/devices/:id/commands', async (request: any) => { session(request); return db.command.findMany({ where: { deviceId: request.params.id }, orderBy: { createdAt: 'desc' }, take: 100 }); });
-app.get('/devices/:id/commands/:requestId', async (request: any) => { session(request); const command = await db.command.findFirst({ where: { deviceId: request.params.id, requestId: request.params.requestId } }); if (!command) throw fail(404); return command; });
+app.get("/weather/forecast", async (request: any) => {
+  session(request);
+  const lat = Number(request.query?.latitude ?? config.WEATHER_LATITUDE);
+  const lon = Number(request.query?.longitude ?? config.WEATHER_LONGITUDE);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon))
+    return { configured: false, days: [] };
+  if (weatherCache && weatherCache.expires > Date.now())
+    return weatherCache.payload;
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.search = new URLSearchParams({
+    latitude: String(lat),
+    longitude: String(lon),
+    daily: "weather_code,temperature_2m_max,precipitation_probability_max",
+    timezone: "auto",
+    forecast_days: "7",
+  }).toString();
+  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!response.ok)
+    throw fail(502, "Weather forecast is temporarily unavailable.");
+  const data: any = await response.json();
+  const payload = {
+    configured: true,
+    source: "Open-Meteo",
+    generatedAt: new Date().toISOString(),
+    days: data.daily.time.map((date: string, i: number) => ({
+      date,
+      weatherCode: data.daily.weather_code[i],
+      maxTemperatureC: data.daily.temperature_2m_max[i],
+      rainProbability: data.daily.precipitation_probability_max[i],
+    })),
+  };
+  weatherCache = { expires: Date.now() + 15 * 60_000, payload };
+  return payload;
+});
+app.get("/devices/:id/telemetry.csv", async (request: any, reply) => {
+  await deviceAccess(request, request.params.id, [
+    Role.OWNER,
+    Role.MANAGER,
+    Role.VIEWER,
+  ]);
+  const query = request.query ?? {};
+  const from = query.from ? new Date(`${query.from}T00:00:00.000Z`) : undefined;
+  const to = query.to ? new Date(`${query.to}T23:59:59.999Z`) : undefined;
+  if (
+    (from && Number.isNaN(+from)) ||
+    (to && Number.isNaN(+to)) ||
+    (from && to && from > to)
+  )
+    throw fail(400, "Choose a valid date range.");
+  const rows = await db.telemetry.findMany({
+    where: {
+      deviceId: request.params.id,
+      ...(from || to
+        ? {
+            ingestedAt: {
+              ...(from ? { gte: from } : {}),
+              ...(to ? { lte: to } : {}),
+            },
+          }
+        : {}),
+    },
+    orderBy: { ingestedAt: "desc" },
+    take: 10_000,
+  });
+  const escape = (v: unknown) => `"${String(v ?? "").replaceAll('"', '""')}"`;
+  const output = [
+    "ingested_at,sampled_at,temperature_c,humidity_pct,relative_moisture_pct,battery_v,solar_v",
+    ...rows.map((r) =>
+      [
+        r.ingestedAt.toISOString(),
+        r.sampledAt?.toISOString(),
+        r.temperatureC,
+        r.humidityPct,
+        r.relativeMoisturePct,
+        r.batteryV,
+        r.solarV,
+      ]
+        .map(escape)
+        .join(","),
+    ),
+  ].join("\n");
+  reply
+    .header("content-type", "text/csv")
+    .header(
+      "content-disposition",
+      `attachment; filename="${request.params.id}-telemetry.csv"`,
+    );
+  return output;
+});
+app.post("/devices/:id/commands", async (request: any) => {
+  const actor = requireRole(request, [Role.OWNER, Role.MANAGER]);
+  const body = request.body ?? {};
+  return commands.send({
+    deviceId: request.params.id,
+    command: body.command,
+    args: body.args,
+    expectedRevision: body.expectedRevision,
+    actorId: actor.userId,
+  });
+});
+app.get("/devices/:id/commands", async (request: any) => {
+  session(request);
+  return db.command.findMany({
+    where: { deviceId: request.params.id },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  });
+});
+app.get("/devices/:id/commands/:requestId", async (request: any) => {
+  session(request);
+  const command = await db.command.findFirst({
+    where: { deviceId: request.params.id, requestId: request.params.requestId },
+  });
+  if (!command) throw fail(404);
+  return command;
+});
 
-process.on('SIGTERM', async () => { mqtt.stop(); await db.$disconnect(); await app.close(); });
-mqtt.start(); await app.listen({ port: config.PORT, host: '0.0.0.0' });
+process.on("SIGTERM", async () => {
+  mqtt.stop();
+  await db.$disconnect();
+  await app.close();
+});
+mqtt.start();
+await app.listen({ port: config.PORT, host: "0.0.0.0" });

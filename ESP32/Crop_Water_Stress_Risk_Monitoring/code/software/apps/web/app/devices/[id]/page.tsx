@@ -43,6 +43,16 @@ function dateTime(input?: string | null) {
       }).format(new Date(input))
     : "Unavailable";
 }
+function dateInputValue(date: Date) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 10);
+}
+function initialHistoryRange() {
+  const to = new Date();
+  const from = new Date(to);
+  from.setDate(from.getDate() - 6);
+  return { from: dateInputValue(from), to: dateInputValue(to) };
+}
 function rounded(text: string) {
   return text.replace(/(-?\d+\.\d)\d+/g, "$1");
 }
@@ -197,6 +207,13 @@ export default function DevicePage({
   const [saving, setSaving] = useState(false);
   const [command, setCommand] = useState<any>();
   const [fallbackRefreshSeconds, setFallbackRefreshSeconds] = useState(1);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyRange, setHistoryRange] = useState(initialHistoryRange);
+  const [historyQuery, setHistoryQuery] = useState(initialHistoryRange);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [savedHistory, setSavedHistory] = useState<any>();
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
   const load = useCallback(async (deviceId: string) => {
     try {
       const request = {
@@ -314,6 +331,56 @@ export default function DevicePage({
       stream.close();
     };
   }, [id, refreshTelemetry]);
+  const loadSavedHistory = useCallback(async () => {
+    if (!id) return;
+    setHistoryLoading(true);
+    setHistoryError("");
+    try {
+      const query = new URLSearchParams({
+        from: historyQuery.from,
+        to: historyQuery.to,
+        page: String(historyPage),
+        limit: "25",
+      });
+      const response = await fetch(
+        `${api}/devices/${id}/telemetry-history?${query}`,
+        { credentials: "include", cache: "no-store" },
+      );
+      const payload = await response.json();
+      if (!response.ok)
+        throw new Error(payload.message ?? "Could not load saved readings.");
+      setSavedHistory(payload);
+    } catch (requestError: any) {
+      setHistoryError(requestError.message ?? "Could not load saved readings.");
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [id, historyPage, historyQuery]);
+  useEffect(() => {
+    if (historyOpen) void loadSavedHistory();
+  }, [historyOpen, loadSavedHistory]);
+  const downloadHistory = async () => {
+    if (!id) return;
+    setHistoryError("");
+    try {
+      const query = new URLSearchParams(historyQuery);
+      const response = await fetch(
+        `${api}/devices/${id}/telemetry.csv?${query}`,
+        { credentials: "include" },
+      );
+      if (!response.ok) throw new Error("Could not prepare the CSV file.");
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${id}-telemetry-${historyQuery.from}-to-${historyQuery.to}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (requestError: any) {
+      setHistoryError(
+        requestError.message ?? "Could not download the CSV file.",
+      );
+    }
+  };
   useEffect(() => {
     if (
       !id ||
@@ -553,6 +620,13 @@ export default function DevicePage({
                   Air temperature (°C)
                 </span>
               </div>
+              <button
+                type="button"
+                className="history-trigger"
+                onClick={() => setHistoryOpen(true)}
+              >
+                View saved data
+              </button>
             </div>
             {chart.length ? (
               <ResponsiveContainer width="100%" height={279}>
@@ -843,6 +917,164 @@ export default function DevicePage({
           </section>
         </div>
       </section>
+      {historyOpen && (
+        <div className="history-backdrop" role="presentation">
+          <section
+            className="history-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="saved-history-title"
+          >
+            <header className="history-dialog-header">
+              <div>
+                <p>DATABASE RECORDS</p>
+                <h2 id="saved-history-title">Saved sensor readings</h2>
+                <span>
+                  Choose a period, inspect readings, or download them.
+                </span>
+              </div>
+              <button
+                type="button"
+                className="history-close"
+                onClick={() => setHistoryOpen(false)}
+                aria-label="Close saved data"
+              >
+                ×
+              </button>
+            </header>
+            <form
+              className="history-filters"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (historyRange.from > historyRange.to) {
+                  setHistoryError(
+                    "The start date must be before the end date.",
+                  );
+                  return;
+                }
+                setHistoryError("");
+                setHistoryPage(1);
+                setHistoryQuery({ ...historyRange });
+              }}
+            >
+              <label>
+                From
+                <input
+                  type="date"
+                  value={historyRange.from}
+                  max={historyRange.to}
+                  onChange={(event) =>
+                    setHistoryRange((current) => ({
+                      ...current,
+                      from: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label>
+                To
+                <input
+                  type="date"
+                  value={historyRange.to}
+                  min={historyRange.from}
+                  max={dateInputValue(new Date())}
+                  onChange={(event) =>
+                    setHistoryRange((current) => ({
+                      ...current,
+                      to: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <button type="submit" className="history-apply">
+                Apply range
+              </button>
+              <button
+                type="button"
+                className="history-export"
+                onClick={downloadHistory}
+              >
+                Download CSV
+              </button>
+            </form>
+            <div className="history-summary" aria-live="polite">
+              {historyLoading
+                ? "Loading saved readings…"
+                : savedHistory
+                  ? `${savedHistory.total.toLocaleString()} readings saved from ${historyQuery.from} to ${historyQuery.to}`
+                  : "Saved readings will appear here."}
+            </div>
+            {historyError && <p className="history-error">{historyError}</p>}
+            <div className="history-table-wrap">
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Soil moisture</th>
+                    <th>Temperature</th>
+                    <th>Humidity</th>
+                    <th>Battery</th>
+                    <th>Solar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {savedHistory?.records?.length ? (
+                    savedHistory.records.map((record: any) => (
+                      <tr key={record.id}>
+                        <td>
+                          {dateTime(record.sampledAt ?? record.ingestedAt)}
+                        </td>
+                        <td>{reading(record.relativeMoisturePct, "%", 0)}</td>
+                        <td>{reading(record.temperatureC, " °C")}</td>
+                        <td>{reading(record.humidityPct, "%", 0)}</td>
+                        <td>{reading(record.batteryV, " V", 2)}</td>
+                        <td>{reading(record.solarV, " V", 2)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="history-empty">
+                        {historyLoading
+                          ? "Loading readings…"
+                          : "No saved readings exist for this period."}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <footer className="history-pagination">
+              <span>
+                Page {savedHistory?.page ?? 1} of{" "}
+                {Math.max(
+                  1,
+                  Math.ceil(
+                    (savedHistory?.total ?? 0) / (savedHistory?.limit ?? 25),
+                  ),
+                )}
+              </span>
+              <div>
+                <button
+                  type="button"
+                  disabled={!savedHistory?.hasPrevious || historyLoading}
+                  onClick={() =>
+                    setHistoryPage((page) => Math.max(1, page - 1))
+                  }
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  disabled={!savedHistory?.hasNext || historyLoading}
+                  onClick={() => setHistoryPage((page) => page + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            </footer>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
