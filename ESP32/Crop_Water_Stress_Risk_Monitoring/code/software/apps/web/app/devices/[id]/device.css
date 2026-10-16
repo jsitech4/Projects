@@ -114,6 +114,8 @@
 .risk {
   order: -1;
   position: relative;
+  width: max-content;
+  max-width: 100%;
   margin-left: 30px;
   min-height: 52px;
   gap: 0;
@@ -1065,7 +1067,9 @@
   }
 
   .identity-actions {
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     gap: 12px;
     margin-top: 10px;
     padding-top: 10px;
@@ -1073,12 +1077,20 @@
   }
 
   .risk {
+    justify-self: start;
+    min-width: 0;
     min-height: 0;
     gap: 9px;
     margin: 0;
     padding: 0;
     border: 0;
     font-size: 13px;
+  }
+  .risk span {
+    min-width: 0;
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: nowrap;
   }
   .risk::before {
     display: none;
@@ -1291,10 +1303,20 @@
 
 @media (max-width: 390px) {
   .identity-actions {
-    align-items: flex-start;
+    gap: 8px;
   }
   .risk span {
-    display: none;
+    padding-right: 8px;
+    padding-left: 8px;
+    font-size: 11px;
+  }
+  .risk strong {
+    padding: 8px 9px;
+    font-size: 13px;
+  }
+  .connection-badge {
+    gap: 6px;
+    font-size: 11px;
   }
   .config-panel label {
     grid-template-columns: 1fr 126px;
