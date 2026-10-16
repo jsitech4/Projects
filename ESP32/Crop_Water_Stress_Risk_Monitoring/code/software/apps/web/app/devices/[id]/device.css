@@ -77,27 +77,29 @@
   gap: 22px;
 }
 
-.identity-refresh {
-  height: 38px;
+.connection-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  order: 0;
   gap: 8px;
-  padding: 0 13px;
-  border: 1px solid #8cae9f;
-  border-radius: 7px;
-  background: transparent;
-  color: #fff;
-  font: 700 13px Arial, Helvetica, sans-serif;
-  cursor: pointer;
+  margin-left: auto;
+  color: #ecf7ef;
+  font-size: 13px;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-.identity-refresh:hover { background: #2a5d4a; }
-.identity-refresh:focus-visible { outline: 3px solid #9bdfaa; outline-offset: 2px; }
-.identity-refresh:disabled { opacity: 0.6; cursor: default; }
-.identity-refresh svg { width: 17px; height: 17px; }
-.identity-refresh { margin-left: auto; }
+.connection-badge i {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #62cf7e;
+  box-shadow: 0 0 0 3px rgba(98, 207, 126, 0.14);
+}
+
+.connection-badge.offline { color: #f6d3d0; }
+.connection-badge.offline i { background: #dd7771; box-shadow: 0 0 0 3px rgba(221, 119, 113, 0.14); }
 
 .risk {
   order: -1;
@@ -105,7 +107,7 @@
   margin-left: 30px;
   min-height: 52px;
   gap: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: 0;
   border: 0;
   border-radius: 8px;
@@ -137,7 +139,7 @@
   display: flex;
   align-items: center;
   padding: 0 22px;
-  border-radius: 0;
+  border-radius: 0 8px 8px 0;
   background: #3a9360;
   color: #fff;
   font-size: 16px;
@@ -587,10 +589,10 @@
   .identity-device { gap: 16px; }
   .identity-device h1 { font-size: 22px; }
   .identity-actions { gap: 14px; }
-  .risk { gap: 10px; padding-left: 14px; font-size: 13px; }
+  .connection-badge { font-size: 12px; }
+  .risk { gap: 10px; margin-left: 0; padding-left: 14px; font-size: 13px; }
+  .risk::before { display: none; }
   .risk strong { padding: 8px 12px; font-size: 14px; }
-  .identity-refresh { padding: 0 11px; }
-
   .measurements {
     min-height: 0;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -630,10 +632,10 @@
     border-top: 1px solid #71907f;
   }
 
-  .identity-refresh { height: 34px; padding: 0 10px; font-size: 12px; }
-  .identity-refresh svg { width: 15px; height: 15px; }
-  .risk { min-height: 0; flex: 1; justify-content: flex-end; gap: 9px; padding: 0; border: 0; font-size: 13px; }
+  .risk { min-height: 0; gap: 9px; margin: 0; padding: 0; border: 0; font-size: 13px; }
+  .risk::before { display: none; }
   .risk strong { padding: 8px 10px; font-size: 14px; }
+  .connection-badge { margin-left: auto; font-size: 12px; }
 
   .measurements {
     min-height: 0;
