@@ -1,10 +1,10 @@
-# Crop Water-Stress Risk Monitoring Platform
+# Crop Water Stress Risk Monitoring Platform
 
-Self-hosted web, API, database, and MQTT ingestion services for the ESP32 crop water-stress monitor.
+Self-hosted web, API, database, and MQTT ingestion services for the ESP32 crop water stress monitor.
 
 ## Hardware telemetry boundary
 
-The platform stores only measurements emitted by the firmware: air temperature and relative humidity (AM2301A), calibrated relative soil-moisture index, battery voltage, solar voltage, sensor quality/calibration state, connectivity, storage, and device health. It does not infer rainfall, light, pH, EC, nutrients, true VWC, charging current, crop yield, or harvest maturity. See [hardware data capabilities](docs/HARDWARE_DATA_CAPABILITIES.md).
+The platform stores only dashboard telemetry emitted by the firmware: air temperature and relative humidity (AM2301A), calibrated relative soil-moisture index, battery voltage, solar voltage, sensor validity, timestamps and minimal device identity. It does not receive Wi-Fi identity, IP address, broker settings, raw ADC/calibration values, storage counters, diagnostics, rainfall, light, pH, EC, nutrients, true VWC, charging current, crop yield, or harvest maturity. See [hardware data capabilities](docs/HARDWARE_DATA_CAPABILITIES.md).
 
 ## Requirements
 
@@ -37,7 +37,7 @@ The Crop Water Monitor device view is a data-driven single-device dashboard with
 
 ## Crop risk configuration
 
-The relative soil-moisture channel is not VWC, and no universal crop threshold is used. Create a crop profile for an organization with locally validated `soilModerate`, `soilHigh`, `soilCritical`, `staleMinutes`, and `ruleVersion` values, then assign it to the plot. Until that profile and valid, calibrated live measurements exist, water-stress risk is shown as `UNKNOWN`.
+The relative soil-moisture channel is not VWC. The single device uses a conservative baseline water stress assessment from valid, calibrated soil moisture, air temperature, and humidity readings. A crop profile with locally validated `soilModerate`, `soilHigh`, `soilCritical`, `staleMinutes`, and `ruleVersion` values can replace that baseline. Invalid, uncalibrated, or stale measurements remain `UNKNOWN`.
 
 The API exposes:
 

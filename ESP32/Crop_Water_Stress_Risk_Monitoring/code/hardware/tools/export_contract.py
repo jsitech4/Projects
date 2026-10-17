@@ -162,7 +162,7 @@ def main():
     write('command.json',{'schema_version':'1.0','request_id':'integration-1','device_id':'CWS-TEST','command':'soil.get_status','args':{},'expires_at':1800000120},'examples')
     write('command_response.json',base | {'message_type':'command_response','request_id':'integration-1','status':'applied','error':'','configuration_revision':3,'result':{'revision':3,'calibration_revision':1}},'examples')
     write('sync_ack.json',{'schema_version':'1.0','device_id':'CWS-TEST','message_id':base['message_id'],'durably_stored':True},'examples')
-    caps={'commands':names,'command_authorization':'TLS broker identity and per-device ACL','mutations_require_expected_revision':True,'max_command_lifetime_s':300,'headless':True,'lcd_present':False,'encoder_enabled':False,'tls_required':True,'mqtt_qos':1,'durable_ack_enabled':False,'ota':False,'vwc':False,'battery_percentage':False,'mtls':False,'max_message_bytes':8192,'max_history_records_per_response':1}
+    caps={'commands':names,'command_authorization':'TLS broker identity and per-device ACL','mutations_require_expected_revision':True,'max_command_lifetime_s':300,'headless':True,'lcd_present':False,'encoder_enabled':False,'tls_required':True,'mqtt_qos':1,'durable_ack_enabled':True,'ota':False,'vwc':False,'battery_percentage':False,'mtls':False,'max_message_bytes':8192,'max_history_records_per_response':1}
     write('capabilities.json',base | {'message_type':'capabilities','capabilities':caps},'examples')
     def skeleton(schema):
         if 'const' in schema:return schema['const']

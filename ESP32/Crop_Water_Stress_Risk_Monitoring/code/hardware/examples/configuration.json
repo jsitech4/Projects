@@ -78,7 +78,7 @@
   },
   "storage": {
     "retain": 256,
-    "drop_oldest": false,
-    "durable_ack": false
+    "drop_oldest": true,
+    "durable_ack": true
   }
 }

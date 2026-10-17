@@ -11,6 +11,18 @@ export type CropRiskThresholds = {
   ruleVersion: string;
 };
 
+// A transparent baseline for the single monitor. The soil measurement is a calibrated
+// relative index, so crop profiles may later replace these with crop-specific limits.
+export const DEVICE_BASELINE_RISK_THRESHOLDS: CropRiskThresholds = {
+  soilModerate: 50,
+  soilHigh: 35,
+  soilCritical: 20,
+  temperatureHigh: 34,
+  humidityLow: 35,
+  staleMinutes: 30,
+  ruleVersion: 'device-baseline-v1',
+};
+
 /**
  * Thresholds are deliberately supplied by the crop/plot profile. The firmware's soil reading is
  * a calibrated relative index, not VWC, so a global crop threshold would be misleading.
@@ -20,7 +32,7 @@ export function calculateRisk(t: TelemetryInput, limits: CropRiskThresholds | un
   if (!limits) return {
     level: 'UNKNOWN', ruleVersion: 'unconfigured-crop-profile',
     factors: ['No field-specific crop risk profile is assigned.'],
-    explanation: 'Water-stress risk is not assessed until a crop profile with locally validated relative-moisture thresholds is assigned to this plot.',
+    explanation: 'Water stress risk is not assessed until a crop profile with locally validated relative-moisture thresholds is assigned to this plot.',
   };
   const stale = now.getTime() - (t.sampledAt ?? t.ingestedAt).getTime() > limits.staleMinutes * 60_000;
   if (!t.soilValid || !t.environmentValid || t.relativeMoisturePct === null || stale) {
@@ -38,5 +50,5 @@ export function calculateRisk(t: TelemetryInput, limits: CropRiskThresholds | un
   if (t.batteryCritical) { points += 1; factors.push('Battery is critical; monitoring reliability may be affected.'); }
   if ((t.faults?.length ?? 0) > 0) { points += 1; factors.push('The device reports active faults.'); }
   const level: RiskLevel = points >= 4 ? 'CRITICAL' : points >= 3 ? 'HIGH' : points >= 1 ? 'MODERATE' : 'LOW';
-  return { level, ruleVersion: limits.ruleVersion, factors, explanation: factors.length ? factors.join(' ') : 'Current valid readings do not meet this plot’s configured water-stress thresholds.' };
+  return { level, ruleVersion: limits.ruleVersion, factors, explanation: factors.length ? factors.join(' ') : 'Current valid readings do not meet the active water stress thresholds.' };
 }

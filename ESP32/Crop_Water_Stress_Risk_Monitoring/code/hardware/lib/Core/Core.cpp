@@ -73,7 +73,7 @@ void defaults(JsonDocument &d) {
     d.clear();
     deserializeJson(
         d,
-        R"({"revision":0,"calibration_revision":0,"name":"Crop monitor","site_id":"","plot_id":"","sample_s":60,"upload_s":300,"health_s":300,"wifi":{"ssid":"","password":"","dhcp":true,"ip":"","gateway":"","subnet":"","dns":""},"mqtt":{"host":"","port":8883,"username":"","password":"","ca":"","prefix":"cws/v1/devices","timeout_s":15},"environment":{"enabled":true,"temperature_offset":0,"humidity_offset":0},"soil":{"enabled":true,"dry":null,"wet":null},"battery":{"top_ohm":0,"bottom_ohm":0,"gain":1,"offset":0,"min_mv":150,"max_mv":2450,"low_v":0,"critical_v":0},"solar":{"top_ohm":0,"bottom_ohm":0,"gain":1,"offset":0,"min_mv":150,"max_mv":2450,"low_v":0,"critical_v":0},"lcd":{"enabled":false,"address":39,"backlight":true,"timeout_s":60,"page":0},"encoder":{"enabled":false},"led":{"enabled":true,"active_high":true,"breathing":false},"buzzer":{"enabled":false,"passive":false,"active_high":true,"alerts":true},"storage":{"retain":256,"drop_oldest":false,"durable_ack":false}})");
+    R"({"revision":0,"calibration_revision":0,"name":"Crop monitor","site_id":"","plot_id":"","sample_s":60,"upload_s":300,"health_s":300,"wifi":{"ssid":"","password":"","dhcp":true,"ip":"","gateway":"","subnet":"","dns":""},"mqtt":{"host":"","port":8883,"username":"","password":"","ca":"","prefix":"cws/v1/devices","timeout_s":15},"environment":{"enabled":true,"temperature_offset":0,"humidity_offset":0},"soil":{"enabled":true,"dry":null,"wet":null},"battery":{"top_ohm":0,"bottom_ohm":0,"gain":1,"offset":0,"min_mv":150,"max_mv":2450,"low_v":0,"critical_v":0},"solar":{"top_ohm":0,"bottom_ohm":0,"gain":1,"offset":0,"min_mv":150,"max_mv":2450,"low_v":0,"critical_v":0},"lcd":{"enabled":false,"address":39,"backlight":true,"timeout_s":60,"page":0},"encoder":{"enabled":false},"led":{"enabled":true,"active_high":true,"breathing":false},"buzzer":{"enabled":false,"passive":false,"active_high":true,"alerts":true},"storage":{"retain":256,"drop_oldest":true,"durable_ack":true}})");
 }
 static bool ipv4(const char *s) {
     if (!s)
@@ -129,7 +129,7 @@ bool validate(JsonVariantConst d, std::string &e) {
         return fail("identity_invalid");
     for (auto key : {"sample_s", "upload_s", "health_s"})
         if (!d[key].is<uint32_t>() ||
-            !range(d[key], key == std::string("sample_s") ? 5 : 10, 86400))
+            !range(d[key], key == std::string("health_s") ? 10 : 5, 86400))
             return fail("interval_invalid");
     auto w = d["wifi"];
     if (!str(w["ssid"], 32) || !str(w["password"], 63) || !w["dhcp"].is<bool>())

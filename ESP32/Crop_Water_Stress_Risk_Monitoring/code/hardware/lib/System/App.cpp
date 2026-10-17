@@ -35,7 +35,6 @@ void App::begin() {
                      [this](const HttpRequest &r) { return http(r); });
     previousPortal = portal.open();
     lastSample = millis() - config.data["sample_s"].as<uint32_t>() * 1000 + 2500;
-    lastHealth = millis();
     indicators.beep(100, config.data.as<JsonVariantConst>());
     event("boot");
     event(portal.open() ? "provisioning_open" : "commissioning_required");
@@ -118,6 +117,18 @@ void App::capabilities(JsonDocument &d) {
     c["max_message_bytes"] = MaxMessage;
     c["max_history_records_per_response"] = 1;
 }
+void App::dashboardConfiguration(JsonObject o) const {
+    // This is the complete cloud-facing configuration contract. Connection credentials,
+    // calibration data and local-peripheral settings remain on the authenticated local portal.
+    o["revision"] = config.revision();
+    o["upload_s"] = config.data["upload_s"];
+    auto led = o.createNestedObject("led");
+    led["enabled"] = config.data["led"]["enabled"];
+    auto buzzer = o.createNestedObject("buzzer");
+    buzzer["enabled"] = config.data["buzzer"]["enabled"];
+    auto storage = o.createNestedObject("storage");
+    storage["retain"] = config.data["storage"]["retain"];
+}
 void App::event(const char *code) {
     diagnostics.log(code);
     DynamicJsonDocument d(1024);
@@ -143,6 +154,12 @@ bool App::apply(JsonDocument &candidate, bool cal, String &error) {
     }
     display.configure(config.data.as<JsonVariantConst>());
     event(cal ? "calibration_changed" : "configuration_changed");
+    if (network.online()) {
+        DynamicJsonDocument dashboardConfig(768);
+        envelope(dashboardConfig, "configuration");
+        dashboardConfiguration(dashboardConfig.createNestedObject("configuration"));
+        publishDocument("configuration", dashboardConfig, true);
+    }
     return true;
 }
 bool App::startTrial(JsonDocument &candidate, const String &kind, bool save,
@@ -345,10 +362,29 @@ void App::loop() {
     if (sensors.takeReady()) {
         readings.clear();
         sensors.readings(readings.to<JsonObject>(), config.data.as<JsonVariantConst>(), now);
-        DynamicJsonDocument d(12288);
-        status(d);
-        d["message_type"] = "telemetry";
-        d["measurements"] = readings;
+        // Publish only the readings consumed by the dashboard and risk engine. Diagnostic ADC
+        // values, Wi-Fi details, storage counters and local configuration remain on-device.
+        DynamicJsonDocument d(2048);
+        envelope(d, "telemetry");
+        d["firmware_version"] = CWS_VERSION;
+        d["hardware_model"] = "ESP32-WROOM-32U";
+        d["configuration_revision"] = config.revision();
+        auto source = readings.as<JsonObjectConst>();
+        auto measurements = d.createNestedObject("measurements");
+        auto environment = measurements.createNestedObject("environment");
+        environment["valid"] = source["environment"]["valid"];
+        environment["temperature_c"] = source["environment"]["temperature_c"];
+        environment["humidity_pct"] = source["environment"]["humidity_pct"];
+        auto soil = measurements.createNestedObject("soil");
+        soil["valid"] = source["soil"]["valid"];
+        soil["relative_moisture_pct"] = source["soil"]["relative_moisture_pct"];
+        auto battery = measurements.createNestedObject("battery");
+        battery["valid"] = source["battery"]["valid"];
+        battery["voltage_v"] = source["battery"]["voltage_v"];
+        battery["critical"] = source["battery"]["critical"];
+        auto solar = measurements.createNestedObject("solar");
+        solar["valid"] = source["solar"]["valid"];
+        solar["voltage_v"] = source["solar"]["voltage_v"];
         lastTelemetry = "";
         serializeJson(d, lastTelemetry);
         bool stored = !d.overflowed() && storage.append(lastTelemetry, d["message_id"].as<String>(),
@@ -383,13 +419,9 @@ void App::loop() {
         previousOnline = network.online();
         event(previousOnline ? "mqtt_connected" : "mqtt_disconnected");
         if (previousOnline) {
-            DynamicJsonDocument c(8192);
-            capabilities(c);
-            publishDocument("capabilities", c, true);
-            DynamicJsonDocument clean(10000);
-            sanitized(config.data.as<JsonVariantConst>(), clean);
+            DynamicJsonDocument c(768);
             envelope(c, "configuration");
-            c["configuration"] = clean;
+            dashboardConfiguration(c.createNestedObject("configuration"));
             publishDocument("configuration", c, true);
             publishNow();
         }
@@ -411,13 +443,6 @@ void App::loop() {
             }
         } else
             syncing = false;
-    }
-    if (network.online() &&
-        elapsed(now, lastHealth, config.data["health_s"].as<uint32_t>() * 1000)) {
-        lastHealth = now;
-        DynamicJsonDocument d(8192);
-        status(d);
-        publishDocument("status", d, true);
     }
     updateFaults(now);
     const char *state = diagnostics.critical()  ? "fault"

@@ -4,6 +4,7 @@
 namespace host {
 inline std::map<std::string, std::vector<uint8_t>> files;
 inline bool failRename = false;
+inline bool failRemove = false;
 inline bool failWrite = false;
 inline bool mountable = true;
 } // namespace host
@@ -79,6 +80,10 @@ class HostFS {
         return host::files.count(p) > 0;
     }
     bool remove(const String &p) {
+        if (host::failRemove) {
+            host::failRemove = false;
+            return false;
+        }
         return host::files.erase(p) > 0;
     }
     bool rename(const String &from, const String &to) {

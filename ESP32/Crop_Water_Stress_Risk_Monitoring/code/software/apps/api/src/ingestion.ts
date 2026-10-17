@@ -1,13 +1,16 @@
 import type { PrismaClient } from '@prisma/client';
-import { calculateRisk, type CropRiskThresholds } from './risk.js';
+import { EventEmitter } from 'node:events';
+import { calculateRisk, DEVICE_BASELINE_RISK_THRESHOLDS, type CropRiskThresholds } from './risk.js';
 import { ContractValidator, deviceTime, parseDeviceTopic, type DeviceMessageKind } from './contracts.js';
+
+export const telemetryEvents = new EventEmitter();
 
 export class IngestionService {
   constructor(private db: PrismaClient, private contracts: ContractValidator) {}
   async ingest(topic: string, raw: Buffer): Promise<{ deviceId: string; messageId: string; duplicate: boolean } | undefined> {
     const route = parseDeviceTopic(topic); if (!route) return undefined;
     let payload: any; try { payload = JSON.parse(raw.toString('utf8')); } catch { throw new Error('invalid_json'); }
-    const expectedMessageType: Record<DeviceMessageKind, string> = { telemetry: 'telemetry', status: 'status', events: 'event', command_responses: 'command_response', configuration: 'configuration', capabilities: 'capabilities' };
+    const expectedMessageType: Record<DeviceMessageKind, string> = { telemetry: 'telemetry', events: 'event', command_responses: 'command_response', configuration: 'configuration' };
     if (payload.device_id !== route.deviceId || payload.message_type !== expectedMessageType[route.kind]) throw new Error('topic_envelope_mismatch');
     const errors = this.contracts.validate(route.kind, payload); if (errors.length) throw new Error(`schema_invalid: ${errors.join('; ')}`);
     const existing = await this.db.rawMessage.findUnique({ where: { messageId: payload.message_id } });
@@ -22,18 +25,22 @@ export class IngestionService {
         const m = payload.measurements;
         const record = await tx.telemetry.create({ data: { messageId: payload.message_id, deviceId: route.deviceId, sampledAt: deviceTime(payload), temperatureC: m.environment.temperature_c, humidityPct: m.environment.humidity_pct, relativeMoisturePct: m.soil.relative_moisture_pct, batteryV: m.battery.voltage_v, solarV: m.solar.voltage_v, valid: { soil: m.soil.valid, environment: m.environment.valid, battery: m.battery.valid, solar: m.solar.valid }, raw: payload } });
         const profile = device.plot?.cropProfile;
-        const limits = validThresholds(profile?.thresholds) ? profile.thresholds : undefined;
-        const risk = calculateRisk({ temperatureC: record.temperatureC, humidityPct: record.humidityPct, relativeMoisturePct: record.relativeMoisturePct, batteryV: record.batteryV, soilValid: m.soil.valid, environmentValid: m.environment.valid, sampledAt: record.sampledAt, ingestedAt: record.ingestedAt, batteryCritical: m.battery.critical, faults: payload.health.active_faults }, limits);
-        if (profile) risk.factors.unshift(`Crop profile: ${profile.name}.`);
+        const cropThresholds = profile?.thresholds;
+        const hasCropProfile = validThresholds(cropThresholds);
+        const limits: CropRiskThresholds = hasCropProfile ? cropThresholds : DEVICE_BASELINE_RISK_THRESHOLDS;
+        const risk = calculateRisk({ temperatureC: record.temperatureC, humidityPct: record.humidityPct, relativeMoisturePct: record.relativeMoisturePct, batteryV: record.batteryV, soilValid: m.soil.valid, environmentValid: m.environment.valid, sampledAt: record.sampledAt, ingestedAt: record.ingestedAt, batteryCritical: m.battery.critical }, limits);
+        if (hasCropProfile && profile) risk.factors.unshift(`Crop profile: ${profile.name}.`);
+        else risk.factors.unshift('Device baseline: calibrated soil moisture, air temperature, and humidity.');
         const assessment = await tx.riskAssessment.create({ data: { deviceId: route.deviceId, telemetryId: record.id, level: risk.level, ruleVersion: risk.ruleVersion, factors: risk.factors, explanation: risk.explanation } });
         if (risk.level === 'HIGH' || risk.level === 'CRITICAL') {
           const existingAlert = await tx.alert.findFirst({ where: { deviceId: route.deviceId, status: { in: ['OPEN', 'ACKNOWLEDGED'] }, severity: risk.level }, orderBy: { createdAt: 'desc' } });
-          if (!existingAlert) await tx.alert.create({ data: { organizationId: device.organizationId, deviceId: route.deviceId, riskAssessmentId: assessment.id, title: `Water-stress risk: ${risk.level.toLowerCase()}`, severity: risk.level, detail: risk.explanation } });
+          if (!existingAlert) await tx.alert.create({ data: { organizationId: device.organizationId, deviceId: route.deviceId, riskAssessmentId: assessment.id, title: `Water stress risk: ${risk.level.toLowerCase()}`, severity: risk.level, detail: risk.explanation } });
         }
       } else if (route.kind === 'events') await tx.deviceEvent.create({ data: { messageId: payload.message_id, deviceId: route.deviceId, code: payload.code, payload, occurredAt: deviceTime(payload) } });
       else if (route.kind === 'command_responses') await tx.command.updateMany({ where: { requestId: payload.request_id, deviceId: route.deviceId }, data: { status: payload.status.toUpperCase(), response: payload } });
       else await tx.deviceSnapshot.upsert({ where: { deviceId_kind: { deviceId: route.deviceId, kind: route.kind } }, create: { deviceId: route.deviceId, kind: route.kind, payload }, update: { payload, receivedAt } });
     });
+    if (route.kind === 'telemetry') telemetryEvents.emit('telemetry', route.deviceId);
     return { deviceId: route.deviceId, messageId: payload.message_id, duplicate: false };
   }
 }

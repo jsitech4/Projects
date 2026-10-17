@@ -11,6 +11,7 @@ static void reset() {
     Preferences::reset();
     host::files.clear();
     host::failRename = false;
+    host::failRemove = false;
     host::failWrite = false;
     host::mountable = true;
 }
@@ -133,12 +134,11 @@ static void queue_survives_restart_and_ack() {
     assert(reboot.pendingAfter(0, json, cursor));
     assert(json == record("record-1"));
     assert(reboot.acknowledge("record-1"));
+    assert(host::files.empty());
     Storage again;
     assert(again.begin());
     assert(again.pending() == 0);
     assert(!again.acknowledge("unknown"));
-    assert(again.purgeAcknowledged());
-    assert(host::files.empty());
 }
 static void queue_interrupted_write() {
     reset();
@@ -204,12 +204,12 @@ static void cursor_not_reused_after_purge() {
     assert(reboot.pendingAfter(prior, json, later));
     assert(later > prior);
 }
-static void ack_rename_failure_does_not_deliver() {
+static void ack_delete_failure_does_not_deliver() {
     reset();
     Storage s;
     assert(s.begin());
     assert(s.append(record("record"), "record", 8, false));
-    host::failRename = true;
+    host::failRemove = true;
     assert(!s.acknowledge("record"));
     Storage reboot;
     assert(reboot.begin());
@@ -228,6 +228,6 @@ int main() {
     queue_crc_corruption_preserved();
     queue_retention_protects_pending();
     cursor_not_reused_after_purge();
-    ack_rename_failure_does_not_deliver();
+    ack_delete_failure_does_not_deliver();
     std::cout << "13 production persistence fault-injection tests passed\n";
 }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crop Water Stress Monitor</title><link rel="stylesheet" href="/styles.css"><script src="/app.js" defer></script></head>
 <body>
-<header><div class="brand"><strong>Crop Water Stress Monitor</strong></div><div class="timer"><span>Setup window</span><strong id="countdown">Connecting…</strong></div></header>
+<header><div class="brand"><span class="brand-kicker">LOCAL DEVICE PORTAL</span><strong>Crop Water Stress Monitor</strong></div><div class="timer"><span>Setup window</span><strong id="countdown">Connecting…</strong></div></header>
 <main>
 <div id="message" role="status" aria-live="polite" hidden></div>
 <section id="login-panel" class="card narrow"><p class="eyebrow">DEVICE SETUP</p><h1>Sign in to set up your monitor</h1><p>Connect this device to your router and MQTT server using your assigned device password.</p><form id="login-form"><label for="login-password">Password</label><input id="login-password" type="password" name="password" required maxlength="96" autocomplete="current-password"><p class="hint">The setup-network password is a separate credential.</p><button type="submit">Sign in</button></form><p class="hint">The setup window closes five minutes after startup. Restart the monitor to open a new window.</p></section>

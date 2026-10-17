@@ -4,13 +4,128 @@ import { useEffect, useState } from "react";
 import "./devices.css";
 
 const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-type Device = { id: string; displayName?: string; lastSeenAt?: string; telemetry: { relativeMoisturePct?: number; temperatureC?: number; humidityPct?: number; batteryV?: number }[]; risks: { level: string; explanation?: string }[] };
-function reading(value: number | undefined, suffix: string, places = 0) { return Number.isFinite(value) ? `${value!.toFixed(places)}${suffix}` : "—"; }
+type Device = {
+  id: string;
+  displayName?: string;
+  lastSeenAt?: string;
+  telemetry: {
+    relativeMoisturePct?: number;
+    temperatureC?: number;
+    humidityPct?: number;
+    batteryV?: number;
+  }[];
+  risks: { level: string; explanation?: string }[];
+};
+function reading(value: number | undefined, suffix: string, places = 0) {
+  return Number.isFinite(value) ? `${value!.toFixed(places)}${suffix}` : "—";
+}
 
 export default function Devices() {
   const [device, setDevice] = useState<Device>();
   const [error, setError] = useState("");
-  useEffect(() => { fetch(`${api}/devices`, { credentials: "include" }).then(async (response) => { if (!response.ok) throw new Error(response.status === 401 ? "Please sign in to access the monitor." : "The monitor could not be loaded."); const devices: Device[] = await response.json(); if (!devices[0]) throw new Error("No monitor has been registered yet."); const deviceResponse = await fetch(`${api}/devices/${devices[0].id}`, { credentials: "include" }); if (!deviceResponse.ok) throw new Error("The monitor readings could not be loaded."); setDevice(await deviceResponse.json()); }).catch((reason: Error) => setError(reason.message)); }, []);
-  const latest = device?.telemetry?.[0]; const risk = device?.risks?.[0]; const hasRiskAssessment = Boolean(risk && risk.level !== "UNKNOWN"); const online = Boolean(device?.lastSeenAt && Date.now() - new Date(device.lastSeenAt).getTime() < 600_000);
-  return <main className="fleet-page single-monitor-page"><a className="fleet-brand" href="/">Crop Water<br />Monitor</a><p className="eyebrow">Crop Water-Stress Risk Monitoring</p><h1>Your monitoring device</h1><p className="fleet-subtitle">Live conditions from your Crop Water Stress Risk Monitoring Device.</p>{error && <p className="error">{error}{error.startsWith("Please sign in") && <> <a href="/login">Sign in</a></>}</p>}{!device && !error && <p className="monitor-loading">Loading device readings…</p>}{device && <section className="single-monitor-card"><header className="single-monitor-heading"><div><span className="monitor-kicker">Connected monitor</span><h2>{device.displayName ?? "Crop Water Stress Risk Monitoring Device"}</h2><small>Device ID: {device.id}</small></div><span className={`monitor-state ${online ? "online" : "delayed"}`}><i />{online ? "Connected" : "Connection delayed"}</span></header><div className="single-monitor-readings"><article><span>Relative soil moisture</span><strong>{reading(latest?.relativeMoisturePct, "%")}</strong><small>Calibrated relative index</small></article><article><span>Air temperature</span><strong>{reading(latest?.temperatureC, "°C", 1)}</strong><small>Humidity {reading(latest?.humidityPct, "%")}</small></article><article><span>Battery voltage</span><strong>{reading(latest?.batteryV, " V", 2)}</strong><small>{device.lastSeenAt ? `Updated ${new Date(device.lastSeenAt).toLocaleString()}` : "No transmission received"}</small></article><article className={`monitor-risk ${risk?.level ?? "UNKNOWN"}`}><span>Water-stress risk</span><strong>{risk?.level ?? "UNKNOWN"}</strong><small>{hasRiskAssessment ? "Assessment calculated from the latest validated sensor readings." : "A crop profile with validated thresholds is required for assessment."}</small></article></div><a className="open-monitor" href={`/devices/${device.id}`}>Open live monitor <span>→</span></a></section>}</main>;
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    fetch(`${api}/devices`, { credentials: "include" })
+      .then(async (response) => {
+        if (!response.ok)
+          throw new Error(
+            response.status === 401
+              ? "Please sign in to access the monitor."
+              : "The monitor could not be loaded.",
+          );
+        const devices: Device[] = await response.json();
+        if (!devices[0]) throw new Error("No monitor has been registered yet.");
+        const deviceResponse = await fetch(`${api}/devices/${devices[0].id}`, {
+          credentials: "include",
+        });
+        if (!deviceResponse.ok)
+          throw new Error("The monitor readings could not be loaded.");
+        setDevice(await deviceResponse.json());
+      })
+      .catch((reason: Error) => setError(reason.message));
+  }, []);
+  useEffect(() => {
+    const clock = window.setInterval(() => setNow(Date.now()), 1_000);
+    return () => window.clearInterval(clock);
+  }, []);
+  const latest = device?.telemetry?.[0];
+  const risk = device?.risks?.[0];
+  const hasRiskAssessment = Boolean(risk && risk.level !== "UNKNOWN");
+  const online = Boolean(
+    device?.lastSeenAt &&
+    now - new Date(device.lastSeenAt).getTime() < 45_000,
+  );
+  return (
+    <main className="fleet-page single-monitor-page">
+      <a className="fleet-brand" href="/">
+        Crop Water Stress Monitor
+      </a>
+      <h1>Your monitoring device</h1>
+      <p className="fleet-subtitle">
+        Live conditions from your Crop Water Stress Monitor.
+      </p>
+      {error && (
+        <p className="error">
+          {error}
+          {error.startsWith("Please sign in") && (
+            <>
+              {" "}
+              <a href="/login">Sign in</a>
+            </>
+          )}
+        </p>
+      )}
+      {!device && !error && (
+        <p className="monitor-loading">Loading device readings…</p>
+      )}
+      {device && (
+        <section className="single-monitor-card">
+          <header className="single-monitor-heading">
+            <div>
+              <span className="monitor-kicker">Connected monitor</span>
+              <h2>{device.displayName ?? "Crop Water Stress Monitor"}</h2>
+              <small>Device ID: {device.id}</small>
+            </div>
+            <span className={`monitor-state ${online ? "online" : "delayed"}`}>
+              <i />
+              {online ? "Connected" : "Connection delayed"}
+            </span>
+          </header>
+          <div className="single-monitor-readings">
+            <article>
+              <span>Relative soil moisture</span>
+              <strong>{reading(latest?.relativeMoisturePct, "%")}</strong>
+              <small>Calibrated relative index</small>
+            </article>
+            <article>
+              <span>Air temperature</span>
+              <strong>{reading(latest?.temperatureC, "°C", 1)}</strong>
+              <small>Humidity {reading(latest?.humidityPct, "%")}</small>
+            </article>
+            <article>
+              <span>Battery voltage</span>
+              <strong>{reading(latest?.batteryV, " V", 2)}</strong>
+              <small>
+                {device.lastSeenAt
+                  ? `Updated ${new Date(device.lastSeenAt).toLocaleString()}`
+                  : "No transmission received"}
+              </small>
+            </article>
+            <article className={`monitor-risk ${risk?.level ?? "UNKNOWN"}`}>
+              <span>Water stress risk</span>
+              <strong>{risk?.level ?? "UNKNOWN"}</strong>
+              <small>
+                {hasRiskAssessment
+                  ? "Assessment calculated from the latest validated sensor readings."
+                  : "A crop profile with validated thresholds is required for assessment."}
+              </small>
+            </article>
+          </div>
+          <a className="open-monitor" href={`/devices/${device.id}`}>
+            Open live monitor <span>→</span>
+          </a>
+        </section>
+      )}
+    </main>
+  );
 }
